@@ -6,7 +6,7 @@ import {
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-const RoadmapContent = ({ roadmap, objective, finalGoal, saveCurrentRoadmap, downloadMarkdown, exportToPDF, handleCopyCode, handlePrint, toggleMiniGoal, calculateOverallProgress, setRoadmap }) => {
+const RoadmapContent = ({ roadmap, objective, finalGoal, saveCurrentRoadmap, downloadMarkdown, exportToPDF, handleCopyCode, handlePrint, toggleMiniGoal, calculateOverallProgress, setRoadmap, loading, loadingMessage, interruptGeneration, generateRoadmap, error }) => {
   const [expandedPhases, setExpandedPhases] = useState({});
   const roadmapRef = useRef(null);
 

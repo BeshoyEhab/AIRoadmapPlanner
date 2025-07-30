@@ -64,7 +64,7 @@ const CreateRoadmapTab = ({
             <button
               onClick={handleGenerate}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || !objective || !finalGoal || isResumable}
+              disabled={loading || !objective || !finalGoal}
             >
               {loading ? (
                 <>
@@ -76,30 +76,14 @@ const CreateRoadmapTab = ({
                 </>
               )}
             </button>
-            {isResumable && !loading && (
-              <button
-                onClick={handleResume}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center"
-              >
-                <Play className="mr-3" size={20} /> Resume Generation
-              </button>
-            )}
           </div>
-          {loading && (
-            <button
-              onClick={interruptGeneration}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center justify-center mt-4"
-            >
-              <Pause className="mr-3" size={20} /> Interrupt
-            </button>
+          {error && (
+            <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg flex items-center">
+              <AlertCircle className="mr-3" size={20} />
+              {error}
+            </div>
           )}
         </div>
-        {error && (
-          <div className="mt-6 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg flex items-center">
-            <AlertCircle className="mr-3" size={20} />
-            {error}
-          </div>
-        )}
       </div>
     </div>
   );

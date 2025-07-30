@@ -109,25 +109,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     }
   };
 
-  useEffect(() => {
-    const savedRoadmap = localStorage.getItem('currentRoadmap');
-    if (savedRoadmap) {
-      try {
-        const parsedRoadmap = JSON.parse(savedRoadmap);
-        if (typeof parsedRoadmap === 'object' && parsedRoadmap !== null &&
-            parsedRoadmap.generationState === 'in-progress' &&
-            Array.isArray(parsedRoadmap.phases)) {
-          console.log("Found an in-progress roadmap in local storage:", parsedRoadmap);
-          setRoadmap(parsedRoadmap);
-          setObjective(parsedRoadmap.objective || '');
-          setFinalGoal(parsedRoadmap.finalGoal || '');
-        }
-      } catch (e) {
-        console.error("Error parsing roadmap from local storage, clearing it:", e);
-        localStorage.removeItem('currentRoadmap');
-      }
-    }
-  }, []);
+  
 
   useEffect(() => {
     if (roadmap) {

@@ -1,8 +1,8 @@
 import React from 'react';
 import { X, Sun, Moon, Maximize, Minimize } from 'lucide-react';
 
-const Sidebar = ({ isSidebarOpen, toggleSidebar, activeTab, setActiveTab, theme, toggleTheme, fullScreenMode, toggleFullScreen, savedTimeplans, loadRoadmap, deleteRoadmap }) => (
-  <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:hidden shadow-lg`}>
+const Sidebar = ({ isSidebarOpen, toggleSidebar, activeTab, setActiveTab, theme, toggleTheme, fullScreenMode, toggleFullScreen, savedTimeplans, loadRoadmap, deleteRoadmap, sidebarRef }) => (
+  <div ref={sidebarRef} className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:hidden shadow-lg`}>
     <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
       <h2 className="text-xl font-bold text-gray-800 dark:text-white">Menu</h2>
       <button onClick={toggleSidebar} className="text-gray-600 dark:text-gray-300">

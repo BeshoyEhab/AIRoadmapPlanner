@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useRoadmap from './hooks/useRoadmap';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -25,6 +25,19 @@ const App = () => {
   });
   const [fullScreenMode, setFullScreenMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sidebarRef]);
   const [activeTab, setActiveTab] = useState('create');
   const [apiKeyStatus, setApiKeyStatus] = useState('checking');
 
@@ -410,6 +423,11 @@ const App = () => {
           toggleMiniGoal={toggleMiniGoal}
           calculateOverallProgress={calculateOverallProgress}
           setRoadmap={setRoadmap}
+          loading={loading}
+          loadingMessage={loadingMessage}
+          interruptGeneration={interruptGeneration}
+          generateRoadmap={generateRoadmap}
+          error={error}
         />;
       case 'saved':
         return <SavedPlansTab
@@ -461,6 +479,7 @@ const App = () => {
         savedTimeplans={savedTimeplans}
         loadRoadmap={loadRoadmap}
         deleteRoadmap={deleteRoadmap}
+        sidebarRef={sidebarRef}
       />
       <main className={`flex-1 container mx-auto px-4 py-6 transition-opacity duration-300 ${isSidebarOpen && 'lg:opacity-100 lg:pointer-events-auto opacity-50 pointer-events-none'}`}>
         {apiKeyStatus === 'checking' && <div className="text-center p-8">Loading...</div>}

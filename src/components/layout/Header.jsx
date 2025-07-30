@@ -84,7 +84,7 @@ const Header = ({ toggleSidebar, activeTab, setActiveTab, theme, toggleTheme, fu
             <SheetHeader>
               <SheetTitle>Settings</SheetTitle>
             </SheetHeader>
-            <Settings onSave={handleSave} />
+            <Settings onSave={handleSave} theme={theme} toggleTheme={toggleTheme} />
           </SheetContent>
         </Sheet>
       </div>
