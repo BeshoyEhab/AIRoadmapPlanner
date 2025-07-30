@@ -38,6 +38,7 @@ const App = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [sidebarRef]);
+
   const [activeTab, setActiveTab] = useState('create');
   const [apiKeyStatus, setApiKeyStatus] = useState('checking');
 
@@ -85,12 +86,22 @@ const App = () => {
     handleDeleteConfirm,
   } = useRoadmap({ setActiveTab });
 
+  // Enhanced theme effect with proper document class management
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    
+    // Apply theme to document root
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    
+    // Set theme attribute for additional styling hooks
+    root.setAttribute('data-theme', theme);
+    
+    // Update meta theme-color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#1a1a1a' : '#ffffff');
     }
   }, [theme]);
 
@@ -121,227 +132,141 @@ const App = () => {
   const downloadMarkdown = () => {
     if (!roadmap) return;
 
-    let markdown = `# ${roadmap.title}
-
-`;
-    markdown += `**Total Duration:** ${roadmap.totalDuration}
-`;
-    markdown += `**Difficulty Level:** ${roadmap.difficultyLevel || 'Not specified'}
-`;
-    markdown += `**Total Estimated Hours:** ${roadmap.totalEstimatedHours || 'Not specified'}
-`;
-    markdown += `**Number of Phases:** ${roadmap.phases?.length}
-
-`;
-    markdown += `**Learning Objective:** ${objective}
-`;
-    markdown += `**Final Goal:** ${finalGoal}
-
-`;
-    markdown += `---
-
-`;
+    let markdown = `# ${roadmap.title}\n\n`;
+    markdown += `**Total Duration:** ${roadmap.totalDuration}\n`;
+    markdown += `**Difficulty Level:** ${roadmap.difficultyLevel || 'Not specified'}\n`;
+    markdown += `**Total Estimated Hours:** ${roadmap.totalEstimatedHours || 'Not specified'}\n`;
+    markdown += `**Number of Phases:** ${roadmap.phases?.length}\n\n`;
+    markdown += `**Learning Objective:** ${objective}\n`;
+    markdown += `**Final Goal:** ${finalGoal}\n\n`;
+    markdown += `---\n\n`;
 
     roadmap.phases.forEach((phase) => {
-      markdown += `## Phase ${phase.phaseNumber}: ${phase.title}
-
-`;
-      markdown += `**Duration:** ${phase.duration}
-`;
-      markdown += `**Goal:** ${phase.goal}
-`;
+      markdown += `## Phase ${phase.phaseNumber}: ${phase.title}\n\n`;
+      markdown += `**Duration:** ${phase.duration}\n`;
+      markdown += `**Goal:** ${phase.goal}\n`;
       
       if (phase.progressPercentage !== undefined) {
-        markdown += `**Progress:** ${phase.progressPercentage}%
-`;
+        markdown += `**Progress:** ${phase.progressPercentage}%\n`;
       }
-      markdown += `
-`;
+      markdown += `\n`;
 
       if (phase.miniGoals && phase.miniGoals.length > 0) {
-        markdown += `### Mini-Goals
-
-`;
+        markdown += `### Mini-Goals\n\n`;
         phase.miniGoals.forEach((miniGoal, mgIndex) => {
           const status = miniGoal.completed ? '✅' : '⬜';
-          markdown += `${mgIndex + 1}. ${status} **${miniGoal.title}** (${miniGoal.estimatedTime})
-`;
-          markdown += `   - ${miniGoal.description}
-`;
+          markdown += `${mgIndex + 1}. ${status} **${miniGoal.title}** (${miniGoal.estimatedTime})\n`;
+          markdown += `   - ${miniGoal.description}\n`;
           if (miniGoal.url) {
-            markdown += `   - Link: [${miniGoal.url}](${miniGoal.url})
-`;
+            markdown += `   - Link: [${miniGoal.url}](${miniGoal.url})\n`;
           }
           if (miniGoal.priority) {
-            markdown += `   - Priority: ${miniGoal.priority}
-`;
+            markdown += `   - Priority: ${miniGoal.priority}\n`;
           }
           if (miniGoal.completedDate) {
-            markdown += `   - Completed: ${new Date(miniGoal.completedDate).toLocaleDateString()}
-`;
+            markdown += `   - Completed: ${new Date(miniGoal.completedDate).toLocaleDateString()}\n`;
           }
-          markdown += `
-`;
+          markdown += `\n`;
         });
       }
 
-      markdown += `### Resources
-
-`;
+      markdown += `### Resources\n\n`;
       phase.resources.forEach((resource, resIndex) => {
         markdown += `${resIndex + 1}. **${resource.name}**`;
         if (resource.type) markdown += ` (${resource.type})`;
-        markdown += `
-`;
+        markdown += `\n`;
         if (resource.url) {
-          markdown += `   - Link: [${resource.url}](${resource.url})
-`;
+          markdown += `   - Link: [${resource.url}](${resource.url})\n`;
         }
-        markdown += `   - Description: ${resource.description}
-`;
+        markdown += `   - Description: ${resource.description}\n`;
         if (resource.difficulty) {
-          markdown += `   - Difficulty: ${resource.difficulty}
-`;
+          markdown += `   - Difficulty: ${resource.difficulty}\n`;
         }
         if (resource.estimatedTime) {
-          markdown += `   - Time: ${resource.estimatedTime}
-`;
+          markdown += `   - Time: ${resource.estimatedTime}\n`;
         }
-        markdown += `
-`;
+        markdown += `\n`;
       });
 
-      markdown += `### Phase Project
-
-`;
+      markdown += `### Phase Project\n\n`;
       if (typeof phase.project === 'object') {
-        markdown += `**${phase.project.title}**
-
-`;
-        markdown += `${phase.project.description}
-
-`;
+        markdown += `**${phase.project.title}**\n\n`;
+        markdown += `${phase.project.description}\n\n`;
         
         if (phase.project.deliverables) {
-          markdown += `**Deliverables:**
-`;
+          markdown += `**Deliverables:**\n`;
           phase.project.deliverables.forEach(deliverable => {
-            markdown += `- ${deliverable}
-`;
+            markdown += `- ${deliverable}\n`;
           });
-          markdown += `
-`;
+          markdown += `\n`;
         }
         
         if (phase.project.monetizationPotential) {
-          markdown += `**Monetization Potential:** ${phase.project.monetizationPotential}
-
-`;
+          markdown += `**Monetization Potential:** ${phase.project.monetizationPotential}\n\n`;
         }
       } else {
-        markdown += `${phase.project}
-
-`;
+        markdown += `${phase.project}\n\n`;
       }
 
       if (phase.milestone) {
-        markdown += `**Milestone:** ${phase.milestone}
-
-`;
+        markdown += `**Milestone:** ${phase.milestone}\n\n`;
       }
 
-      markdown += `### Skills You'll Gain
-
-`;
+      markdown += `### Skills You'll Gain\n\n`;
       phase.skills.forEach(skill => {
-        markdown += `- ${skill}
-`;
+        markdown += `- ${skill}\n`;
       });
-      markdown += `
----
-
-`;
+      markdown += `\n---\n\n`;
     });
 
     if (roadmap.motivationMilestones && roadmap.motivationMilestones.length > 0) {
-      markdown += `## 🎯 Motivation Milestones
-
-`;
+      markdown += `## 🎯 Motivation Milestones\n\n`;
       roadmap.motivationMilestones.forEach(milestone => {
-        markdown += `- ${milestone}
-`;
+        markdown += `- ${milestone}\n`;
       });
-      markdown += `
-`;
+      markdown += `\n`;
     }
 
     if (roadmap.careerProgression && roadmap.careerProgression.length > 0) {
-      markdown += `## 🚀 Career Progression Path
-
-`;
+      markdown += `## 🚀 Career Progression Path\n\n`;
       roadmap.careerProgression.forEach((step, index) => {
-        markdown += `${index + 1}. ${step}
-`;
+        markdown += `${index + 1}. ${step}\n`;
       });
-      markdown += `
-`;
+      markdown += `\n`;
     }
 
     if (roadmap.careerOutcomes && roadmap.careerOutcomes.length > 0) {
-      markdown += `## 💼 Career Opportunities
-
-`;
-      markdown += `| Role | Salary Range |
-|---|---|
-`;
+      markdown += `## 💼 Career Opportunities\n\n`;
+      markdown += `| Role | Salary Range |\n|---|---|\n`;
       roadmap.careerOutcomes.forEach(outcome => {
-        markdown += `| ${outcome.role} | ${outcome.salary} |
-`; 
+        markdown += `| ${outcome.role} | ${outcome.salary} |\n`; 
       });
-      markdown += `
-`;
+      markdown += `\n`;
     }
 
     if (roadmap.tips && roadmap.tips.length > 0) {
-      markdown += `## 💡 Pro Tips
-
-`;
+      markdown += `## 💡 Pro Tips\n\n`;
       roadmap.tips.forEach(tip => {
-        markdown += `- ${tip}
-`;
+        markdown += `- ${tip}\n`;
       });
-      markdown += `
-`;
+      markdown += `\n`;
     }
     
     if (roadmap.marketDemand) {
-      markdown += `## 📈 Market Outlook
-
-`;
-      markdown += `${roadmap.marketDemand}
-
-`;
+      markdown += `## 📈 Market Outlook\n\n`;
+      markdown += `${roadmap.marketDemand}\n\n`;
     }
 
     if (roadmap.communityResources && roadmap.communityResources.length > 0) {
-      markdown += `## 🤝 Community & Networking Resources
-
-`;
+      markdown += `## 🤝 Community & Networking Resources\n\n`;
       roadmap.communityResources.forEach(resource => {
-        markdown += `- ${resource}
-`;
+        markdown += `- ${resource}\n`;
       });
-      markdown += `
-`;
+      markdown += `\n`;
     }
 
-
-    markdown += `
----
-
-`;
-    markdown += `*Generated by Enhanced AI Study Roadmap Planner*
-`;
+    markdown += `\n---\n\n`;
+    markdown += `*Generated by Enhanced AI Study Roadmap Planner*\n`;
     markdown += `*Created on: ${new Date().toLocaleDateString()}*`;
 
     const blob = new Blob([markdown], { type: 'text/markdown' });
@@ -357,40 +282,41 @@ const App = () => {
 
   const handleCopyCode = () => {
     if (roadmap) {
-      const messageBox = document.createElement('div');
-      messageBox.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';
-      messageBox.innerHTML = `
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center">
-          <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Roadmap JSON copied to clipboard!</p>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="this.parentNode.parentNode.remove()">OK</button>
-        </div>
-      `;
-      document.body.appendChild(messageBox);
-
       navigator.clipboard.writeText(JSON.stringify(roadmap, null, 2))
-        .catch(err => {
-          console.error('Failed to copy JSON: ', err);
+        .then(() => {
+          // Create a themed notification
+          const messageBox = document.createElement('div');
+          messageBox.className = 'fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 animate-in fade-in duration-200';
           messageBox.innerHTML = `
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl text-center">
-              <p class="text-lg font-semibold text-red-600 mb-4">Failed to copy JSON: ${err.message}</p>
-              <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="this.parentNode.parentNode.remove()">OK</button>
+            <div class="bg-card text-card-foreground border border-border p-6 rounded-lg shadow-theme-lg text-center max-w-sm mx-4">
+              <p class="text-lg font-semibold mb-4">Roadmap JSON copied to clipboard!</p>
+              <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors" onclick="this.parentNode.parentNode.remove()">OK</button>
             </div>
           `;
+          document.body.appendChild(messageBox);
+        })
+        .catch(err => {
+          console.error('Failed to copy JSON: ', err);
+          const messageBox = document.createElement('div');
+          messageBox.className = 'fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50';
+          messageBox.innerHTML = `
+            <div class="bg-card text-card-foreground border border-border p-6 rounded-lg shadow-theme-lg text-center max-w-sm mx-4">
+              <p class="text-lg font-semibold text-destructive mb-4">Failed to copy JSON: ${err.message}</p>
+              <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors" onclick="this.parentNode.parentNode.remove()">OK</button>
+            </div>
+          `;
+          document.body.appendChild(messageBox);
         });
     }
   };
 
   const exportToPDF = async () => {
     if (!roadmap) return;
-    // PDF export logic remains, but we'll need to pass the roadmapRef to it.
-    // This will be handled within the ViewRoadmapTab component.
     console.log("Export to PDF from App.jsx");
   };
 
   const handlePrint = () => {
     if (!roadmap) return;
-    // Print logic remains, but we'll need to pass the roadmapRef to it.
-    // This will be handled within the ViewRoadmapTab component.
     console.log("Print from App.jsx");
   };
 
@@ -456,7 +382,7 @@ const App = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen flex flex-col themed-container transition-theme`}>
       <Header
         toggleSidebar={toggleSidebar}
         activeTab={activeTab}
@@ -481,12 +407,17 @@ const App = () => {
         deleteRoadmap={deleteRoadmap}
         sidebarRef={sidebarRef}
       />
-      <main className={`flex-1 container mx-auto px-4 py-6 transition-opacity duration-300 ${isSidebarOpen && 'lg:opacity-100 lg:pointer-events-auto opacity-50 pointer-events-none'}`}>
-        {apiKeyStatus === 'checking' && <div className="text-center p-8">Loading...</div>}
+      <main className={`flex-1 container mx-auto px-4 py-6 transition-theme ${isSidebarOpen && 'lg:opacity-100 lg:pointer-events-auto opacity-50 pointer-events-none'}`}>
+        {apiKeyStatus === 'checking' && (
+          <div className="text-center p-8">
+            <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        )}
         {apiKeyStatus === 'missing' && (
-          <div className="text-center p-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Welcome to AI Study Planner</h2>
-            <p className="mb-4">To get started, please provide a Gemini API key.</p>
+          <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Welcome to AI Study Planner</h2>
+            <p className="mb-4 text-muted-foreground">To get started, please provide a Gemini API key.</p>
             <p className="text-sm text-muted-foreground">
               Click the gear icon in the top-right corner to open the settings and add your key.
             </p>
@@ -496,7 +427,7 @@ const App = () => {
       </main>
 
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent>
+        <DialogContent className="modal-content">
           <DialogHeader>
             <DialogTitle>Save Timeplan</DialogTitle>
             <DialogDescription>
@@ -512,7 +443,7 @@ const App = () => {
                 id="roadmapName"
                 value={roadmapName}
                 onChange={(e) => setRoadmapName(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 input-themed"
               />
             </div>
           </div>
@@ -524,7 +455,7 @@ const App = () => {
       </Dialog>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="modal-content">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
