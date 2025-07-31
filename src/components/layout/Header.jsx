@@ -110,7 +110,7 @@ const Header = ({ toggleSidebar, activeTab, setActiveTab, theme, toggleTheme, fu
                 title="Settings"
               >
                 <SettingsIcon size={20} className="text-gray-600 dark:text-gray-300" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                
               </button>
             </SheetTrigger>
             <SheetOverlay className="bg-black/50 backdrop-blur-sm" />

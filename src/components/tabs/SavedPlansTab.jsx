@@ -171,13 +171,13 @@ const SavedPlansTab = ({
                       {timeplan.difficultyLevel}
                     </span>
                   )}
-                  {timeplan.generationState === 'in-progress' && (
+                  {timeplan.phases && timeplan.phases.length > 0 && timeplan.phases.some(p => p.progressPercentage < 100) && timeplan.generationState !== 'completed' && (
                     <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 
                                    text-xs font-medium rounded-full">
                       Incomplete
                     </span>
                   )}
-                  {timeplan.generationState === 'completed' && (
+                  {timeplan.phases && timeplan.phases.length > 0 && timeplan.phases.every(p => p.progressPercentage === 100) && timeplan.generationState === 'completed' && (
                     <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 
                                    text-xs font-medium rounded-full">
                       Complete

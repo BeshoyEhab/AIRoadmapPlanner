@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Brain, Play, Pause, Loader, Download, Save, Copy, Printer, AlertCircle } from 'lucide-react';
 import RoadmapContent from '../RoadmapContent';
 
@@ -10,6 +10,7 @@ const ViewRoadmapTab = ({
   saveCurrentRoadmap, 
   downloadMarkdown, 
   exportToPDF, 
+  exportToHTML, 
   handleCopyCode, 
   handlePrint, 
   toggleMiniGoal, 
@@ -21,6 +22,31 @@ const ViewRoadmapTab = ({
   generateRoadmap, 
   error 
 }) => {
+  const [exportFormat, setExportFormat] = useState('markdown');
+
+  useEffect(() => {
+    const savedExportFormat = localStorage.getItem('export-format');
+    if (savedExportFormat) {
+      setExportFormat(savedExportFormat);
+    }
+  }, []);
+
+  const handleExport = () => {
+    switch (exportFormat) {
+      case 'markdown':
+        downloadMarkdown();
+        break;
+      case 'pdf':
+        exportToPDF();
+        break;
+      case 'html':
+        exportToHTML();
+        break;
+      default:
+        downloadMarkdown();
+    }
+  };
+
   if (!roadmap) {
     return (
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -70,7 +96,7 @@ const ViewRoadmapTab = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             {/* Generation Controls */}
             <div className="flex items-center gap-3">
-              {roadmap && roadmap.generationState === 'in-progress' && !loading && (
+              {roadmap && roadmap.generationState === 'in-progress' && !loading && roadmap.phases.some(p => p.progressPercentage < 100) && (
                 <button
                   onClick={() => generateRoadmap(true, roadmap)}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 
@@ -120,14 +146,14 @@ const ViewRoadmapTab = ({
                 </button>
                 
                 <button
-                  onClick={downloadMarkdown}
+                  onClick={handleExport}
                   className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 
                            rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
                            transform hover:scale-105 flex items-center gap-2 text-sm"
-                  title="Download as Markdown"
+                  title={`Download as ${exportFormat.toUpperCase()}`}
                 >
                   <Download size={16} />
-                  <span className="hidden sm:inline">Export</span>
+                  <span className="hidden sm:inline">Export as {exportFormat.toUpperCase()}</span>
                 </button>
                 
                 <button

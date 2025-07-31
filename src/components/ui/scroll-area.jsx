@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 function ScrollArea({
   className,
   children,
+  forceShow,
   ...props
 }) {
   return (
@@ -17,7 +18,7 @@ function ScrollArea({
         className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1">
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
+      <ScrollBar forceShow={forceShow} />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   );
@@ -26,6 +27,7 @@ function ScrollArea({
 function ScrollBar({
   className,
   orientation = "vertical",
+  forceShow,
   ...props
 }) {
   return (
@@ -38,6 +40,7 @@ function ScrollBar({
           "h-full w-2.5 border-l border-l-transparent",
         orientation === "horizontal" &&
           "h-2.5 flex-col border-t border-t-transparent",
+        forceShow && "force-show-scrollbar",
         className
       )}
       {...props}>

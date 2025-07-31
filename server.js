@@ -19,6 +19,11 @@ const setup = async () => {
   }
 };
 
+// Function to sanitize filenames
+const sanitizeFilename = (name) => {
+  return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
+};
+
 app.get('/api/roadmaps', async (req, res) => {
   try {
     const files = await fs.readdir(savesDir);
@@ -40,20 +45,34 @@ app.get('/api/roadmaps', async (req, res) => {
 app.post('/api/roadmaps', async (req, res) => {
   try {
     const { roadmap, name } = req.body;
+    const sanitizedName = sanitizeFilename(name);
     const id = Date.now();
-    const newRoadmap = { ...roadmap, id, name };
-    const filePath = path.join(savesDir, `${id}.json`);
-    await fs.writeFile(filePath, JSON.stringify(newRoadmap, null, 2));
+    const newRoadmap = { ...roadmap, id, name, sanitizedName };
+    const filePath = path.join(savesDir, `${sanitizedName}.json`);
+
+    // Check if a file with the same sanitized name already exists
+    const files = await fs.readdir(savesDir);
+    const existingFile = files.find(file => file.toLowerCase() === `${sanitizedName}.json`.toLowerCase());
+
+    if (existingFile) {
+      // Overwrite the existing file
+      await fs.writeFile(path.join(savesDir, existingFile), JSON.stringify(newRoadmap, null, 2));
+    } else {
+      // Create a new file
+      await fs.writeFile(filePath, JSON.stringify(newRoadmap, null, 2));
+    }
+
     res.status(201).json(newRoadmap);
   } catch (_error) {
     res.status(500).json({ message: 'Error saving roadmap' });
   }
 });
 
-app.delete('/api/roadmaps/:id', async (req, res) => {
+app.delete('/api/roadmaps/:sanitizedName', async (req, res) => {
   try {
-    const { id } = req.params;
-    const filePath = path.join(savesDir, `${id}.json`);
+    const { sanitizedName } = req.params;
+    const filePath = path.join(savesDir, `${sanitizedName}.json`);
+
     await fs.unlink(filePath);
     res.status(204).send();
   } catch (_error) {
