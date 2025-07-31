@@ -42,7 +42,7 @@ const Sidebar = ({
       </button>
     </div>
 
-    <ScrollArea className="flex-1" forceShow>
+    <ScrollArea className="flex-1 h-full overflow-y-auto">
       <div className="p-4">
         {/* Navigation */}
         <nav className="space-y-2">
