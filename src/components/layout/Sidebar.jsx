@@ -204,13 +204,13 @@ const Sidebar = ({
                       <Calendar size={12} />
                       <span>{timeplan.phases?.length || 0} phases</span>
                     </div>
-                    {timeplan.generationState && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        timeplan.generationState === 'completed' 
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                          : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-                      }`}>
-                        {timeplan.generationState === 'completed' ? 'Complete' : 'In Progress'}
+                    {timeplan.generationState !== 'completed' ? (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200`}>
+                        {timeplan.difficultyLevel}
+                      </span>
+                    ) : (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200`}>
+                        Incomplete
                       </span>
                     )}
                   </div>
@@ -280,12 +280,12 @@ const Sidebar = ({
     </ScrollArea>
 
     {/* Footer */}
-    <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 flex-shrink-0">
+    <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 flex-shrink-0">
       <div className="text-center">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-600 dark:text-gray-300">
           AI Study Planner
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Powered by Gemini AI
         </p>
       </div>
