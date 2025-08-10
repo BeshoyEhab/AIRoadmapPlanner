@@ -1,45 +1,170 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Brain, Play, Pause, Loader, Download, Save, Copy, Printer, AlertCircle } from 'lucide-react';
-import RoadmapContent from '../RoadmapContent';
+import React, { useState, useEffect } from "react";
+import { Search, Brain, Download, Save, Copy, AlertCircle } from "lucide-react";
+import RoadmapContent from "../RoadmapContent";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import { saveAs } from "file-saver";
 
-const ViewRoadmapTab = ({ 
-  roadmap, 
-  setActiveTab, 
-  objective, 
-  finalGoal, 
-  saveCurrentRoadmap, 
-  downloadMarkdown, 
-  exportToPDF, 
-  exportToHTML, 
-  handleCopyCode, 
-  handlePrint, 
-  toggleMiniGoal, 
-  calculateOverallProgress, 
-  setRoadmap, 
-  loading, 
-  loadingMessage, 
-  interruptGeneration, 
-  generateRoadmap, 
-  error 
+const ViewRoadmapTab = ({
+  roadmap,
+  setActiveTab,
+  objective,
+  finalGoal,
+  saveCurrentRoadmap,
+  downloadMarkdown,
+
+  toggleMiniGoal,
+  calculateOverallProgress,
+  setRoadmap,
+  error,
 }) => {
-  const [exportFormat, setExportFormat] = useState('markdown');
+  const [exportFormat, setExportFormat] = useState("markdown");
 
   useEffect(() => {
-    const savedExportFormat = localStorage.getItem('export-format');
+    const savedExportFormat = localStorage.getItem("export-format");
     if (savedExportFormat) {
       setExportFormat(savedExportFormat);
     }
   }, []);
 
+  const exportToPDF = () => {
+    if (!roadmap) return;
+
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(20);
+    doc.text(roadmap.title || "Study Roadmap", 20, 20);
+
+    // Basic info
+    doc.setFontSize(12);
+    let yPosition = 40;
+
+    doc.text(
+      `Total Duration: ${roadmap.totalDuration || "Not specified"}`,
+      20,
+      yPosition,
+    );
+    yPosition += 10;
+    doc.text(
+      `Difficulty Level: ${roadmap.difficultyLevel || "Not specified"}`,
+      20,
+      yPosition,
+    );
+    yPosition += 10;
+    doc.text(`Total Phases: ${roadmap.phases?.length || 0}`, 20, yPosition);
+    yPosition += 20;
+
+    // Learning objective and goal
+    doc.text(`Learning Objective: ${objective}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Final Goal: ${finalGoal}`, 20, yPosition);
+    yPosition += 20;
+
+    // Phases
+    roadmap.phases?.forEach((phase) => {
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.text(`Phase ${phase.phaseNumber}: ${phase.title}`, 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(10);
+      doc.text(`Duration: ${phase.duration}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Goal: ${phase.goal}`, 20, yPosition);
+      yPosition += 15;
+    });
+
+    doc.save(
+      `${roadmap.title?.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_roadmap.pdf`,
+    );
+  };
+
+  const exportToHTML = () => {
+    if (!roadmap) return;
+
+    let html = `<!DOCTYPE html>
+<html>
+<head>
+    <title>${roadmap.title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #2563eb; }
+        h2 { color: #1e40af; margin-top: 30px; }
+        h3 { color: #3730a3; }
+        .phase { margin-bottom: 30px; padding: 20px; border-left: 4px solid #2563eb; background: #f8fafc; }
+        .info { background: #eff6ff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .skills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .skill { background: #2563eb; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>${roadmap.title}</h1>
+
+    <div class="info">
+        <strong>Total Duration:</strong> ${roadmap.totalDuration || "Not specified"}<br>
+        <strong>Difficulty Level:</strong> ${roadmap.difficultyLevel || "Not specified"}<br>
+        <strong>Total Phases:</strong> ${roadmap.phases?.length || 0}<br>
+        <strong>Learning Objective:</strong> ${objective}<br>
+        <strong>Final Goal:</strong> ${finalGoal}
+    </div>`;
+
+    roadmap.phases?.forEach((phase) => {
+      html += `
+    <div class="phase">
+        <h2>Phase ${phase.phaseNumber}: ${phase.title}</h2>
+        <p><strong>Duration:</strong> ${phase.duration}</p>
+        <p><strong>Goal:</strong> ${phase.goal}</p>
+
+        ${
+          phase.miniGoals?.length
+            ? `
+        <h3>Mini-Goals</h3>
+        <ul>
+            ${phase.miniGoals.map((mg) => `<li>${mg.title} (${mg.estimatedTime})</li>`).join("")}
+        </ul>`
+            : ""
+        }
+
+        ${
+          phase.skills?.length
+            ? `
+        <h3>Skills You'll Gain</h3>
+        <div class="skills">
+            ${phase.skills.map((skill) => `<span class="skill">${skill}</span>`).join("")}
+        </div>`
+            : ""
+        }
+    </div>`;
+    });
+
+    html += `
+    <div class="info">
+        <p><em>Generated by AI Study Roadmap Planner on ${new Date().toLocaleDateString()}</em></p>
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    saveAs(
+      blob,
+      `${roadmap.title?.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_roadmap.html`,
+    );
+  };
+
   const handleExport = () => {
     switch (exportFormat) {
-      case 'markdown':
+      case "markdown":
         downloadMarkdown();
         break;
-      case 'pdf':
+      case "pdf":
         exportToPDF();
         break;
-      case 'html':
+      case "html":
         exportToHTML();
         break;
       default:
@@ -55,32 +180,34 @@ const ViewRoadmapTab = ({
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl shadow-lg mb-6">
             <Search size={40} className="text-gray-400 dark:text-gray-500" />
           </div>
-          
+
           {/* Empty State Content */}
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-4">
             No Roadmap Found
           </h2>
-          
+
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-            You haven't generated a roadmap yet. Create your first AI-powered learning plan to get started on your journey!
+            You haven't generated a roadmap yet. Create your first AI-powered
+            learning plan to get started on your journey!
           </p>
-          
+
           {/* Action Button */}
           <button
-            onClick={() => setActiveTab('create')}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
-                     text-white font-semibold py-3 px-8 rounded-lg shadow-lg 
-                     transition-all duration-300 hover:shadow-xl transform hover:scale-105 
+            onClick={() => setActiveTab("create")}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+                     text-white font-semibold py-3 px-8 rounded-lg shadow-lg
+                     transition-all duration-300 hover:shadow-xl transform hover:scale-105
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Brain size={20} />
             Generate New Roadmap
           </button>
-          
+
           {/* Additional Help */}
           <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              💡 <strong>Tip:</strong> Be specific about your learning objectives and final goals to get the most personalized roadmap.
+              💡 <strong>Tip:</strong> Be specific about your learning
+              objectives and final goals to get the most personalized roadmap.
             </p>
           </div>
         </div>
@@ -93,81 +220,59 @@ const ViewRoadmapTab = ({
       {/* Action Bar */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-16 z-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            {/* Generation Controls */}
-            <div className="flex items-center gap-3">
-              {roadmap && roadmap.generationState === 'in-progress' && !loading && roadmap.phases.some(p => p.progressPercentage < 100) && (
-                <button
-                  onClick={() => generateRoadmap(true, roadmap)}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center gap-2"
-                >
-                  <Play size={18} />
-                  Resume Generation
-                </button>
-              )}
-              
-              {loading && (
-                <button
-                  onClick={interruptGeneration}
-                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center gap-2"
-                >
-                  <Pause size={18} />
-                  Interrupt Generation
-                </button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Roadmap Title */}
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                {roadmap.title}
+              </h1>
+              {roadmap.difficultyLevel && (
+                <span className="inline-block mt-1 px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                  {roadmap.difficultyLevel}
+                </span>
               )}
             </div>
 
-            {/* Loading Status */}
-            {loading && (
-              <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
-                <Loader className="animate-spin text-blue-600 dark:text-blue-400" size={18} />
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                  {loadingMessage}
-                </span>
-              </div>
-            )}
-
             {/* Export Actions */}
-            {!loading && (
-              <div className="flex items-center gap-2 ml-auto">
-                <button
-                  onClick={saveCurrentRoadmap}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center gap-2 text-sm"
-                  title="Save Roadmap"
-                >
-                  <Save size={16} />
-                  <span className="hidden sm:inline">Save</span>
-                </button>
-                
-                <button
-                  onClick={handleExport}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center gap-2 text-sm"
-                  title={`Download as ${exportFormat.toUpperCase()}`}
-                >
-                  <Download size={16} />
-                  <span className="hidden sm:inline">Export as {exportFormat.toUpperCase()}</span>
-                </button>
-                
-                <button
-                  onClick={handleCopyCode}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center gap-2 text-sm"
-                  title="Copy JSON"
-                >
-                  <Copy size={16} />
-                  <span className="hidden sm:inline">Copy</span>
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Export Format Selector */}
+              <select
+                value={exportFormat}
+                onChange={(e) => {
+                  setExportFormat(e.target.value);
+                  localStorage.setItem("export-format", e.target.value);
+                }}
+                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="markdown">Markdown</option>
+                <option value="pdf">PDF</option>
+                <option value="html">HTML</option>
+              </select>
+
+              <button
+                onClick={saveCurrentRoadmap}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4
+                         rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
+                         transform hover:scale-105 flex items-center gap-2 text-sm"
+                title="Save Roadmap"
+              >
+                <Save size={16} />
+                <span className="hidden sm:inline">Save</span>
+              </button>
+
+              <button
+                onClick={handleExport}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4
+                         rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
+                         transform hover:scale-105 flex items-center gap-2 text-sm"
+                title={`Export as ${exportFormat.toUpperCase()}`}
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">
+                  Export {exportFormat.toUpperCase()}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Error Display */}
@@ -176,7 +281,10 @@ const ViewRoadmapTab = ({
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
-                    <AlertCircle className="text-red-600 dark:text-red-400" size={18} />
+                    <AlertCircle
+                      className="text-red-600 dark:text-red-400"
+                      size={18}
+                    />
                   </div>
                 </div>
                 <div className="flex-1">
@@ -199,11 +307,6 @@ const ViewRoadmapTab = ({
           roadmap={roadmap}
           objective={objective}
           finalGoal={finalGoal}
-          saveCurrentRoadmap={saveCurrentRoadmap}
-          downloadMarkdown={downloadMarkdown}
-          exportToPDF={exportToPDF}
-          handleCopyCode={handleCopyCode}
-          handlePrint={handlePrint}
           toggleMiniGoal={toggleMiniGoal}
           calculateOverallProgress={calculateOverallProgress}
           setRoadmap={setRoadmap}

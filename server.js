@@ -1,48 +1,50 @@
 /* eslint-env node */
-import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
-import cors from 'cors';
+/* global process */
+import express from "express";
+import fs from "fs/promises";
+import path from "path";
+import cors from "cors";
 
 const app = express();
 const port = 3001;
-const savesDir = path.join(process.cwd(), 'saves');
+const savesDir = path.join(process.cwd(), "saves");
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: "50mb" }));
 
 const setup = async () => {
   try {
     await fs.mkdir(savesDir, { recursive: true });
   } catch (_error) {
-    console.error('Error creating saves directory:', _error);
+    console.error("Error creating saves directory:", _error);
   }
 };
 
 // Function to sanitize filenames
 const sanitizeFilename = (name) => {
-  return name.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
+  return name.replace(/[^a-z0-9_\-.]/gi, "_").toLowerCase();
 };
 
-app.get('/api/roadmaps', async (req, res) => {
+app.get("/api/roadmaps", async (req, res) => {
   try {
     const files = await fs.readdir(savesDir);
     const roadmaps = await Promise.all(
       files.map(async (file) => {
-        if (path.extname(file) === '.json') {
-          const content = await fs.readFile(path.join(savesDir, file), 'utf-8');
+        if (path.extname(file) === ".json") {
+          const content = await fs.readFile(path.join(savesDir, file), "utf-8");
           return JSON.parse(content);
         }
         return null;
-      })
+      }),
     );
     res.json(roadmaps.filter(Boolean));
-  } catch (_error) {
-    res.status(500).json({ message: 'Error loading roadmaps' });
+  } catch (error) {
+    console.error("Error loading roadmaps:", error);
+    res.status(500).json({ message: "Error loading roadmaps" });
   }
 });
 
-app.post('/api/roadmaps', async (req, res) => {
+app.post("/api/roadmaps", async (req, res) => {
   try {
     const { roadmap, name } = req.body;
     const sanitizedName = sanitizeFilename(name);
@@ -52,31 +54,38 @@ app.post('/api/roadmaps', async (req, res) => {
 
     // Check if a file with the same sanitized name already exists
     const files = await fs.readdir(savesDir);
-    const existingFile = files.find(file => file.toLowerCase() === `${sanitizedName}.json`.toLowerCase());
+    const existingFile = files.find(
+      (file) => file.toLowerCase() === `${sanitizedName}.json`.toLowerCase(),
+    );
 
     if (existingFile) {
       // Overwrite the existing file
-      await fs.writeFile(path.join(savesDir, existingFile), JSON.stringify(newRoadmap, null, 2));
+      await fs.writeFile(
+        path.join(savesDir, existingFile),
+        JSON.stringify(newRoadmap, null, 2),
+      );
     } else {
       // Create a new file
       await fs.writeFile(filePath, JSON.stringify(newRoadmap, null, 2));
     }
 
     res.status(201).json(newRoadmap);
-  } catch (_error) {
-    res.status(500).json({ message: 'Error saving roadmap' });
+  } catch (error) {
+    console.error("Error saving roadmap:", error);
+    res.status(500).json({ message: "Error saving roadmap" });
   }
 });
 
-app.delete('/api/roadmaps/:sanitizedName', async (req, res) => {
+app.delete("/api/roadmaps/:sanitizedName", async (req, res) => {
   try {
     const { sanitizedName } = req.params;
     const filePath = path.join(savesDir, `${sanitizedName}.json`);
 
     await fs.unlink(filePath);
     res.status(204).send();
-  } catch (_error) {
-    res.status(500).json({ message: 'Error deleting roadmap' });
+  } catch (error) {
+    console.error("Error deleting roadmap:", error);
+    res.status(500).json({ message: "Error deleting roadmap" });
   }
 });
 
