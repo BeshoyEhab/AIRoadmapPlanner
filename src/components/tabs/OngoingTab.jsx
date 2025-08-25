@@ -1,6 +1,15 @@
-import React from 'react';
-import { Play, Pause, Trash2, RotateCcw, Clock, CheckCircle, AlertCircle, Eye, Plus } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import React from "react";
+import {
+  Play,
+  Pause,
+  Trash2,
+  RotateCcw,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Eye,
+} from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const OngoingTab = ({
   generationQueue,
@@ -17,39 +26,39 @@ const OngoingTab = ({
   addToQueue,
   clearQueue,
   loading,
-  loadingMessage
+  loadingMessage,
 }) => {
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'queued':
+      case "queued":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
             <Clock size={12} />
             Queued
           </span>
         );
-      case 'generating':
+      case "generating":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 animate-pulse">
             <Play size={12} />
             Generating
           </span>
         );
-      case 'paused':
+      case "paused":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
             <Pause size={12} />
             Paused
           </span>
         );
-      case 'incomplete':
+      case "incomplete":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
             <AlertCircle size={12} />
             Incomplete
           </span>
         );
-      case 'error':
+      case "error":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
             <AlertCircle size={12} />
@@ -64,8 +73,9 @@ const OngoingTab = ({
   const getProgressBar = (roadmap) => {
     if (!roadmap.phases) return 0;
     const totalPhases = roadmap.phases.length;
-    const completedPhases = roadmap.phases.filter(phase =>
-      phase.goal !== "..." && phase.miniGoals && phase.miniGoals.length > 0
+    const completedPhases = roadmap.phases.filter(
+      (phase) =>
+        phase.goal !== "..." && phase.miniGoals && phase.miniGoals.length > 0,
     ).length;
     return Math.round((completedPhases / totalPhases) * 100);
   };
@@ -159,8 +169,10 @@ const OngoingTab = ({
                            border border-gray-200 dark:border-gray-600 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-800
-                                   text-blue-800 dark:text-blue-200 rounded-full text-sm font-bold">
+                    <span
+                      className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-800
+                                   text-blue-800 dark:text-blue-200 rounded-full text-sm font-bold"
+                    >
                       {index + 1}
                     </span>
                     <div>
@@ -195,13 +207,10 @@ const OngoingTab = ({
               No roadmaps in queue
             </p>
             <button
-              onClick={() => setActiveTab('create')}
+              onClick={() => setActiveTab("create")}
               className="mt-3 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400
                        hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
-            >
-              <Plus size={16} />
-              Add to Queue
-            </button>
+            ></button>
           </div>
         )}
       </div>
@@ -234,14 +243,16 @@ const OngoingTab = ({
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {roadmap.objective}
                     </p>
-                    {getStatusBadge(roadmap.generationState || 'incomplete')}
+                    {getStatusBadge(roadmap.generationState || "incomplete")}
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-gray-600 dark:text-gray-400">Progress</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Progress
+                    </span>
                     <span className="font-medium text-gray-900 dark:text-white">
                       {getProgressBar(roadmap)}%
                     </span>
@@ -257,43 +268,43 @@ const OngoingTab = ({
                 {/* Roadmap Info */}
                 <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400 mb-3">
                   <span>{roadmap.phases?.length || 0} phases</span>
-                  <span>{roadmap.totalDuration || 'Duration TBD'}</span>
-                  <span>{roadmap.difficultyLevel || 'Difficulty TBD'}</span>
+                  <span>{roadmap.totalDuration || "Duration TBD"}</span>
+                  <span>{roadmap.difficultyLevel || "Difficulty TBD"}</span>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
+                      // Add to queue if not already in queue, then load and switch to view
+                      if (
+                        !generationQueue ||
+                        !generationQueue.some(
+                          (item) =>
+                            item.roadmapId === roadmap.id ||
+                            item.id === roadmap.id,
+                        )
+                      ) {
+                        addToQueue({
+                          id: Date.now(),
+                          roadmapId: roadmap.id,
+                          name: roadmap.name,
+                          objective: roadmap.objective,
+                          finalGoal: roadmap.finalGoal,
+                          status: "queued",
+                          isResume: true,
+                        });
+                      }
                       if (loadRoadmap(roadmap.id)) {
-                        setActiveTab('view');
+                        setActiveTab("view");
                       }
                     }}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
-                             text-white font-medium py-2 px-3 rounded-lg transition-all duration-300
-                             hover:shadow-lg transform hover:scale-105"
+                    className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
+                             text-white font-medium py-2 px-4 rounded-lg transition-all duration-300
+                             hover:shadow-lg transform hover:scale-105 flex-grow"
                   >
                     <Eye size={16} />
-                    View & Resume
-                  </button>
-
-                  <button
-                    onClick={() => addToQueue({
-                      id: Date.now(),
-                      roadmapId: roadmap.id,
-                      name: roadmap.name,
-                      objective: roadmap.objective,
-                      finalGoal: roadmap.finalGoal,
-                      status: 'queued',
-                      isResume: true
-                    })}
-                    disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700
-                             disabled:bg-gray-400 text-white font-medium py-2 px-3 rounded-lg transition-all
-                             duration-300 hover:shadow-lg transform hover:scale-105 disabled:transform-none"
-                    title="Add to generation queue"
-                  >
-                    <Plus size={16} />
+                    Resume
                   </button>
 
                   <button
@@ -328,11 +339,10 @@ const OngoingTab = ({
               All roadmaps are complete!
             </p>
             <button
-              onClick={() => setActiveTab('create')}
+              onClick={() => setActiveTab("create")}
               className="mt-3 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400
                        hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
             >
-              <Plus size={16} />
               Create New Roadmap
             </button>
           </div>
@@ -349,8 +359,12 @@ const OngoingTab = ({
           <li>• The queue processes roadmaps automatically in order</li>
           <li>• You can pause/resume the queue at any time</li>
           <li>• Creating a new roadmap will pause the queue temporarily</li>
-          <li>• Incomplete roadmaps can be resumed individually or added to queue</li>
-          <li>• Use "View & Resume" to manually continue generation with full control</li>
+          <li>
+            • Incomplete roadmaps can be resumed individually or added to queue
+          </li>
+          <li>
+            • Use "Resume" to manually continue generation with full control
+          </li>
         </ul>
       </div>
     </div>

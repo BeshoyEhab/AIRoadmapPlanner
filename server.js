@@ -81,11 +81,28 @@ app.delete("/api/roadmaps/:sanitizedName", async (req, res) => {
     const { sanitizedName } = req.params;
     const filePath = path.join(savesDir, `${sanitizedName}.json`);
 
+    // Check if file exists before trying to delete
+    try {
+      await fs.access(filePath);
+    } catch (accessError) {
+      if (accessError.code === 'ENOENT') {
+        // File doesn't exist, but that's fine - we can consider it already deleted
+        return res.status(204).send();
+      }
+      throw accessError; // Re-throw other errors
+    }
+
     await fs.unlink(filePath);
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting roadmap:", error);
-    res.status(500).json({ message: "Error deleting roadmap" });
+    if (error.code === 'ENOENT') {
+      return res.status(204).send(); // File already doesn't exist
+    }
+    res.status(500).json({ 
+      message: "Error deleting roadmap",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 

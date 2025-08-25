@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import useRoadmap from "./hooks/useRoadmap";
 import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmationDialog } from "./components/common/ConfirmationDialog";
+import { toast } from "sonner";
 import "./App.css";
 
 const App = () => {
@@ -26,6 +28,10 @@ const App = () => {
   });
   const [fullScreenMode, setFullScreenMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [roadmapToDelete, setRoadmapToDelete] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationQueue, setGenerationQueue] = useState([]);
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -59,6 +65,44 @@ const App = () => {
     setApiKeyStatus("present");
   };
 
+  const toggleFunctions = {
+    toggleTheme: () => {
+      setTheme(prevTheme => {
+        const newTheme = prevTheme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        return newTheme;
+      });
+    },
+    toggleFullScreen: () => {
+      if (!document.fullscreenElement) {
+        document.documentElement
+          .requestFullscreen()
+          .then(() => {
+            setFullScreenMode(true);
+          })
+          .catch((err) => {
+            console.error(
+              `Error attempting to enable full-screen mode: ${err.message} (${err.name})`,
+            );
+          });
+      } else {
+        document
+          .exitFullscreen()
+          .then(() => {
+            setFullScreenMode(false);
+          })
+          .catch((err) => {
+            console.error(
+              `Error attempting to exit full-screen mode: ${err.message} (${err.name})`,
+            );
+          });
+      }
+    },
+    toggleSidebar: () => {
+      setIsSidebarOpen(prev => !prev);
+    },
+  };
+
   const {
     objective,
     setObjective,
@@ -70,23 +114,22 @@ const App = () => {
     error,
     loadingMessage,
     savedTimeplans,
+    toggleFavorite,
+    isFavorite,
+    toggleMiniGoal,
+    calculateOverallProgress,
+    calculatePhaseProgress,
+    generateRoadmap,
     saveCurrentRoadmap,
     loadRoadmap,
     deleteRoadmap,
-    generateRoadmap,
-    toggleMiniGoal,
-    calculateOverallProgress,
     interruptGeneration,
     isSaveDialogOpen,
     setIsSaveDialogOpen,
     roadmapName,
     setRoadmapName,
     handleSaveConfirm,
-    isDeleteDialogOpen,
-    setIsDeleteDialogOpen,
-    handleDeleteConfirm,
     // Queue management
-    generationQueue,
     incompleteRoadmaps,
     isQueuePaused,
     currentlyGenerating,
@@ -324,6 +367,8 @@ const App = () => {
             interruptGeneration={interruptGeneration}
             roadmap={roadmap}
             addToQueue={addToQueue}
+            setActiveTab={setActiveTab}
+            isGenerating={isGenerating}
           />
         );
       case "view":
@@ -337,8 +382,19 @@ const App = () => {
             downloadMarkdown={downloadMarkdown}
             toggleMiniGoal={toggleMiniGoal}
             calculateOverallProgress={calculateOverallProgress}
+            calculatePhaseProgress={calculatePhaseProgress}
             setRoadmap={setRoadmap}
             error={error}
+            loading={loading}
+            loadingMessage={loadingMessage}
+            interruptGeneration={interruptGeneration}
+            generateRoadmap={generateRoadmap}
+            addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue}
+            generationQueue={generationQueue}
+            currentlyGenerating={currentlyGenerating}
+            toggleFavorite={toggleFavorite}
+            isFavorite={isFavorite}
           />
         );
       case "saved":
@@ -351,6 +407,8 @@ const App = () => {
             isDeleteDialogOpen={isDeleteDialogOpen}
             setIsDeleteDialogOpen={setIsDeleteDialogOpen}
             handleDeleteConfirm={handleDeleteConfirm}
+            toggleFavorite={toggleFavorite}
+            isFavorite={isFavorite}
           />
         );
       case "ongoing":
@@ -367,10 +425,8 @@ const App = () => {
             loadRoadmap={loadRoadmap}
             deleteRoadmap={deleteRoadmap}
             setActiveTab={setActiveTab}
+            roadmap={roadmap}
             addToQueue={addToQueue}
-            clearQueue={clearQueue}
-            loading={loading}
-            loadingMessage={loadingMessage}
           />
         );
       default:
@@ -392,59 +448,118 @@ const App = () => {
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!roadmapToDelete) return;
+    try {
+      await deleteRoadmap(roadmapToDelete);
+      setIsDeleteDialogOpen(false);
+      setRoadmapToDelete(null);
+    } catch (error) {
+      console.error("Error in handleDeleteConfirm:", error);
+      // toast.error("Failed to delete roadmap.");
+    }
+  };
+
+  const processGenerationQueue = useCallback(async () => {
+    if (isGenerating || generationQueue.length === 0) return;
+
+    setIsGenerating(true);
+    const currentItem = generationQueue[0];
+
+    try {
+      if (currentItem.isResume) {
+        // Handle resume logic
+        await generateRoadmap(
+          currentItem.objective,
+          currentItem.finalGoal,
+          currentItem.roadmapId
+        );
+      } else {
+        // Handle new roadmap generation
+        await generateRoadmap(currentItem.objective, currentItem.finalGoal);
+      }
+
+      // Remove the processed item from the queue
+      setGenerationQueue((prev) => prev.slice(1));
+    } catch (error) {
+      console.error("Error processing generation queue:", error);
+      // Remove the failed item from the queue to prevent blocking
+      setGenerationQueue((prev) => prev.slice(1));
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [generationQueue, isGenerating, generateRoadmap]);
+
+  useEffect(() => {
+    processGenerationQueue();
+  }, [generationQueue, processGenerationQueue]);
+
   return (
-    <div
-      className={`min-h-screen flex flex-col themed-container transition-theme`}
-    >
+    <div className={`flex flex-col min-h-screen ${theme} bg-background`}>
       <Header
-        toggleSidebar={toggleSidebar}
+        theme={theme}
+        toggleTheme={toggleFunctions.toggleTheme}
+        fullScreenMode={fullScreenMode}
+        toggleFullScreen={toggleFunctions.toggleFullScreen}
+        toggleSidebar={toggleFunctions.toggleSidebar}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        theme={theme}
-        toggleTheme={toggleTheme}
-        fullScreenMode={fullScreenMode}
-        toggleFullScreen={toggleFullScreen}
-        onSave={handleSettingsSave}
       />
-      <Sidebar
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        theme={theme}
-        toggleTheme={toggleTheme}
-        fullScreenMode={fullScreenMode}
-        toggleFullScreen={toggleFullScreen}
-        savedTimeplans={savedTimeplans}
-        loadRoadmap={loadRoadmap}
-        deleteRoadmap={deleteRoadmap}
-        sidebarRef={sidebarRef}
+      
+      {/* Confirmation Dialog for Deletion */}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Roadmap"
+        description="Are you sure you want to delete this roadmap? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
-      <main
-        className={`flex-1 container mx-auto px-4 py-6 transition-theme ${isSidebarOpen && "lg:opacity-100 lg:pointer-events-auto opacity-50 pointer-events-none"}`}
-      >
-        {apiKeyStatus === "checking" && (
-          <div className="text-center p-8">
-            <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
+      
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          ref={sidebarRef}
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleFunctions.toggleSidebar}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          savedTimeplans={savedTimeplans}
+          loadRoadmap={loadRoadmap}
+          deleteRoadmap={deleteRoadmap}
+          theme={theme}
+          toggleTheme={toggleFunctions.toggleTheme}
+          fullScreenMode={fullScreenMode}
+          toggleFullScreen={toggleFunctions.toggleFullScreen}
+        />
+        
+        <main className="flex-1 overflow-auto">
+          <div className={`container mx-auto p-4 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
+            {apiKeyStatus === "checking" && (
+              <div className="text-center p-8">
+                <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading...</p>
+              </div>
+            )}
+            {apiKeyStatus === "missing" ? (
+              <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
+                <h2 className="text-2xl font-bold mb-4 text-foreground">
+                  Welcome to AI Study Planner
+                </h2>
+                <p className="mb-4 text-muted-foreground">
+                  To get started, please provide a Gemini API key.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Click the gear icon in the top-right corner to open the settings
+                  and add your key.
+                </p>
+              </div>
+            ) : (
+              renderTabContent()
+            )}
           </div>
-        )}
-        {apiKeyStatus === "missing" && (
-          <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">
-              Welcome to AI Study Planner
-            </h2>
-            <p className="mb-4 text-muted-foreground">
-              To get started, please provide a Gemini API key.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Click the gear icon in the top-right corner to open the settings
-              and add your key.
-            </p>
-          </div>
-        )}
-        {apiKeyStatus === "present" && renderTabContent()}
-      </main>
+        </main>
+      </div>
 
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
         <DialogContent className="modal-content">
@@ -501,6 +616,7 @@ const App = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 };
