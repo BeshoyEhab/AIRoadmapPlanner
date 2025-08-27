@@ -181,43 +181,63 @@ export const useRoadmapActions = ({
   }, [generationQueue, roadmap]);
 
   /**
-   * Handles the actual roadmap generation
+   * Creates a new roadmap and adds it to the queue without starting generation
+   * @param {string} objective - The learning objective
+   * @param {string} finalGoal - The final goal
+   * @returns {boolean} True if successful, false otherwise
    */
   const generateNewRoadmap = useCallback(async (objective, finalGoal) => {
     try {
       // Generate a unique ID based on content
       const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      // Create a new roadmap object
+      // Create a new roadmap object in 'queued' state
       const newRoadmap = {
         id: uniqueId,
         objective,
         finalGoal,
+        title: `${objective} - ${finalGoal}`.substring(0, 50) + (finalGoal.length > 0 ? '...' : ''),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         generationState: 'queued',
+        status: 'queued',
+        isNew: true
       };
 
-      // Add to queue
+      // Set as current roadmap first to trigger loading state
+      if (typeof setRoadmap === 'function') {
+        setRoadmap({
+          ...newRoadmap,
+          generationState: 'in-progress' // Set to in-progress to show loading
+        });
+      }
+
+      // Add to queue and process
       if (typeof addToQueue === 'function') {
         addToQueue(newRoadmap);
       }
 
-      // Clear form
-      if (typeof setObjective === 'function') setObjective('');
-      if (typeof setFinalGoal === 'function') setFinalGoal('');
-      
-      // Switch to view tab
-      if (typeof setActiveTab === 'function') {
-        setActiveTab('view');
+      // Save to localStorage
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('currentRoadmap', JSON.stringify({
+          ...newRoadmap,
+          generationState: 'in-progress'
+        }));
       }
 
       return true;
     } catch (error) {
-      console.error('Error generating roadmap:', error);
+      console.error('Error creating roadmap:', error);
+      // Reset loading state on error
+      if (typeof setRoadmap === 'function') {
+        setRoadmap(prev => ({
+          ...prev,
+          generationState: 'idle'
+        }));
+      }
       return false;
     }
-  }, [addToQueue, setObjective, setFinalGoal, setActiveTab]);
+  }, [addToQueue, setRoadmap, setActiveTab]);
 
   /**
    * Generates a new roadmap with duplicate checking

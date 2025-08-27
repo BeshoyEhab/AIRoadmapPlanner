@@ -47,6 +47,21 @@ const RoadmapContent = ({
   currentlyGenerating,
   setRoadmap,
 }) => {
+  if (!roadmap || !roadmap.phases) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-gray-500 mb-2">No roadmap data available</div>
+          <button 
+            onClick={() => setActiveTab('create')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Create New Roadmap
+          </button>
+        </div>
+      </div>
+    );
+  }
   const [expandedPhases, setExpandedPhases] = useState({});
 
   const { handlePause, handleResume } = useRoadmapActions({
@@ -96,7 +111,7 @@ const RoadmapContent = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <Layers size={16} />
-                  {roadmap.phases.length} Phases
+                  {roadmap.phases?.length || 0} Phases
                 </div>
                 <div className="flex items-center gap-1">
                   <BarChart3 size={16} />
@@ -180,9 +195,10 @@ const RoadmapContent = ({
                   (currentlyGenerating.id === roadmap.id ||
                     currentlyGenerating.roadmapId === roadmap.id);
                 
-                const queuePosition = generationQueue?.findIndex(
-                  (q) => q.id === roadmap.id || (q.roadmapId && q.roadmapId === roadmap.id)
-                ) + 1;
+                 const queuePosition = generationQueue ? 
+                   (generationQueue.findIndex(
+                     (q) => q.id === roadmap.id || (q.roadmapId && q.roadmapId === roadmap.id)
+                   ) + 1) : 0;    
 
                 // Show Pause if in queue (whether generating or just queued)
                 if (inQueue) {

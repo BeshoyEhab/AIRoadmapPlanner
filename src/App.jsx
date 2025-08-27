@@ -30,8 +30,6 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roadmapToDelete, setRoadmapToDelete] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationQueue, setGenerationQueue] = useState([]);
   const sidebarRef = useRef(null);
 
   useEffect(() => {
@@ -133,6 +131,7 @@ const App = () => {
     incompleteRoadmaps,
     isQueuePaused,
     currentlyGenerating,
+    generationQueue,
     addToQueue,
     removeFromQueue,
     clearQueue,
@@ -364,11 +363,13 @@ const App = () => {
             loading={loading}
             loadingMessage={loadingMessage}
             error={error}
-            interruptGeneration={interruptGeneration}
             roadmap={roadmap}
             addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue}  // ADD THIS
             setActiveTab={setActiveTab}
-            isGenerating={isGenerating}
+            generationQueue={generationQueue}  // ADD THIS  
+            setRoadmap={setRoadmap}            // ADD THIS
+            interruptGeneration={interruptGeneration}
           />
         );
       case "view":
@@ -429,22 +430,26 @@ const App = () => {
             addToQueue={addToQueue}
           />
         );
-      default:
-        return (
-          <CreateRoadmapTab
-            objective={objective}
-            setObjective={setObjective}
-            finalGoal={finalGoal}
-            setFinalGoal={setFinalGoal}
-            generateRoadmap={generateRoadmap}
-            loading={loading}
-            loadingMessage={loadingMessage}
-            error={error}
-            interruptGeneration={interruptGeneration}
-            roadmap={roadmap}
-            addToQueue={addToQueue}
-          />
-        );
+        default:
+          return (
+            <CreateRoadmapTab
+              objective={objective}
+              setObjective={setObjective}
+              finalGoal={finalGoal}
+              setFinalGoal={setFinalGoal}
+              generateRoadmap={generateRoadmap}
+              loading={loading}
+              loadingMessage={loadingMessage}
+              error={error}
+              roadmap={roadmap}
+              addToQueue={addToQueue}
+              removeFromQueue={removeFromQueue}  // ADD THIS
+              setActiveTab={setActiveTab}
+              generationQueue={generationQueue}  // ADD THIS
+              setRoadmap={setRoadmap}            // ADD THIS
+              interruptGeneration={interruptGeneration}
+            />
+          );
     }
   };
 
@@ -459,40 +464,6 @@ const App = () => {
       // toast.error("Failed to delete roadmap.");
     }
   };
-
-  const processGenerationQueue = useCallback(async () => {
-    if (isGenerating || generationQueue.length === 0) return;
-
-    setIsGenerating(true);
-    const currentItem = generationQueue[0];
-
-    try {
-      if (currentItem.isResume) {
-        // Handle resume logic
-        await generateRoadmap(
-          currentItem.objective,
-          currentItem.finalGoal,
-          currentItem.roadmapId
-        );
-      } else {
-        // Handle new roadmap generation
-        await generateRoadmap(currentItem.objective, currentItem.finalGoal);
-      }
-
-      // Remove the processed item from the queue
-      setGenerationQueue((prev) => prev.slice(1));
-    } catch (error) {
-      console.error("Error processing generation queue:", error);
-      // Remove the failed item from the queue to prevent blocking
-      setGenerationQueue((prev) => prev.slice(1));
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [generationQueue, isGenerating, generateRoadmap]);
-
-  useEffect(() => {
-    processGenerationQueue();
-  }, [generationQueue, processGenerationQueue]);
 
   return (
     <div className={`flex flex-col min-h-screen ${theme} bg-background`}>

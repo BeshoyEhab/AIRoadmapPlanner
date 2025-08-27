@@ -280,11 +280,52 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     saveAs(blob, `${roadmap.sanitizedName}.html`);
   };
 
+  // Function to create a sanitized version of the roadmap for storage
+  const getSanitizedRoadmap = useCallback((roadmap) => {
+    if (!roadmap) return null;
+    
+    // Create a new object with only the properties we want to save
+    const sanitized = {
+      id: roadmap.id,
+      title: roadmap.title,
+      objective: roadmap.objective,
+      finalGoal: roadmap.finalGoal,
+      sanitizedName: roadmap.sanitizedName,
+      generationState: roadmap.generationState,
+      phases: roadmap.phases ? roadmap.phases.map(phase => ({
+        phaseNumber: phase.phaseNumber,
+        title: phase.title,
+        duration: phase.duration,
+        goal: phase.goal,
+        miniGoals: phase.miniGoals,
+        resources: phase.resources,
+        project: phase.project,
+        skills: phase.skills,
+        milestone: phase.milestone,
+        prerequisiteKnowledge: phase.prerequisiteKnowledge,
+        progressPercentage: phase.progressPercentage
+      })) : [],
+      createdAt: roadmap.createdAt,
+      updatedAt: roadmap.updatedAt,
+      // Add any other necessary primitive properties
+    };
+    
+    return sanitized;
+  }, []);
+
+  // Save roadmap to localStorage when it changes
   useEffect(() => {
     if (roadmap) {
-      localStorage.setItem("currentRoadmap", JSON.stringify(roadmap));
+      const sanitized = getSanitizedRoadmap(roadmap);
+      if (sanitized) {
+        try {
+          localStorage.setItem("currentRoadmap", JSON.stringify(sanitized));
+        } catch (error) {
+          console.error("Error saving roadmap to localStorage:", error);
+        }
+      }
     }
-  }, [roadmap]);
+  }, [roadmap, getSanitizedRoadmap]);
 
   const calculateOverallProgress = useCallback((roadmapData) => {
     if (!roadmapData || !roadmapData.phases) return 0;
@@ -562,24 +603,53 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
 
   // Queue Management Functions
   const addToQueue = (queueItem) => {
-    // Check if similar roadmap already exists in queue
-    const existingInQueue = generationQueue.some(
+    console.log("Adding to queue:", queueItem);
+    
+    // Check if similar roadmap already exists in queue or is currently generating
+    const isDuplicate = generationQueue.some(
       (item) =>
-        item.objective?.trim().toLowerCase() ===
+        (item.objective?.trim().toLowerCase() ===
           queueItem.objective?.trim().toLowerCase() &&
         item.finalGoal?.trim().toLowerCase() ===
-          queueItem.finalGoal?.trim().toLowerCase(),
+          queueItem.finalGoal?.trim().toLowerCase()) ||
+        (currentlyGenerating && 
+         currentlyGenerating.objective?.trim().toLowerCase() === queueItem.objective?.trim().toLowerCase() &&
+         currentlyGenerating.finalGoal?.trim().toLowerCase() === queueItem.finalGoal?.trim().toLowerCase())
     );
 
-    if (!existingInQueue) {
-      setGenerationQueue((prev) => [
-        ...prev,
-        { ...queueItem, status: "queued" },
-      ]);
-      if (!queueProcessingRef.current && !isQueuePaused) {
-        processQueue();
-      }
+    if (isDuplicate) {
+      console.log("Duplicate item found in queue, not adding");
+      return false;
     }
+
+    const newQueueItem = { 
+      ...queueItem, 
+      status: "queued",
+      addedAt: new Date().toISOString()
+    };
+    
+    console.log("Adding new item to queue:", newQueueItem);
+    
+    setGenerationQueue((prev) => {
+      const newQueue = [...prev, newQueueItem];
+      console.log("New queue state:", newQueue);
+      return newQueue;
+    });
+    
+    // Process the queue if not already processing and not paused
+    if (!queueProcessingRef.current && !isQueuePaused) {
+      console.log("Starting queue processing");
+      processQueue();
+    } else {
+      console.log("Queue processing already in progress or paused");
+      console.log({
+        queueProcessingRef: queueProcessingRef.current,
+        isQueuePaused,
+        queueLength: generationQueue.length
+      });
+    }
+    
+    return true; // Item was added to queue
   };
 
   const removeFromQueue = (itemId) => {
@@ -656,87 +726,92 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
 
   // Process the generation queue
   const processQueue = useCallback(async () => {
-    if (queueProcessingRef.current) {
-      return; // Already processing
-    }
-
+    if (queueProcessingRef.current) return;
     queueProcessingRef.current = true;
 
-    while (generationQueue.length > 0 && !isInterrupted.current) {
-      // Check if we should pause after current or if queue is paused
-      if (isQueuePaused || shouldPauseAfterCurrent.current) {
-        if (shouldPauseAfterCurrent.current) {
-          setIsQueuePaused(true);
-          shouldPauseAfterCurrent.current = false;
+    try {
+      while (generationQueue.length > 0) {
+        // Check for interruption or pause conditions
+        if (isInterrupted.current) {
+          console.log("Generation interrupted");
+          break;
         }
-        break;
-      }
-      const currentItem = generationQueue[0];
-
-      // Check if the roadmap still exists before processing
-      if (currentItem.roadmapId) {
-        const roadmapExists = savedTimeplans.find(
-          (r) => r.id === currentItem.roadmapId || r.sanitizedName === currentItem.roadmapId
-        );
-        if (!roadmapExists) {
-          console.log(`Roadmap ${currentItem.roadmapId} no longer exists, removing from queue`);
-          setGenerationQueue((prev) => prev.slice(1));
-          continue;
+        
+        if (isQueuePaused || shouldPauseAfterCurrent.current) {
+          console.log("Queue paused or should pause after current");
+          if (shouldPauseAfterCurrent.current) {
+            setIsQueuePaused(true);
+            shouldPauseAfterCurrent.current = false;
+          }
+          break;
         }
-      }
 
-      try {
+        const currentItem = generationQueue[0];
+        if (!currentItem) {
+          console.log("No current item in queue");
+          break;
+        }
+
+        console.log("Processing queue item:", currentItem);
+
         // Update item status to generating
-        setGenerationQueue((prev) =>
-          prev.map((item, index) =>
-            index === 0 ? { ...item, status: "generating" } : item,
-          ),
-        );
+        setGenerationQueue(prev => prev.map((item, idx) => 
+          idx === 0 ? { ...item, status: "generating" } : item
+        ));
+        
         setCurrentlyGenerating({
-          name: currentItem.name,
+          name: currentItem.objective || 'Untitled Roadmap',
           id: currentItem.id,
           roadmapId: currentItem.roadmapId,
+          objective: currentItem.objective,
+          finalGoal: currentItem.finalGoal
         });
 
-        if (currentItem.isResume) {
-          // Resume existing roadmap
-          const roadmapToResume = savedTimeplans.find(
-            (r) => r.id === currentItem.roadmapId,
-          );
-          if (roadmapToResume) {
-            await generateRoadmap(true, roadmapToResume);
+        try {
+          if (currentItem.isResume) {
+            console.log("Resuming roadmap:", currentItem.roadmapId);
+            const roadmapToResume = savedTimeplans.find(r => r.id === currentItem.roadmapId);
+            if (roadmapToResume) {
+              await generateRoadmap(true, roadmapToResume);
+            } else {
+              console.error("Roadmap to resume not found:", currentItem.roadmapId);
+              toast.error("Failed to find roadmap to resume");
+            }
           } else {
-            console.log(`Roadmap to resume ${currentItem.roadmapId} not found`);
+            console.log("Generating new roadmap from queue");
+            await generateRoadmapForQueue(currentItem);
           }
-        } else {
-          // Generate new roadmap
-          await generateRoadmapForQueue(currentItem);
+        } catch (error) {
+          console.error("Queue generation error:", error);
+          toast.error(`Failed to generate roadmap: ${currentItem.objective || 'Unknown'}`);
+        } finally {
+          // Remove the processed item from the queue
+          setGenerationQueue(prev => {
+            const newQueue = prev.slice(1);
+            console.log("Queue after removal:", newQueue);
+            return newQueue;
+          });
+          
+          // Reset interruption flag after each item
+          isInterrupted.current = false;
         }
 
-        // Remove completed item from queue
-        setGenerationQueue((prev) => prev.slice(1));
-      } catch (error) {
-        console.error("Queue generation error:", error);
-        // Mark item as error and remove from queue
-        setGenerationQueue((prev) => prev.slice(1));
-        toast.error(`Failed to generate roadmap: ${currentItem.name}`);
+        // Small delay to allow UI to update
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
-
-      // Check if we should pause or stop after this item
-      if (isQueuePaused || shouldPauseAfterCurrent.current) {
-        if (shouldPauseAfterCurrent.current) {
-          setIsQueuePaused(true);
-          shouldPauseAfterCurrent.current = false;
-        }
-        break;
+    } catch (error) {
+      console.error("Error in processQueue:", error);
+    } finally {
+      console.log("Queue processing completed or paused");
+      setCurrentlyGenerating(null);
+      queueProcessingRef.current = false;
+      
+      // If there are still items in the queue and we're not paused, process next item
+      if (generationQueue.length > 0 && !isQueuePaused) {
+        console.log("Processing next item in queue");
+        processQueue();
       }
-
-      // Yield to the event loop to allow UI updates and prevent freezing
-      await new Promise((resolve) => setTimeout(resolve, 0));
     }
-
-    setCurrentlyGenerating(null);
-    queueProcessingRef.current = false;
   }, [generationQueue, isQueuePaused, savedTimeplans]);
 
   // Generate roadmap specifically for queue items
@@ -1177,12 +1252,14 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     interruptGeneration,
     isQueuePaused,
     currentlyGenerating,
+    generationQueue,
     addToQueue,
     removeFromQueue,
     clearQueue,
     pauseQueue,
     resumeQueue,
     retryGeneration,
+    toggleMiniGoal,
   };
 };
 

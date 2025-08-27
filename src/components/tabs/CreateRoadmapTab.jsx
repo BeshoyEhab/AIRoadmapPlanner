@@ -38,7 +38,7 @@ const CreateRoadmapTab = ({
   addToQueue,
   removeFromQueue,
   setActiveTab,
-  generationQueue,
+  generationQueue = [], // Provide default value
   setRoadmap,
   interruptGeneration
 }) => {
@@ -57,17 +57,40 @@ const CreateRoadmapTab = ({
     setObjective,
     setFinalGoal,
     setActiveTab,
-    generationQueue: generationQueue || [],
+    generationQueue,
     setRoadmap,
     removeFromQueue,
     interruptGeneration
   });
 
-  const handleGenerate = () => {
-    if (objective && finalGoal) {
-      handleGenerateNew(objective, finalGoal);
+  const handleGenerate = async () => {
+    console.log("Generate button clicked", { objective, finalGoal });
+    
+    if (!objective.trim() || !finalGoal.trim()) {
+      console.error("Missing objective or final goal");
+      return;
+    }
+
+    try {
+      console.log("Calling handleGenerateNew...");
+      await handleGenerateNew(objective, finalGoal);
+      console.log("handleGenerateNew completed");
+    } catch (error) {
+      console.error("Error in handleGenerate:", error);
     }
   };
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("CreateRoadmapTab props:", {
+      hasAddToQueue: typeof addToQueue === 'function',
+      hasGenerateRoadmap: typeof generateRoadmap === 'function',
+      hasSetActiveTab: typeof setActiveTab === 'function',
+      queueLength: generationQueue?.length || 0,
+      objective: objective?.length || 0,
+      finalGoal: finalGoal?.length || 0
+    });
+  }, [addToQueue, generateRoadmap, setActiveTab, generationQueue, objective, finalGoal]);
 
   // Render the duplicate confirmation dialog
   const renderDuplicateDialog = () => {
@@ -246,6 +269,16 @@ const CreateRoadmapTab = ({
               </div>
             </div>
 
+            {/* Debug Info (remove in production) */}
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-sm">
+              <strong>Debug Info:</strong>
+              <div>Queue Length: {generationQueue?.length || 0}</div>
+              <div>Has addToQueue: {typeof addToQueue === 'function' ? 'Yes' : 'No'}</div>
+              <div>Has generateRoadmap: {typeof generateRoadmap === 'function' ? 'Yes' : 'No'}</div>
+              <div>Objective Length: {objective?.length || 0}</div>
+              <div>Final Goal Length: {finalGoal?.length || 0}</div>
+            </div>
+
             {/* Action Buttons */}
             <div className="pt-4 space-y-4">
               {isResumable && !loading && (
@@ -402,6 +435,9 @@ const CreateRoadmapTab = ({
             </p>
           </div>
         </div>
+
+        {/* Render the duplicate dialog */}
+        {renderDuplicateDialog()}
       </div>
     </div>
   );
