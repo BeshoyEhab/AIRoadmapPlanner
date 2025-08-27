@@ -64,33 +64,16 @@ const CreateRoadmapTab = ({
   });
 
   const handleGenerate = async () => {
-    console.log("Generate button clicked", { objective, finalGoal });
-    
     if (!objective.trim() || !finalGoal.trim()) {
-      console.error("Missing objective or final goal");
       return;
     }
 
     try {
-      console.log("Calling handleGenerateNew...");
       await handleGenerateNew(objective, finalGoal);
-      console.log("handleGenerateNew completed");
     } catch (error) {
-      console.error("Error in handleGenerate:", error);
+      console.error("Error generating roadmap:", error);
     }
   };
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log("CreateRoadmapTab props:", {
-      hasAddToQueue: typeof addToQueue === 'function',
-      hasGenerateRoadmap: typeof generateRoadmap === 'function',
-      hasSetActiveTab: typeof setActiveTab === 'function',
-      queueLength: generationQueue?.length || 0,
-      objective: objective?.length || 0,
-      finalGoal: finalGoal?.length || 0
-    });
-  }, [addToQueue, generateRoadmap, setActiveTab, generationQueue, objective, finalGoal]);
 
   // Render the duplicate confirmation dialog
   const renderDuplicateDialog = () => {

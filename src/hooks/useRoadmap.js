@@ -818,13 +818,24 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
   const generateRoadmapForQueue = async (queueItem) => {
     const originalObjective = objective;
     const originalFinalGoal = finalGoal;
-
-    // Temporarily set objectives for generation
-    setObjective(queueItem.objective);
-    setFinalGoal(queueItem.finalGoal);
+    const wasQueuePaused = isQueuePaused;
 
     try {
-      await generateRoadmap(false, null);
+      // Find the roadmap to continue if it exists
+      let roadmapToContinue = null;
+      if (queueItem.roadmapId) {
+        roadmapToContinue = savedTimeplans.find(r => r.id === queueItem.roadmapId);
+      }
+      
+      // Temporarily set objectives for generation
+      setObjective(queueItem.objective);
+      setFinalGoal(queueItem.finalGoal);
+      
+      // Generate the roadmap - always pass false for isContinuation to use the queue's roadmapToContinue
+      await generateRoadmap(false, roadmapToContinue, wasQueuePaused);
+    } catch (error) {
+      console.error('Error in generateRoadmapForQueue:', error);
+      throw error; // Re-throw to be caught by the queue processor
     } finally {
       // Restore original objectives
       setObjective(originalObjective);
@@ -854,140 +865,21 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     };
   }, []);
 
-  // --- MODIFIED FUNCTION ---
-  // This function now correctly passes the roadmap ID between saves and handles queue pausing.
-  // It also prevents duplicate roadmap generation
-  const generateRoadmap = async (
-    isContinuation = false,
-    roadmapToContinue = null,
-  ) => {
+  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, wasQueuePaused = false) => {
     if (!genAI) {
       alert("Please set your Gemini API key in the settings.");
       return;
     }
 
-    // When creating a new roadmap, pause the queue, generate the initial roadmap, then add it to the queue and resume queue processing.
+    // Pause queue when starting generation
     if (!isContinuation) {
       pauseQueue();
-      isInterrupted.current = false;
-      setLoading(true);
-      setError(null);
-      localStorage.removeItem("currentRoadmap");
-      setRoadmap(null); // Clear current roadmap state
-
-      try {
-        // Generate initial roadmap structure only (high-level plan)
-        setLoadingMessage("Generating high-level plan...");
-        const initialPrompt = createInitialPrompt();
-        const initialJson = await (async (prompt) => {
-          while (true) {
-            if (isInterrupted.current)
-              throw new Error("Generation interrupted by user.");
-
-            const modelName = availableModels[currentModelIndex.current];
-            try {
-              setLoadingMessage(`Generating with ${modelName}...`);
-              const generativeModel = genAI.getGenerativeModel({
-                model: modelName,
-              });
-              const result = await generativeModel.generateContent(prompt);
-              const response = await result.response;
-              return parseJsonResponse(response.text());
-            } catch (err) {
-              if (isInterrupted.current) throw err;
-
-              console.error(`Error with model ${modelName}:`, err);
-
-              currentModelIndex.current =
-                (currentModelIndex.current + 1) % availableModels.length;
-
-              if (currentModelIndex.current === 0) {
-                // Cycled through all models
-                setLoadingMessage(
-                  "All models failed. Please check your API key and model settings.",
-                );
-                throw new Error("All models failed");
-              } else {
-                setLoadingMessage(
-                  `Switching to model ${availableModels[currentModelIndex.current]}...`,
-                );
-                continue;
-              }
-            }
-          }
-        })(initialPrompt);
-
-        if (
-          !initialJson ||
-          !Array.isArray(initialJson.phases) ||
-          initialJson.phases.length === 0
-        ) {
-          throw new Error(
-            "The AI did not return a valid initial roadmap structure.",
-          );
-        }
-
-        const newRoadmap = {
-          ...initialJson,
-          objective: objective,
-          finalGoal: finalGoal,
-          generationState: "in-progress",
-          phases: initialJson.phases.map((p, pIdx) => ({
-            phaseNumber: p.phaseNumber || pIdx + 1,
-            title: p.title,
-            duration: "...",
-            goal: "...",
-            miniGoals: [],
-            resources: [],
-            project: {},
-            skills: [],
-            milestone: "...",
-            prerequisiteKnowledge: [],
-            progressPercentage: 0,
-          })),
-        };
-        // Save the initial roadmap
-        const savedRoadmap = await saveRoadmapToDisk(
-          newRoadmap,
-          newRoadmap.title || `Roadmap-${Date.now()}`,
-        );
-        if (!savedRoadmap) throw new Error("Initial roadmap save failed.");
-        setRoadmap(savedRoadmap);
-
-        // Add to queue for detailed generation
-        const queueItem = {
-          id: `${objective.trim().toLowerCase()}-${finalGoal.trim().toLowerCase()}`.replace(
-            /[^a-z0-9]/g,
-            "-",
-          ),
-          roadmapId: savedRoadmap.id,
-          name:
-            savedRoadmap.title ||
-            `${objective.slice(0, 50)}${objective.length > 50 ? "..." : ""}`,
-          objective: savedRoadmap.objective,
-          finalGoal: savedRoadmap.finalGoal,
-          status: "queued",
-          isResume: false,
-        };
-        addToQueue(queueItem);
-
-        setLoading(false);
-        setError(null);
-        setLoadingMessage("");
-        // Resume queue after initial roadmap creation
-        setTimeout(() => resumeQueue(), 500);
-        return;
-      } catch (err) {
-        setLoading(false);
-        setError("Failed to generate roadmap: " + err.message);
-        setLoadingMessage("");
-        return;
-      }
     }
 
     isInterrupted.current = false;
     setLoading(true);
     setError(null);
+    
     if (!isContinuation) {
       localStorage.removeItem("currentRoadmap");
       setRoadmap(null); // Clear current roadmap state

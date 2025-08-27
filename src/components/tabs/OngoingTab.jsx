@@ -295,9 +295,6 @@ const OngoingTab = ({
                           isResume: true,
                         });
                       }
-                      if (loadRoadmap(roadmap.id)) {
-                        setActiveTab("view");
-                      }
                     }}
                     className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
                              text-white font-medium py-2 px-4 rounded-lg transition-all duration-300
