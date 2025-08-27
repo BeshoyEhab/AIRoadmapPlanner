@@ -105,7 +105,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     fetchRoadmaps();
   }, []);
 
-  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  // const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [roadmapName, setRoadmapName] = useState("");
 
   // Get incomplete roadmaps
@@ -116,7 +116,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
   const saveCurrentRoadmap = async () => {
     if (!roadmap) return;
     setRoadmapName(roadmap.title || `Roadmap-${Date.now()}`);
-    setIsSaveDialogOpen(true);
+    // setIsSaveDialogOpen(true);
   };
 
   const saveRoadmapToDisk = async (roadmapData, name) => {
@@ -167,7 +167,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     try {
       const newSavedTimeplan = await saveRoadmapToDisk(roadmap, roadmapName);
       if (newSavedTimeplan) {
-        setIsSaveDialogOpen(false);
+        // setIsSaveDialogOpen(false);
       }
     } catch (error) {
       console.error("Error saving roadmap:", error);
@@ -186,12 +186,9 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     return false;
   };
 
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [roadmapToDelete, setRoadmapToDelete] = useState(null);
-
   const confirmDelete = (idOrSanitizedName) => {
-    setRoadmapToDelete(idOrSanitizedName);
-    setIsDeleteDialogOpen(true);
+    // setRoadmapToDelete(idOrSanitizedName);
+    // setIsDeleteDialogOpen(true);
   };
 
   const deleteRoadmap = async (idOrSanitizedName) => {
@@ -245,17 +242,17 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!roadmapToDelete) return;
-    try {
-      await deleteRoadmap(roadmapToDelete);
-      setIsDeleteDialogOpen(false);
-      setRoadmapToDelete(null);
-    } catch (error) {
-      console.error("Error in handleDeleteConfirm:", error);
-      toast.error("Failed to delete roadmap.");
-    }
-  };
+  // const handleDeleteConfirm = async () => {
+  //   if (!roadmapToDelete) return;
+  //   try {
+  //     await deleteRoadmap(roadmapToDelete);
+  //     setIsDeleteDialogOpen(false);
+  //     setRoadmapToDelete(null);
+  //   } catch (error) {
+  //     console.error("Error in handleDeleteConfirm:", error);
+  //     toast.error("Failed to delete roadmap.");
+  //   }
+  // };
 
   const exportToPDF = () => {
     if (!roadmap) return;
@@ -406,26 +403,30 @@ const useRoadmap = ({ setActiveTab } = {}) => {
         // Calculate phase range based on difficulty
         const range = maxPhases - minPhases;
         switch (difficultyLevel) {
-          case 'easy':
+          case 'easy': {
             const easyMin = minPhases;
             const easyMax = Math.ceil(minPhases + range * 0.3);
             phaseRange = `${easyMin} to ${easyMax}`;
             break;
-          case 'medium':
+          }
+          case 'medium': {
             const mediumMin = Math.ceil(minPhases + range * 0.3);
             const mediumMax = Math.ceil(minPhases + range * 0.6);
             phaseRange = `${mediumMin} to ${mediumMax}`;
             break;
-          case 'hard':
+          }
+          case 'hard': {
             const hardMin = Math.ceil(minPhases + range * 0.6);
             const hardMax = Math.ceil(minPhases + range * 0.8);
             phaseRange = `${hardMin} to ${hardMax}`;
             break;
-          case 'expert':
+          }
+          case 'expert': {
             const expertMin = Math.ceil(minPhases + range * 0.8);
             const expertMax = maxPhases;
             phaseRange = `${expertMin} to ${expertMax}`;
             break;
+          }
         }
       }
       
@@ -880,7 +881,10 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
 
         // Add to queue for detailed generation
         const queueItem = {
-          id: savedRoadmap.id || Date.now(),
+          id: `${objective.trim().toLowerCase()}-${finalGoal.trim().toLowerCase()}`.replace(
+            /[^a-z0-9]/g,
+            "-",
+          ),
           roadmapId: savedRoadmap.id,
           name:
             savedRoadmap.title ||
@@ -889,10 +893,6 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
           finalGoal: savedRoadmap.finalGoal,
           status: "queued",
           isResume: false,
-          id: `${objective.trim().toLowerCase()}-${finalGoal.trim().toLowerCase()}`.replace(
-            /[^a-z0-9]/g,
-            "-",
-          ),
         };
         addToQueue(queueItem);
 
@@ -1009,7 +1009,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         currentRoadmap = savedRoadmap;
 
         // Resume queue after initial roadmap creation if it wasn't paused originally
-        if (!isContinuation && !queueProcessingRef.current && !wasQueuePaused) {
+        if (!isContinuation && !queueProcessingRef.current && !isQueuePaused) {
           setTimeout(() => resumeQueue(), 1000);
         }
       }

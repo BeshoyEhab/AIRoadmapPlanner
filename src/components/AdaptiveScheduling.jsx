@@ -137,29 +137,32 @@ const AdaptiveScheduling = ({ roadmap, onUpdateRoadmap }) => {
         });
         break;
         
-      case 'low_progress':
+      case 'low_progress': {
         // Extend current phase
         const phase = updatedRoadmap.phases[suggestion.phaseIndex];
         const currentWeeks = parseTimeToWeeks(phase.duration);
         phase.duration = `${currentWeeks + 2}-${currentWeeks + 3} weeks`;
         phase.extendedForProgress = true;
         break;
+      }
         
-      case 'overloaded':
+      case 'overloaded': {
         // Split phase (simplified - just extend duration)
         const overloadedPhase = updatedRoadmap.phases[suggestion.phaseIndex];
         const weeks = parseTimeToWeeks(overloadedPhase.duration);
         overloadedPhase.duration = `${weeks + 2}-${weeks + 4} weeks`;
         overloadedPhase.splitForManageability = true;
         break;
+      }
         
-      case 'timeline_adjustment':
+      case 'timeline_adjustment': {
         // Extend overall timeline
         const currentTotal = parseTimeToWeeks(updatedRoadmap.totalDuration);
         const newTotal = Math.ceil(currentTotal * 1.25);
         updatedRoadmap.totalDuration = `${Math.floor(newTotal / 52)} years ${newTotal % 52} weeks`;
         updatedRoadmap.timelineAdjusted = true;
         break;
+      }
     }
     
     onUpdateRoadmap(updatedRoadmap);
