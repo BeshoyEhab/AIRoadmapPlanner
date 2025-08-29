@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const CreateRoadmapTab = ({
   objective,
@@ -63,15 +64,76 @@ const CreateRoadmapTab = ({
     interruptGeneration
   });
 
+  // Fixed handleGenerate function in CreateRoadmapTab.jsx
   const handleGenerate = async () => {
+    console.log('handleGenerate called');
     if (!objective.trim() || !finalGoal.trim()) {
+      console.log('Missing objective or final goal');
+      toast.error("Please provide both an objective and a final goal");
       return;
     }
 
     try {
-      await handleGenerateNew(objective, finalGoal);
+      console.log('Clearing previous roadmap');
+      // Clear any previous roadmap
+      setRoadmap(null);
+      
+      // Create a unique ID for the new roadmap
+      const roadmapId = `roadmap-${Date.now()}`;
+      console.log('Created roadmap ID:', roadmapId);
+      
+      // Create initial roadmap structure - this will be passed to the queue
+      const initialRoadmap = {
+        id: roadmapId,
+        title: `Roadmap for ${objective}`,
+        objective,
+        finalGoal,
+        generationState: "queued",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        phases: [], // Empty initially - will be populated by AI
+        totalDuration: "Calculating...",
+        difficultyLevel: "To be determined"
+      };
+      
+      // Set the initial roadmap in the UI immediately
+      console.log('Setting initial roadmap:', initialRoadmap);
+      setRoadmap(initialRoadmap);
+      
+      // Create queue item with the initialRoadmap
+      const queueItem = {
+        id: roadmapId,
+        name: `Roadmap for ${objective}`,
+        objective,
+        finalGoal,
+        status: "queued",
+        roadmapId: roadmapId,
+        createdAt: new Date().toISOString(),
+        initialRoadmap: initialRoadmap // Pass the initial roadmap to the queue
+      };
+      
+      console.log('Adding to queue:', queueItem);
+      
+      // Add to queue
+      const result = addToQueue(queueItem);
+      console.log('addToQueue result:', result);
+      
+      if (result) {
+        // Switch to the ongoing tab to show progress
+        console.log('Switching to ongoing tab');
+        setActiveTab("ongoing");
+        
+        console.log('Showing success toast');
+        toast.success("Roadmap generation started! Check the 'Ongoing' tab for progress.");
+      } else {
+        // If adding to queue failed, reset the roadmap
+        setRoadmap(null);
+        toast.error("Failed to add roadmap to generation queue");
+      }
     } catch (error) {
       console.error("Error generating roadmap:", error);
+      setRoadmap(null);
+      toast.error(`Failed to start roadmap generation: ${error.message}`);
     }
   };
 
@@ -250,16 +312,6 @@ const CreateRoadmapTab = ({
                 <Lightbulb size={14} />
                 <span>Include measurable outcomes and deliverables</span>
               </div>
-            </div>
-
-            {/* Debug Info (remove in production) */}
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-sm">
-              <strong>Debug Info:</strong>
-              <div>Queue Length: {generationQueue?.length || 0}</div>
-              <div>Has addToQueue: {typeof addToQueue === 'function' ? 'Yes' : 'No'}</div>
-              <div>Has generateRoadmap: {typeof generateRoadmap === 'function' ? 'Yes' : 'No'}</div>
-              <div>Objective Length: {objective?.length || 0}</div>
-              <div>Final Goal Length: {finalGoal?.length || 0}</div>
             </div>
 
             {/* Action Buttons */}

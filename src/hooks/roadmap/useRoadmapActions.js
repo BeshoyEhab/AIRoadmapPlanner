@@ -97,6 +97,10 @@ export const useRoadmapActions = ({
 
         // Add to queue
         if (typeof addToQueue === "function") {
+          // If the roadmap is already in the queue, remove it first
+          if (generationQueue.some(item => item.roadmapId === roadmap.id)) {
+            removeFromQueue(roadmap.id);
+          }
           addToQueue(queueItem);
         }
 
@@ -188,51 +192,86 @@ export const useRoadmapActions = ({
    */
   const generateNewRoadmap = useCallback(async (objective, finalGoal) => {
     try {
-      // Generate a unique ID based on content
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      if (!objective || !finalGoal) {
+        console.error('Objective and final goal are required');
+        return false;
+      }
+
+      // Generate a unique ID
+      const uniqueId = `roadmap-${Date.now()}`;
       
-      // Create a new roadmap object in 'queued' state
-      const newRoadmap = {
+      // Create initial roadmap structure
+      const initialRoadmap = {
         id: uniqueId,
+        title: `Roadmap for ${objective}`,
         objective,
         finalGoal,
-        title: `${objective} - ${finalGoal}`.substring(0, 50) + (finalGoal.length > 0 ? '...' : ''),
+        generationState: 'queued',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        generationState: 'queued',
-        status: 'queued',
-        isNew: true
+        phases: [],
+        totalDuration: "Calculating...",
+        difficultyLevel: "To be determined"
       };
 
-      // Set as current roadmap first to trigger loading state
-      if (typeof setRoadmap === 'function') {
-        setRoadmap({
-          ...newRoadmap,
-          generationState: 'in-progress' // Set to in-progress to show loading
-        });
-      }
-
-      // Add to queue and process
-      if (typeof addToQueue === 'function') {
-        addToQueue(newRoadmap);
-      }
-
-      // Save to localStorage
+      // Create queue item
+      const queueItem = {
+        id: uniqueId,
+        name: `Roadmap for ${objective}`,
+        objective,
+        finalGoal,
+        status: "queued",
+        roadmapId: uniqueId,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to localStorage first
       if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('currentRoadmap', JSON.stringify({
-          ...newRoadmap,
-          generationState: 'in-progress'
-        }));
+        try {
+          localStorage.setItem('currentRoadmap', JSON.stringify(initialRoadmap));
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
+
+      // Set the roadmap state
+      if (typeof setRoadmap === 'function') {
+        setRoadmap(initialRoadmap);
+      }
+      
+      // Add to queue
+      if (typeof addToQueue === 'function') {
+        const added = addToQueue(queueItem);
+        if (!added) {
+          console.error('Failed to add to queue');
+          // Update state to reflect the error
+          if (typeof setRoadmap === 'function') {
+            setRoadmap({
+              ...initialRoadmap,
+              generationState: 'error',
+              error: 'Failed to add to generation queue'
+            });
+          }
+          return false;
+        }
+      }
+
+      // Switch to view tab after a short delay to allow state to update
+      if (typeof setActiveTab === 'function') {
+        setTimeout(() => {
+          setActiveTab('view');
+        }, 100);
       }
 
       return true;
     } catch (error) {
-      console.error('Error creating roadmap:', error);
+      console.error('Error in generateNewRoadmap:', error);
       // Reset loading state on error
       if (typeof setRoadmap === 'function') {
         setRoadmap(prev => ({
           ...prev,
-          generationState: 'idle'
+          generationState: 'error',
+          error: error.message || 'Failed to generate roadmap'
         }));
       }
       return false;
