@@ -13,6 +13,7 @@ const SavedPlansTab = ({
   isFavorite,
   addToQueue,
   setObjective,
+  setFinalGoal,
   setRoadmap, 
   generationQueue
 }) => {
