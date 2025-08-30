@@ -122,6 +122,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
 
   const saveRoadmapToDisk = async (roadmapData, name) => {
     try {
+      const roadmapName = roadmapData.title || name || `Roadmap-${Date.now()}`;
       const response = await fetch("http://localhost:3001/api/roadmaps", {
         method: "POST",
         headers: {
@@ -621,7 +622,6 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     toast.success("Generation stopped");
   }, [interruptGeneration]);
 
-  // Fixed generateRoadmap function - properly handle initialRoadmap
   const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, wasQueuePaused = false, initialRoadmap = null) => {
     console.log('[generateRoadmap] Starting generation', { 
       isContinuation, 
@@ -719,25 +719,75 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         currentRoadmap = roadmapToContinue;
         setRoadmap(currentRoadmap);
       } else if (initialRoadmap) {
-        // Use the provided initial roadmap
-        console.log('[generateRoadmap] Using provided initial roadmap:', initialRoadmap.id);
-        currentRoadmap = initialRoadmap;
+        // FIXED: Check if initialRoadmap needs structure generation
+        if (!initialRoadmap.phases || initialRoadmap.phases.length === 0) {
+          console.log('[generateRoadmap] Initial roadmap needs structure generation');
+          
+          // Generate the basic structure first
+          if (!objective || !finalGoal) {
+            // Use the roadmap's stored objective and finalGoal
+            setObjective(initialRoadmap.objective || "");
+            setFinalGoal(initialRoadmap.finalGoal || "");
+          }
+          
+          if (!initialRoadmap.objective || !initialRoadmap.finalGoal) {
+            throw new Error("Initial roadmap missing objective or final goal");
+          }
+          
+          setLoadingMessage("Generating high-level plan structure...");
+          const initialPrompt = createInitialPrompt();
+          const initialJson = await generateWithRetry(initialPrompt);
+
+          if (!initialJson || !Array.isArray(initialJson.phases) || initialJson.phases.length === 0) {
+            throw new Error("The AI did not return a valid initial roadmap structure.");
+          }
+
+          // Update the initial roadmap with the generated structure
+          currentRoadmap = {
+            ...initialRoadmap,
+            ...initialJson, // This includes title, totalDuration, etc.
+            id: initialRoadmap.id, // Keep the original ID
+            objective: initialRoadmap.objective, // Keep original objective
+            finalGoal: initialRoadmap.finalGoal, // Keep original finalGoal
+            generationState: "in-progress",
+            updatedAt: new Date().toISOString(),
+            phases: initialJson.phases.map((p, pIdx) => ({
+              phaseNumber: p.phaseNumber || pIdx + 1,
+              title: p.title,
+              duration: "...",
+              goal: "...",
+              miniGoals: [],
+              resources: [],
+              project: {},
+              skills: [],
+              milestone: "...",
+              prerequisiteKnowledge: [],
+              progressPercentage: 0,
+            })),
+          };
+          
+          console.log('[generateRoadmap] Generated structure for initial roadmap:', currentRoadmap);
+        } else {
+          console.log('[generateRoadmap] Using provided initial roadmap with existing structure:', initialRoadmap.id);
+          currentRoadmap = initialRoadmap;
+        }
+        
         setRoadmap(currentRoadmap);
         
-        // Make sure it's saved to disk
+        // Save the updated roadmap
         const savedRoadmap = await saveRoadmapToDisk(
-          initialRoadmap,
-          initialRoadmap.title || `Roadmap-${Date.now()}`,
+          currentRoadmap,
+          currentRoadmap.title || `Roadmap-${Date.now()}`,
         );
         
         if (!savedRoadmap) {
-          throw new Error("Failed to save initial roadmap");
+          throw new Error("Failed to save roadmap with structure");
         }
         
         currentRoadmap = savedRoadmap;
         setRoadmap(savedRoadmap);
       } else {
-        // Generate new roadmap structure
+        // Generate completely new roadmap
         if (!objective || !finalGoal) {
           throw new Error("Please provide both an objective and a final goal.");
         }
@@ -788,7 +838,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         setRoadmap(savedRoadmap);
       }
 
-      // Generate phase details
+      // Generate phase details (this part remains the same)
       const startIndex = currentRoadmap.phases.findIndex(p => p.goal === "...");
       if (startIndex === -1) {
         console.log('[generateRoadmap] Roadmap already complete');
@@ -808,16 +858,6 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
             generationState: "in-progress",
           };
           await saveRoadmapToDisk(accumulatingRoadmap, accumulatingRoadmap.title);
-          break;
-        }
-
-        // Check if roadmap still exists
-        const roadmapStillExists = savedTimeplans.find(
-          (r) => r.id === accumulatingRoadmap.id || r.sanitizedName === accumulatingRoadmap.sanitizedName
-        );
-        if (!roadmapStillExists) {
-          console.log("Roadmap was deleted during generation, stopping.");
-          setError("Roadmap was deleted during generation.");
           break;
         }
 
