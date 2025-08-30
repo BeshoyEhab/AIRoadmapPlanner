@@ -103,7 +103,7 @@ const SavedPlansTab = ({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold line-clamp-2 mb-2">
-                {timeplan.name}
+                {timeplan.title || timeplan.name}
               </h3>
               {timeplan.objective && (
                 <p className="text-blue-100 text-sm line-clamp-2">

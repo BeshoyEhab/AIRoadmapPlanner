@@ -12,7 +12,6 @@ const ViewRoadmapTab = ({
   finalGoal,
   saveCurrentRoadmap,
   downloadMarkdown,
-
   toggleMiniGoal,
   calculateOverallProgress,
   calculatePhaseProgress,

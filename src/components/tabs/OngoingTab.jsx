@@ -177,7 +177,7 @@ const OngoingTab = ({
                     </span>
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">
-                        {item.name}
+                        {item.title || item.name}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {item.objective}
