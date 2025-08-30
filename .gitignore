@@ -3,8 +3,7 @@
 /dist/assets
 
 # Vite
-.env.local
-.env.*.local
+.env*
 
 # Logs
 npm-debug.log*

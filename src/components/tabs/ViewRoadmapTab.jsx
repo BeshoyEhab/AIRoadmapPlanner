@@ -44,7 +44,7 @@ const ViewRoadmapTab = ({
 
     // Title
     doc.setFontSize(20);
-    doc.text(roadmap.title || "Study Roadmap", 20, 20);
+    doc.text(roadmap.title || roadmap.name, 20, 20);
 
     // Basic info
     doc.setFontSize(12);

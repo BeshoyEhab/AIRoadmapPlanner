@@ -489,7 +489,7 @@ ADAPT THE DIFFICULTY AND PHASE COUNT BASED ON THE COMPLEXITY OF THE SUBJECT:
 Format as JSON with this EXACT structure:
 {
   "title": "Comprehensive Study Roadmap Title",
-  "totalDuration": "Be completely realistic - multiple years if needed for mastery",
+  "totalDuration": "Be completely realistic - multiple years if needed for mastery and only tell the time without any other details like ('2 Years', '6 Months', '3 - 5 Years') not ('2 Years of part-time study', '6 - 10 Months to become proficient')",
   "difficultyLevel": "Beginner/Intermediate/Advanced/Expert",
   "totalEstimatedHours": "Realistic total hour commitment",
   "phases": [
