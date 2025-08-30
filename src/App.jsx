@@ -410,6 +410,10 @@ const App = () => {
             handleDeleteConfirm={handleDeleteConfirm}
             toggleFavorite={toggleFavorite}
             isFavorite={isFavorite}
+            addToQueue={addToQueue}
+            setObjective={setObjective}
+            setRoadmap={setRoadmap}
+            generationQueue={generationQueue}  // ADD THIS
           />
         );
       case "ongoing":
