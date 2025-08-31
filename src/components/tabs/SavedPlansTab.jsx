@@ -1,15 +1,214 @@
-import React from 'react';
-import { BookOpen, Calendar, Clock, Trash2, Eye, Search, FolderOpen, Plus, Brain } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Calendar, Clock, Trash2, Search, FolderOpen, Plus, Star, RefreshCw } from 'lucide-react';
 
-const SavedPlansTab = ({ 
-  savedTimeplans, 
-  loadRoadmap, 
-  deleteRoadmap, 
-  setActiveTab, 
-  isDeleteDialogOpen, 
-  setIsDeleteDialogOpen, 
-  handleDeleteConfirm 
+const SavedPlansTab = ({
+  savedTimeplans,
+  loadRoadmap,
+  deleteRoadmap,
+  setActiveTab,
+  isDeleteDialogOpen,
+  setIsDeleteDialogOpen,
+  handleDeleteConfirm,
+  toggleFavorite,
+  isFavorite,
+  addToQueue,
+  setObjective,
+  setFinalGoal,
+  setRoadmap, 
+  generationQueue
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const handleRegenerateRoadmap = async (timeplan) => {
+    try {
+      // Set the form values
+      setObjective(timeplan.objective || '');
+      setFinalGoal(timeplan.finalGoal || '');
+      
+      // Clear current roadmap
+      setRoadmap(null);
+      
+      // Create a new roadmap ID
+      const newRoadmapId = `roadmap-${Date.now()}`;
+      
+      // Create initial roadmap structure
+      const initialRoadmap = {
+        id: newRoadmapId,
+        objective: timeplan.objective,
+        finalGoal: timeplan.finalGoal,
+        generationState: "queued",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        phases: [], // Empty - will be populated by AI
+        totalDuration: "Calculating...",
+        difficultyLevel: "To be determined"
+      };
+      
+      // Set the initial roadmap in UI
+      setRoadmap(initialRoadmap);
+      
+      // Create queue item
+      const queueItem = {
+        id: newRoadmapId,
+        name: `Regenerating: ${timeplan.name}`,
+        objective: timeplan.objective,
+        finalGoal: timeplan.finalGoal,
+        status: "queued",
+        roadmapId: newRoadmapId,
+        createdAt: new Date().toISOString(),
+        initialRoadmap: initialRoadmap,
+        isRegeneration: true,
+        originalRoadmapId: timeplan.id // Track the original for reference
+      };
+      
+      // Add to queue
+      const result = addToQueue(queueItem);
+      
+      if (result) {
+        // Switch to ongoing tab to show progress
+        setActiveTab("ongoing");
+        toast.success(`Regenerating "${timeplan.name}"! Check the 'Ongoing' tab for progress.`);
+      } else {
+        setRoadmap(null);
+        toast.error("Failed to start roadmap regeneration");
+      }
+    } catch (error) {
+      console.error("Error regenerating roadmap:", error);
+      toast.error(`Failed to regenerate roadmap: ${error.message}`);
+    }
+  };
+  
+  // Check if a roadmap is currently being regenerated
+  const isRegenerating = (timeplanId) => {
+    return generationQueue.some(item => 
+      item.isRegeneration && item.originalRoadmapId === timeplanId
+    );
+  };
+
+  const renderRoadmapCard = (timeplan) => {
+    const isCurrentlyRegenerating = isRegenerating(timeplan.id);
+
+    return (
+      <div
+        key={timeplan.id}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 
+                 hover:shadow-glow-white transition-all duration-300 overflow-hidden group
+                 cursor-pointer flex flex-col h-full" // Added flex flex-col h-full
+        onClick={() => {
+          loadRoadmap(timeplan.id);
+          setActiveTab('view');
+        }}
+      >
+        {/* Card Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold line-clamp-2 mb-2">
+                {timeplan.title || timeplan.name}
+              </h3>
+              {timeplan.objective && (
+                <p className="text-blue-100 text-sm line-clamp-2">
+                  {timeplan.objective}
+                </p>
+              )}
+            </div>
+            <div className="ml-2 flex items-center gap-1">
+              {/* Favorite Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(timeplan.id);
+                }}
+                className={`p-1 rounded-full hover:bg-white/10 transition-colors ${
+                  isFavorite(timeplan.id) ? 'text-yellow-400' : 'text-gray-300'
+                }`}
+                title={isFavorite(timeplan.id) ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {isFavorite(timeplan.id) ? (
+                  <Star className="w-5 h-5 fill-current" />
+                ) : (
+                  <Star className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Card Content - This will grow to fill available space */}
+        <div className="p-4 flex-1 flex flex-col justify-center"> {/* Added flex-1 and centering */}
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-1">
+                <Calendar className="text-blue-600 dark:text-blue-400" size={16} />
+              </div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                {timeplan.phases?.length || 0}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Phases</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-1">
+                <Clock className="text-green-600 dark:text-green-400" size={16} />
+              </div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                {timeplan.totalDuration || 'N/A'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Duration</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card Footer - This will stick to the bottom */}
+        <div className="px-0 py-0 bg-gray-50/80 dark:bg-gray-700/80 border-t border-gray-200/50 dark:border-gray-600/50 backdrop-blur-sm mt-auto"> {/* Added mt-auto */}
+          <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-600">
+            {/* Regenerate Button */}
+             <div className="relative group/regenerate p-2.5 hover:bg-gray-100/50 dark:hover:bg-gray-600/30 transition-colors">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRegenerateRoadmap(timeplan);
+                }}
+                disabled={isCurrentlyRegenerating}
+                className={`w-full h-full flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+                  isCurrentlyRegenerating
+                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                    : 'text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400'
+                }`}
+              >
+                <RefreshCw 
+                  size={16} 
+                  className={`transition-transform ${
+                    isCurrentlyRegenerating 
+                      ? 'animate-spin' 
+                      : 'group-hover/regenerate:rotate-180'
+                  }`} 
+                />
+                <span>
+                  {isCurrentlyRegenerating ? 'Regenerating...' : 'Regenerate'}
+                </span>
+              </button>
+            </div>           
+            {/* Delete Button */}
+            <div className="relative group/delete p-2.5 hover:bg-gray-100/50 dark:hover:bg-gray-600/30 transition-colors">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteRoadmap(timeplan.id);
+                }}
+                className="w-full h-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+              >
+                <Trash2 size={16} className="transition-transform group-hover/delete:scale-110" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (savedTimeplans.length === 0) {
     return (
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -33,7 +232,7 @@ const SavedPlansTab = ({
             onClick={() => setActiveTab('create')}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
                      text-white font-semibold py-3 px-8 rounded-lg shadow-lg 
-                     transition-all duration-300 hover:shadow-xl transform hover:scale-105 
+                     transition-all duration-300 hover:shadow-glow-blue 
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Plus size={20} />
@@ -52,7 +251,7 @@ const SavedPlansTab = ({
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col gap-6 min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
       {/* Header Section */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -80,7 +279,7 @@ const SavedPlansTab = ({
                 onClick={() => setActiveTab('create')}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 
                          rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                         transform hover:scale-105 flex items-center gap-2"
+                         hover:shadow-glow-red flex items-center gap-2"
               >
                 <Plus size={18} />
                 <span className="hidden sm:inline">New Plan</span>
@@ -92,179 +291,57 @@ const SavedPlansTab = ({
 
       {/* Plans Grid */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {savedTimeplans.map((timeplan) => (
-            <div
-              key={timeplan.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 
-                       hover:shadow-xl transition-all duration-300 transform hover:scale-105 overflow-hidden group"
-            >
-              {/* Card Header */}
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold line-clamp-2 mb-2">
-                      {timeplan.name}
-                    </h3>
-                    {timeplan.objective && (
-                      <p className="text-blue-100 text-sm line-clamp-2">
-                        {timeplan.objective}
-                      </p>
-                    )}
-                  </div>
-                  <div className="ml-2">
-                    <Brain size={20} className="text-blue-200" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Content */}
-              <div className="p-4 flex-1">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-1">
-                      <Calendar className="text-blue-600 dark:text-blue-400" size={16} />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      {timeplan.phases?.length || 0}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Phases</p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-1">
-                      <Clock className="text-green-600 dark:text-green-400" size={16} />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
-                      {timeplan.totalDuration || 'N/A'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Duration</p>
-                  </div>
-                </div>
-
-                {/* Progress Bar (if available) */}
-                {timeplan.phases && timeplan.phases.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Progress</span>
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                        {Math.round((timeplan.phases.filter(p => p.progressPercentage === 100).length / timeplan.phases.length) * 100)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${Math.round((timeplan.phases.filter(p => p.progressPercentage === 100).length / timeplan.phases.length) * 100)}%`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {timeplan.difficultyLevel && (
-                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 
-                                   text-xs font-medium rounded-full">
-                      {timeplan.difficultyLevel}
-                    </span>
-                  )}
-                  {timeplan.phases && timeplan.phases.length > 0 && timeplan.phases.some(p => p.progressPercentage < 100) && timeplan.generationState !== 'completed' && (
-                    <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 
-                                   text-xs font-medium rounded-full">
-                      Incomplete
-                    </span>
-                  )}
-                  {timeplan.phases && timeplan.phases.length > 0 && timeplan.phases.every(p => p.progressPercentage === 100) && timeplan.generationState === 'completed' && (
-                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 
-                                   text-xs font-medium rounded-full">
-                      Complete
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Card Actions */}
-              <div className="p-4 pt-0 flex gap-2">
-                <button
-                  onClick={() => {
-                    if (loadRoadmap(timeplan.id)) {
-                      setActiveTab('view');
-                    }
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center justify-center gap-2"
-                >
-                  <Eye size={16} />
-                  <span className="text-sm">View</span>
-                </button>
-                
-                <button
-                  onClick={() => deleteRoadmap(timeplan.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 
-                           rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                           transform hover:scale-105 flex items-center justify-center"
-                  title="Delete roadmap"
-                >
-                  <Trash2 size={16} />
-                </button>
+        <div className="space-y-8">
+          {/* Favorites Section */}
+          {savedTimeplans.some(tp => isFavorite(tp.id)) && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                Favorite Roadmaps
+              </h2>
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
+                {savedTimeplans
+                  .filter(timeplan => isFavorite(timeplan.id))
+                  .map(renderRoadmapCard)}
               </div>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Quick Actions */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-            <Search size={20} className="text-blue-500" />
-            Quick Actions
-          </h3>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <button
-              onClick={() => setActiveTab('create')}
-              className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 
-                       border border-blue-200 dark:border-blue-800 rounded-lg 
-                       hover:shadow-md transition-all duration-300 transform hover:scale-105 text-left"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center">
-                  <Plus className="text-blue-600 dark:text-blue-400" size={16} />
-                </div>
-                <span className="font-semibold text-gray-800 dark:text-white">Create New</span>
+          {/* All Roadmaps Section */}
+          {savedTimeplans.some(tp => !isFavorite(tp.id)) && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                All Roadmaps
+              </h2>
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
+                {savedTimeplans
+                  .filter(timeplan => !isFavorite(timeplan.id))
+                  .map(renderRoadmapCard)}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Generate a fresh learning roadmap
-              </p>
-            </button>
-            
-            <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 
-                          border border-gray-200 dark:border-gray-600 rounded-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded-lg flex items-center justify-center">
-                  <BookOpen className="text-gray-600 dark:text-gray-400" size={16} />
-                </div>
-                <span className="font-semibold text-gray-800 dark:text-white">Total Plans</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {savedTimeplans.length} roadmaps saved
-              </p>
             </div>
-            
-            <div className="p-4 bg-gradient-to-br from-green-50-to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 
-                          border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center">
-                  <Calendar className="text-green-600 dark:text-green-400" size={16} />
-                </div>
-                <span className="font-semibold text-gray-800 dark:text-white">Completed</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {savedTimeplans.filter(tp => tp.generationState === 'completed').length} finished plans
-              </p>
+          )}
+
+          {/* Quick Actions */}
+          <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Quick Actions</h2>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => setActiveTab('create')}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <Plus size={16} />
+                Create New Roadmap
+              </button>
+              <button
+                onClick={() => {
+                  const searchInput = document.getElementById('search-roadmaps');
+                  if (searchInput) searchInput.focus();
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors"
+              >
+                <Search size={16} />
+                Search Roadmaps
+              </button>
             </div>
           </div>
         </div>

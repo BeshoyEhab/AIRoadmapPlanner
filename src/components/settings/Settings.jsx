@@ -36,6 +36,9 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
   const [notifications, setNotifications] = useState(true);
   const [exportFormat, setExportFormat] = useState('markdown');
   const [language, setLanguage] = useState('en');
+  const [minPhases, setMinPhases] = useState(15);
+  const [maxPhases, setMaxPhases] = useState(50);
+  const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
 
   useEffect(() => {
     const savedApiKey = localStorage.getItem('gemini-api-key');
@@ -74,6 +77,21 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
+
+    const savedMinPhases = localStorage.getItem('min-phases');
+    if (savedMinPhases) {
+      setMinPhases(parseInt(savedMinPhases));
+    }
+
+    const savedMaxPhases = localStorage.getItem('max-phases');
+    if (savedMaxPhases) {
+      setMaxPhases(parseInt(savedMaxPhases));
+    }
+
+    const savedAdaptiveDifficulty = localStorage.getItem('adaptive-difficulty');
+    if (savedAdaptiveDifficulty !== null) {
+      setAdaptiveDifficulty(savedAdaptiveDifficulty === 'true');
+    }
   }, []);
 
   const handleSave = () => {
@@ -92,6 +110,9 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         localStorage.setItem('notifications', notifications.toString());
         localStorage.setItem('export-format', exportFormat);
         localStorage.setItem('language', language);
+        localStorage.setItem('min-phases', minPhases.toString());
+        localStorage.setItem('max-phases', maxPhases.toString());
+        localStorage.setItem('adaptive-difficulty', adaptiveDifficulty.toString());
         
         if (onSave) {
           onSave();
@@ -322,6 +343,75 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
               </SelectContent>
             </Select>
           </div>
+        </div>
+      </div>
+
+      {/* Roadmap Generation Settings */}
+      <div className="mb-8">
+        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Brain className="h-4 w-4" />
+          Roadmap Generation
+        </h3>
+        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Adaptive Difficulty Phases</Label>
+              <p className="text-sm text-muted-foreground">Automatically adjust phase count based on difficulty level</p>
+            </div>
+            <Switch checked={adaptiveDifficulty} onCheckedChange={setAdaptiveDifficulty} />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min-phases">Minimum Phases</Label>
+              <Input
+                id="min-phases"
+                type="number"
+                min="5"
+                max="100"
+                value={minPhases}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value <= maxPhases) {
+                    setMinPhases(value);
+                  }
+                }}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">Minimum number of learning phases</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="max-phases">Maximum Phases</Label>
+              <Input
+                id="max-phases"
+                type="number"
+                min="5"
+                max="100"
+                value={maxPhases}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value >= minPhases) {
+                    setMaxPhases(value);
+                  }
+                }}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">Maximum number of learning phases</p>
+            </div>
+          </div>
+          
+          {adaptiveDifficulty && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Adaptive Phase Count</h4>
+              <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <div>• <strong>Easy:</strong> {Math.ceil(minPhases)} - {Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} phases</div>
+                <div>• <strong>Medium:</strong> {Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} - {Math.ceil(minPhases + (maxPhases - minPhases) * 0.6)} phases</div>
+                <div>• <strong>Hard:</strong> {Math.ceil(minPhases + (maxPhases - minPhases) * 0.6)} - {Math.ceil(minPhases + (maxPhases - minPhases) * 0.8)} phases</div>
+                <div>• <strong>Expert:</strong> {Math.ceil(minPhases + (maxPhases - minPhases) * 0.8)} - {maxPhases} phases</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

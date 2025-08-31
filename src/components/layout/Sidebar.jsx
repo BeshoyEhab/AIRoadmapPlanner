@@ -1,4 +1,5 @@
 import React from "react";
+import clsx from "clsx";
 import {
   X,
   Sun,
@@ -33,7 +34,7 @@ const Sidebar = ({
     ref={sidebarRef}
     className={`fixed inset-y-0 left-0 w-80 bg-white dark:bg-gray-800 z-30
                 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-                transition-transform duration-300 ease-in-out lg:hidden
+                transition-transform duration-300 ease-in-out lg:translate-x-0
                 shadow-2xl border-r border-gray-200 dark:border-gray-700 flex flex-col`}
   >
     {/* Header */}
@@ -69,11 +70,15 @@ const Sidebar = ({
                 setActiveTab("create");
                 toggleSidebar();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300 ${
-                activeTab === "create"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-md transform scale-105"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 hover:shadow-sm"
-              }`}
+              className={clsx(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300",
+                {
+                  "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-glow-blue":
+                    activeTab === "create",
+                  "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700":
+                    activeTab !== "create",
+                }
+              )}
             >
               <div
                 className={`p-2 rounded-lg ${
@@ -104,11 +109,15 @@ const Sidebar = ({
                 setActiveTab("view");
                 toggleSidebar();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300 ${
-                activeTab === "view"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-md transform scale-105"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 hover:shadow-sm"
-              }`}
+              className={clsx(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300",
+                {
+                  "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-glow-blue":
+                    activeTab === "view",
+                  "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700":
+                    activeTab !== "view",
+                }
+              )}
             >
               <div
                 className={`p-2 rounded-lg ${
@@ -137,11 +146,15 @@ const Sidebar = ({
                 setActiveTab("ongoing");
                 toggleSidebar();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300 ${
-                activeTab === "ongoing"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-md transform scale-105"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 hover:shadow-sm"
-              }`}
+              className={clsx(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300",
+                {
+                  "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-glow-blue":
+                    activeTab === "ongoing",
+                  "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700":
+                    activeTab !== "ongoing",
+                }
+              )}
             >
               <div
                 className={`p-2 rounded-lg ${
@@ -170,11 +183,15 @@ const Sidebar = ({
                 setActiveTab("saved");
                 toggleSidebar();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300 ${
-                activeTab === "saved"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-md transform scale-105"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 hover:shadow-sm"
-              }`}
+              className={clsx(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-300",
+                {
+                  "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-glow-blue":
+                    activeTab === "saved",
+                  "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700":
+                    activeTab !== "saved",
+                }
+              )}
             >
               <div
                 className={`p-2 rounded-lg ${
@@ -321,7 +338,7 @@ const Sidebar = ({
                       }}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium
                                py-2 px-3 rounded-md transition-all duration-300 hover:shadow-md
-                               transform hover:scale-105 flex items-center justify-center gap-1"
+                               hover:shadow-glow-blue flex items-center justify-center gap-1"
                     >
                       <Eye size={12} />
                       View
@@ -331,7 +348,7 @@ const Sidebar = ({
                       onClick={() => deleteRoadmap(timeplan.id)}
                       className="bg-red-600 hover:bg-red-700 text-white text-xs font-medium
                                py-2 px-2 rounded-md transition-all duration-300 hover:shadow-md
-                               transform hover:scale-105 flex items-center justify-center"
+                               hover:shadow-glow-red flex items-center justify-center"
                       title="Delete"
                     >
                       <Trash2 size={12} />

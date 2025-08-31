@@ -12,11 +12,21 @@ const ViewRoadmapTab = ({
   finalGoal,
   saveCurrentRoadmap,
   downloadMarkdown,
-
   toggleMiniGoal,
   calculateOverallProgress,
+  calculatePhaseProgress,
   setRoadmap,
   error,
+  loading,
+  loadingMessage,
+  interruptGeneration,
+  generateRoadmap,
+  addToQueue,
+  removeFromQueue,
+  generationQueue,
+  currentlyGenerating,
+  toggleFavorite,
+  isFavorite,
 }) => {
   const [exportFormat, setExportFormat] = useState("markdown");
 
@@ -34,7 +44,7 @@ const ViewRoadmapTab = ({
 
     // Title
     doc.setFontSize(20);
-    doc.text(roadmap.title || "Study Roadmap", 20, 20);
+    doc.text(roadmap.title || roadmap.name, 20, 20);
 
     // Basic info
     doc.setFontSize(12);
@@ -156,20 +166,15 @@ const ViewRoadmapTab = ({
     );
   };
 
-  const handleExport = () => {
-    switch (exportFormat) {
-      case "markdown":
-        downloadMarkdown();
-        break;
-      case "pdf":
-        exportToPDF();
-        break;
-      case "html":
-        exportToHTML();
-        break;
-      default:
-        downloadMarkdown();
-    }
+  // Add handleCopyCode to copy roadmap JSON to clipboard
+  const handleCopyCode = () => {
+    if (!roadmap) return;
+    navigator.clipboard.writeText(JSON.stringify(roadmap, null, 2));
+  };
+
+  // Add handlePrint to print the roadmap
+  const handlePrint = () => {
+    window.print();
   };
 
   if (!roadmap) {
@@ -196,7 +201,7 @@ const ViewRoadmapTab = ({
             onClick={() => setActiveTab("create")}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
                      text-white font-semibold py-3 px-8 rounded-lg shadow-lg
-                     transition-all duration-300 hover:shadow-xl transform hover:scale-105
+                     transition-all duration-300 hover:shadow-glow-blue
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Brain size={20} />
@@ -217,89 +222,27 @@ const ViewRoadmapTab = ({
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
-      {/* Action Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-16 z-10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            {/* Roadmap Title */}
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {roadmap.title}
-              </h1>
-              {roadmap.difficultyLevel && (
-                <span className="inline-block mt-1 px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                  {roadmap.difficultyLevel}
-                </span>
-              )}
-            </div>
-
-            {/* Export Actions */}
-            <div className="flex items-center gap-2">
-              {/* Export Format Selector */}
-              <select
-                value={exportFormat}
-                onChange={(e) => {
-                  setExportFormat(e.target.value);
-                  localStorage.setItem("export-format", e.target.value);
-                }}
-                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="markdown">Markdown</option>
-                <option value="pdf">PDF</option>
-                <option value="html">HTML</option>
-              </select>
-
-              <button
-                onClick={saveCurrentRoadmap}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4
-                         rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
-                         transform hover:scale-105 flex items-center gap-2 text-sm"
-                title="Save Roadmap"
-              >
-                <Save size={16} />
-                <span className="hidden sm:inline">Save</span>
-              </button>
-
-              <button
-                onClick={handleExport}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4
-                         rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
-                         transform hover:scale-105 flex items-center gap-2 text-sm"
-                title={`Export as ${exportFormat.toUpperCase()}`}
-              >
-                <Download size={16} />
-                <span className="hidden sm:inline">
-                  Export {exportFormat.toUpperCase()}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
-                    <AlertCircle
-                      className="text-red-600 dark:text-red-400"
-                      size={18}
-                    />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
-                    Generation Error
-                  </h4>
-                  <p className="text-sm text-red-700 dark:text-red-300">
-                    {error}
-                  </p>
-                </div>
+      {/* Error Display */}
+      {error && (
+        <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                <AlertCircle
+                  className="text-red-600 dark:text-red-400"
+                  size={18}
+                />
               </div>
             </div>
-          )}
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
+                Generation Error
+              </h4>
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -309,7 +252,27 @@ const ViewRoadmapTab = ({
           finalGoal={finalGoal}
           toggleMiniGoal={toggleMiniGoal}
           calculateOverallProgress={calculateOverallProgress}
+          calculatePhaseProgress={calculatePhaseProgress}
           setRoadmap={setRoadmap}
+          saveCurrentRoadmap={saveCurrentRoadmap}
+          downloadMarkdown={downloadMarkdown}
+          exportToPDF={exportToPDF}
+          handleCopyCode={handleCopyCode}
+          handlePrint={handlePrint}
+          loading={loading}
+          loadingMessage={loadingMessage}
+          interruptGeneration={interruptGeneration}
+          generateRoadmap={generateRoadmap}
+          error={error}
+          exportFormat={exportFormat}
+          setExportFormat={setExportFormat}
+          showActionButtons={true}
+          addToQueue={addToQueue}
+          removeFromQueue={removeFromQueue}
+          generationQueue={generationQueue}
+          currentlyGenerating={currentlyGenerating}
+          toggleFavorite={toggleFavorite}
+          isFavorite={isFavorite}
         />
       </div>
     </div>

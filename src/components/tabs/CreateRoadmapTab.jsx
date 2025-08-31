@@ -10,7 +10,21 @@ import {
   Rocket,
   Plus,
   Clock,
+  AlertTriangle,
+  X,
+  Check,
 } from "lucide-react";
+import { useRoadmapActions } from "../../hooks/roadmap/useRoadmapActions";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const CreateRoadmapTab = ({
   objective,
@@ -23,33 +37,159 @@ const CreateRoadmapTab = ({
   error,
   roadmap,
   addToQueue,
+  removeFromQueue,
+  setActiveTab,
+  generationQueue = [], // Provide default value
+  setRoadmap,
+  interruptGeneration
 }) => {
   const isResumable = roadmap && roadmap.generationState === "in-progress";
 
-  const handleGenerate = () => {
-    if (loading) {
-      // If already generating, add to queue instead
-      const queueItem = {
-        id: Date.now(),
-        name: `${objective.slice(0, 50)}${objective.length > 50 ? "..." : ""}`,
-        objective: objective.trim(),
-        finalGoal: finalGoal.trim(),
-        status: "queued",
-        isResume: false,
-      };
-      addToQueue(queueItem);
+  const {
+    handleGenerateNew,
+    handleResume,
+    duplicateRoadmapInfo,
+    handleConfirmReplace,
+    handleCancelReplace,
+  } = useRoadmapActions({
+    roadmap,
+    addToQueue,
+    generateRoadmap,
+    setObjective,
+    setFinalGoal,
+    setActiveTab,
+    generationQueue,
+    setRoadmap,
+    removeFromQueue,
+    interruptGeneration
+  });
 
-      // Clear form after adding to queue
-      setObjective("");
-      setFinalGoal("");
-    } else {
-      // Normal generation
-      generateRoadmap(false);
+  // Fixed handleGenerate function in CreateRoadmapTab.jsx
+  const handleGenerate = async () => {
+    console.log('handleGenerate called');
+    if (!objective.trim() || !finalGoal.trim()) {
+      console.log('Missing objective or final goal');
+      toast.error("Please provide both an objective and a final goal");
+      return;
+    }
+
+    try {
+      console.log('Clearing previous roadmap');
+      // Clear any previous roadmap
+      setRoadmap(null);
+      
+      // Create a unique ID for the new roadmap
+      const roadmapId = `roadmap-${Date.now()}`;
+      console.log('Created roadmap ID:', roadmapId);
+      
+      // Create initial roadmap structure - this will be passed to the queue
+      const initialRoadmap = {
+        id: roadmapId,
+        title: `Roadmap for ${objective}`,
+        objective,
+        finalGoal,
+        generationState: "queued",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        phases: [], // Empty initially - will be populated by AI
+        totalDuration: "Calculating...",
+        difficultyLevel: "To be determined"
+      };
+      
+      // Set the initial roadmap in the UI immediately
+      console.log('Setting initial roadmap:', initialRoadmap);
+      setRoadmap(initialRoadmap);
+      
+      // Create queue item with the initialRoadmap
+      const queueItem = {
+        id: roadmapId,
+        name: `Roadmap for ${objective}`,
+        objective,
+        finalGoal,
+        status: "queued",
+        roadmapId: roadmapId,
+        createdAt: new Date().toISOString(),
+        initialRoadmap: initialRoadmap // Pass the initial roadmap to the queue
+      };
+      
+      console.log('Adding to queue:', queueItem);
+      
+      // Add to queue
+      const result = addToQueue(queueItem);
+      console.log('addToQueue result:', result);
+      
+      if (result) {
+        // Switch to the ongoing tab to show progress
+        console.log('Switching to ongoing tab');
+        setActiveTab("ongoing");
+        
+        console.log('Showing success toast');
+        toast.success("Roadmap generation started! Check the 'Ongoing' tab for progress.");
+      } else {
+        // If adding to queue failed, reset the roadmap
+        setRoadmap(null);
+        toast.error("Failed to add roadmap to generation queue");
+      }
+    } catch (error) {
+      console.error("Error generating roadmap:", error);
+      setRoadmap(null);
+      toast.error(`Failed to start roadmap generation: ${error.message}`);
     }
   };
 
-  const handleResume = () => {
-    generateRoadmap(true, roadmap);
+  // Render the duplicate confirmation dialog
+  const renderDuplicateDialog = () => {
+    if (!duplicateRoadmapInfo.show) return null;
+
+    const { existingRoadmap, objective, finalGoal } = duplicateRoadmapInfo;
+    const isCurrent = existingRoadmap?.isCurrent;
+
+    return (
+      <Dialog open={duplicateRoadmapInfo.show} onOpenChange={handleCancelReplace}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <AlertTriangle className="h-5 w-5" />
+              <DialogTitle>Similar Roadmap Found</DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              {isCurrent 
+                ? "You already have a roadmap with the same objective and goal. "
+                : "A similar roadmap is already in the generation queue. "
+              }
+              Would you like to replace it with a new one?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-4">
+              <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
+                {existingRoadmap?.objective}
+              </h4>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                {existingRoadmap?.finalGoal}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCancelReplace}
+              className="gap-2"
+            >
+              <X className="h-4 w-4" />
+              Keep Existing
+            </Button>
+            <Button
+              onClick={handleConfirmReplace}
+              className="gap-2 bg-yellow-600 hover:bg-yellow-700"
+            >
+              <Check className="h-4 w-4" />
+              Generate New
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   return (
@@ -198,7 +338,7 @@ const CreateRoadmapTab = ({
                       onClick={handleResume}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6
                                rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
-                               transform hover:scale-105 flex items-center justify-center gap-2"
+                               hover:shadow-glow-blue flex items-center justify-center gap-2"
                     >
                       <Play size={20} />
                       Resume Generation
@@ -209,7 +349,7 @@ const CreateRoadmapTab = ({
                     onClick={handleGenerate}
                     className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
                              text-white font-semibold py-3 px-6 rounded-lg shadow-md
-                             transition-all duration-300 hover:shadow-lg transform hover:scale-105
+                             transition-all duration-300 hover:shadow-glow-white
                              flex items-center justify-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md`}
                     disabled={!objective.trim() || !finalGoal.trim()}
@@ -330,6 +470,9 @@ const CreateRoadmapTab = ({
             </p>
           </div>
         </div>
+
+        {/* Render the duplicate dialog */}
+        {renderDuplicateDialog()}
       </div>
     </div>
   );

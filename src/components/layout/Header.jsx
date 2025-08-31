@@ -46,7 +46,7 @@ const Header = ({
 
   const iconButtonClasses = `
     p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700
-    transition-all duration-300 hover:shadow-md transform hover:scale-105
+    transition-all duration-300 hover:shadow-glow-white
   `;
 
   return (
@@ -81,7 +81,7 @@ const Header = ({
         </div>
 
         {/* Center Navigation - Desktop */}
-        <nav className="hidden lg:flex space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
+        <nav className="flex space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
           <button
             onClick={() => setActiveTab("create")}
             className={tabButtonClasses(activeTab === "create")}
@@ -170,35 +170,6 @@ const Header = ({
         </div>
       </div>
 
-      {/* Mobile Navigation Bar */}
-      <div className="lg:hidden bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 px-4 py-2">
-        <nav className="flex justify-center space-x-1">
-          <button
-            onClick={() => setActiveTab("create")}
-            className={`${tabButtonClasses(activeTab === "create")} text-xs px-2 py-2`}
-          >
-            Create
-          </button>
-          <button
-            onClick={() => setActiveTab("view")}
-            className={`${tabButtonClasses(activeTab === "view")} text-xs px-2 py-2`}
-          >
-            View
-          </button>
-          <button
-            onClick={() => setActiveTab("ongoing")}
-            className={`${tabButtonClasses(activeTab === "ongoing")} text-xs px-2 py-2`}
-          >
-            Ongoing
-          </button>
-          <button
-            onClick={() => setActiveTab("saved")}
-            className={`${tabButtonClasses(activeTab === "saved")} text-xs px-2 py-2`}
-          >
-            Saved
-          </button>
-        </nav>
-      </div>
     </header>
   );
 };
