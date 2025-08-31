@@ -201,7 +201,7 @@ const ViewRoadmapTab = ({
             onClick={() => setActiveTab("create")}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
                      text-white font-semibold py-3 px-8 rounded-lg shadow-lg
-                     transition-all duration-300 hover:shadow-xl transform hover:scale-105
+                     transition-all duration-300 hover:shadow-glow-blue
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Brain size={20} />

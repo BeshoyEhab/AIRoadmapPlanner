@@ -338,7 +338,7 @@ const CreateRoadmapTab = ({
                       onClick={handleResume}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6
                                rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
-                               transform hover:scale-105 flex items-center justify-center gap-2"
+                               hover:shadow-glow-blue flex items-center justify-center gap-2"
                     >
                       <Play size={20} />
                       Resume Generation
@@ -349,7 +349,7 @@ const CreateRoadmapTab = ({
                     onClick={handleGenerate}
                     className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
                              text-white font-semibold py-3 px-6 rounded-lg shadow-md
-                             transition-all duration-300 hover:shadow-lg transform hover:scale-105
+                             transition-all duration-300 hover:shadow-glow-white
                              flex items-center justify-center gap-2
                              disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md`}
                     disabled={!objective.trim() || !finalGoal.trim()}

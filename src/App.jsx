@@ -138,6 +138,7 @@ const App = () => {
     pauseQueue,
     resumeQueue,
     retryGeneration,
+    setGenerationQueue,
   } = useRoadmap({ setActiveTab });
 
   // Enhanced theme effect with proper document class management
@@ -374,10 +375,10 @@ const App = () => {
             error={error}
             roadmap={roadmap}
             addToQueue={addToQueue}
-            removeFromQueue={removeFromQueue}  // ADD THIS
+            removeFromQueue={removeFromQueue}  
             setActiveTab={setActiveTab}
-            generationQueue={generationQueue}  // ADD THIS  
-            setRoadmap={setRoadmap}            // ADD THIS
+            generationQueue={generationQueue}  
+            setRoadmap={setRoadmap}            
             interruptGeneration={interruptGeneration}
           />
         );
@@ -423,13 +424,14 @@ const App = () => {
             setObjective={setObjective}
             setFinalGoal={setFinalGoal}
             setRoadmap={setRoadmap}
-            generationQueue={generationQueue}  // ADD THIS
+            generationQueue={generationQueue}  
           />
         );
       case "ongoing":
         return (
           <OngoingTab
             generationQueue={generationQueue}
+            setGenerationQueue={setGenerationQueue}
             incompleteRoadmaps={incompleteRoadmaps}
             isQueuePaused={isQueuePaused}
             currentlyGenerating={currentlyGenerating}
@@ -439,9 +441,10 @@ const App = () => {
             retryGeneration={retryGeneration}
             loadRoadmap={loadRoadmap}
             deleteRoadmap={deleteRoadmap}
-            setActiveTab={setActiveTab}
-            roadmap={roadmap}
             addToQueue={addToQueue}
+            clearQueue={clearQueue}
+            loading={loading}
+            loadingMessage={loadingMessage}
           />
         );
         default:
@@ -481,27 +484,6 @@ const App = () => {
 
   return (
     <div className={`flex flex-col min-h-screen ${theme} bg-background`}>
-      <Header
-        theme={theme}
-        toggleTheme={toggleFunctions.toggleTheme}
-        fullScreenMode={fullScreenMode}
-        toggleFullScreen={toggleFunctions.toggleFullScreen}
-        toggleSidebar={toggleFunctions.toggleSidebar}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-      
-      {/* Confirmation Dialog for Deletion */}
-      <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Roadmap"
-        description="Are you sure you want to delete this roadmap? This action cannot be undone."
-        confirmText="Delete"
-        variant="destructive"
-      />
-      
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           ref={sidebarRef}
@@ -511,40 +493,64 @@ const App = () => {
           setActiveTab={setActiveTab}
           savedTimeplans={savedTimeplans}
           loadRoadmap={loadRoadmap}
-          deleteRoadmap={deleteRoadmap}
+          deleteRoadmap={(id) => {
+            setRoadmapToDelete(id);
+            setIsDeleteDialogOpen(true);
+          }}
           theme={theme}
           toggleTheme={toggleFunctions.toggleTheme}
           fullScreenMode={fullScreenMode}
           toggleFullScreen={toggleFunctions.toggleFullScreen}
+          onSave={handleSettingsSave}
         />
-        
-        <main className="flex-1 overflow-auto">
-          <div className={`container mx-auto p-4 ${isSidebarOpen ? 'lg:ml-64' : ''}`}>
-            {apiKeyStatus === "checking" && (
-              <div className="text-center p-8">
-                <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading...</p>
-              </div>
-            )}
-            {apiKeyStatus === "missing" ? (
-              <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
-                <h2 className="text-2xl font-bold mb-4 text-foreground">
-                  Welcome to AI Study Planner
-                </h2>
-                <p className="mb-4 text-muted-foreground">
-                  To get started, please provide a Gemini API key.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Click the gear icon in the top-right corner to open the settings
-                  and add your key.
-                </p>
-              </div>
-            ) : (
-              renderTabContent()
-            )}
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden lg:ml-80">
+          <Header
+            theme={theme}
+            toggleTheme={toggleFunctions.toggleTheme}
+            fullScreenMode={fullScreenMode}
+            toggleFullScreen={toggleFunctions.toggleFullScreen}
+            toggleSidebar={toggleFunctions.toggleSidebar}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto p-4">
+              {apiKeyStatus === "checking" && (
+                <div className="text-center p-8">
+                  <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading...</p>
+                </div>
+              )}
+              {apiKeyStatus === "missing" ? (
+                <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
+                  <h2 className="text-2xl font-bold mb-4 text-foreground">
+                    Welcome to AI Study Planner
+                  </h2>
+                  <p className="mb-4 text-muted-foreground">
+                    To get started, please provide a Gemini API key.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Click the gear icon in the top-right corner to open the settings
+                    and add your key.
+                  </p>
+                </div>
+              ) : (
+                renderTabContent()
+              )}
+            </div>
+          </main>
+        </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Roadmap"
+        description="Are you sure you want to delete this roadmap? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
 
       <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
         <DialogContent className="modal-content">
@@ -578,30 +584,6 @@ const App = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="modal-content">
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this timeplan? This action cannot
-              be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
     </div>
   );
 };

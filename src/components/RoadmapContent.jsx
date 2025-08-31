@@ -149,7 +149,7 @@ const RoadmapContent = ({
             <div className="flex flex-wrap items-center gap-2 no-print">
               <button
                 onClick={saveCurrentRoadmap}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg transform hover:scale-105 flex items-center gap-2 text-sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-blue flex items-center gap-2 text-sm"
                 title="Save Roadmap"
               >
                 <Download size={16} />
@@ -172,7 +172,7 @@ const RoadmapContent = ({
                     }
                   }
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg transform hover:scale-105 flex items-center gap-2 text-sm"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-green flex items-center gap-2 text-sm"
                 title={`Export as ${exportFormat.toUpperCase()}`}
               >
                 <Download size={16} />
@@ -182,13 +182,13 @@ const RoadmapContent = ({
               </button>
               {/* Enhanced Pause/Resume Controls */}
               {(() => {
-                const inQueue =
-                  generationQueue &&
-                  generationQueue.some(
-                    (q) =>
-                      q.id === roadmap.id ||
-                      (q.roadmapId && q.roadmapId === roadmap.id),
-                  );
+                if (roadmap.generationState === "completed") {
+                  return null; // Don't show any generation buttons if complete
+                }
+
+                const inQueue = generationQueue.some(
+                  (item) => item.roadmapId === roadmap.id,
+                );
                 const isGenerating =
                   typeof currentlyGenerating === "object" &&
                   currentlyGenerating !== null &&
@@ -205,7 +205,7 @@ const RoadmapContent = ({
                   return (
                     <div className="flex flex-col items-center gap-2">
                       <button
-                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl transform hover:scale-105 flex items-center gap-3 text-sm relative overflow-hidden group"
+                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-orange flex items-center gap-3 text-sm relative overflow-hidden group"
                         onClick={() => handlePause(roadmap)}
                         title={isGenerating ? "Pause Current Generation" : "Remove from Queue"}
                       >
@@ -266,7 +266,7 @@ const RoadmapContent = ({
                   return (
                     <div className="flex flex-col items-center gap-2">
                       <button
-                        className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl transform hover:scale-105 flex items-center gap-3 text-sm relative overflow-hidden group ${
+                        className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-green flex items-center gap-3 text-sm relative overflow-hidden group ${
                           alreadyGenerating ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         onClick={() => !alreadyGenerating && handleResume(roadmap)}
@@ -312,22 +312,6 @@ const RoadmapContent = ({
                   );
                 }
                 
-                // Show completion status for completed roadmaps
-                if (roadmap.generationState === "completed") {
-                  return (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 text-green-800 font-semibold py-3 px-6 rounded-xl shadow-md flex items-center gap-3 text-sm">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span>Generation Complete</span>
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      </div>
-                      <div className="text-xs text-center text-green-600 font-medium">
-                        ✨ Ready to start your learning journey!
-                      </div>
-                    </div>
-                  );
-                }
-                
                 // Disabled state for in-progress but not in queue (edge case)
                 if (roadmap.generationState === "in-progress" && !inQueue) {
                   return (
@@ -340,9 +324,6 @@ const RoadmapContent = ({
                         <Loader className="animate-spin mr-3 h-5 w-5" />
                         <span>Processing...</span>
                       </button>
-                      <div className="text-xs text-center text-gray-500">
-                        Generation in progress
-                      </div>
                     </div>
                   );
                 }
