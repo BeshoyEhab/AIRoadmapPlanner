@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import useRoadmap from "./hooks/useRoadmap";
 import Header from "./components/layout/Header";
-import Sidebar from "./components/layout/Sidebar";
+
 import CreateRoadmapTab from "./components/tabs/CreateRoadmapTab";
 import ViewRoadmapTab from "./components/tabs/ViewRoadmapTab";
 import SavedPlansTab from "./components/tabs/SavedPlansTab";
@@ -27,22 +27,8 @@ const App = () => {
     return savedTheme ? savedTheme : "dark";
   });
   const [fullScreenMode, setFullScreenMode] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roadmapToDelete, setRoadmapToDelete] = useState(null);
-  const sidebarRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsSidebarOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [sidebarRef]);
 
   const [activeTab, setActiveTab] = useState("create");
   const [apiKeyStatus, setApiKeyStatus] = useState("checking");
@@ -96,9 +82,7 @@ const App = () => {
           });
       }
     },
-    toggleSidebar: () => {
-      setIsSidebarOpen(prev => !prev);
-    },
+
   };
 
   const {
@@ -485,31 +469,13 @@ const App = () => {
   return (
     <div className={`flex flex-col min-h-screen ${theme} bg-background`}>
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          ref={sidebarRef}
-          isSidebarOpen={isSidebarOpen}
-          toggleSidebar={toggleFunctions.toggleSidebar}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          savedTimeplans={savedTimeplans}
-          loadRoadmap={loadRoadmap}
-          deleteRoadmap={(id) => {
-            setRoadmapToDelete(id);
-            setIsDeleteDialogOpen(true);
-          }}
-          theme={theme}
-          toggleTheme={toggleFunctions.toggleTheme}
-          fullScreenMode={fullScreenMode}
-          toggleFullScreen={toggleFunctions.toggleFullScreen}
-          onSave={handleSettingsSave}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden lg:ml-80">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <Header
             theme={theme}
             toggleTheme={toggleFunctions.toggleTheme}
             fullScreenMode={fullScreenMode}
             toggleFullScreen={toggleFunctions.toggleFullScreen}
-            toggleSidebar={toggleFunctions.toggleSidebar}
+
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />

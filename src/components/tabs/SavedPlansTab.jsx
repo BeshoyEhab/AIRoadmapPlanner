@@ -92,8 +92,8 @@ const SavedPlansTab = ({
       <div
         key={timeplan.id}
         className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 
-                 hover:shadow-glow-white transition-all duration-300 overflow-hidden group
-                 cursor-pointer flex flex-col h-full" // Added flex flex-col h-full
+                 hover:shadow-xl transition-all duration-300 overflow-hidden group
+                 cursor-pointer flex flex-col h-full hover:shadow-glow-blue" // Added flex flex-col h-full
         onClick={() => {
           loadRoadmap(timeplan.id);
           setActiveTab('view');
@@ -232,7 +232,7 @@ const SavedPlansTab = ({
             onClick={() => setActiveTab('create')}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 
                      text-white font-semibold py-3 px-8 rounded-lg shadow-lg 
-                     transition-all duration-300 hover:shadow-glow-blue 
+                     transition-all duration-300 hover:shadow-xl transform hover:scale-105 
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Plus size={20} />
@@ -251,7 +251,7 @@ const SavedPlansTab = ({
   }
 
   return (
-    <div className="flex flex-col gap-6 min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
       {/* Header Section */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -279,7 +279,7 @@ const SavedPlansTab = ({
                 onClick={() => setActiveTab('create')}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 
                          rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
-                         hover:shadow-glow-red flex items-center gap-2"
+                         transform hover:scale-105 flex items-center gap-2"
               >
                 <Plus size={18} />
                 <span className="hidden sm:inline">New Plan</span>
@@ -290,7 +290,7 @@ const SavedPlansTab = ({
       </div>
 
       {/* Plans Grid */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-8">
           {/* Favorites Section */}
           {savedTimeplans.some(tp => isFavorite(tp.id)) && (
@@ -299,7 +299,7 @@ const SavedPlansTab = ({
                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 Favorite Roadmaps
               </h2>
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 {savedTimeplans
                   .filter(timeplan => isFavorite(timeplan.id))
                   .map(renderRoadmapCard)}
@@ -313,7 +313,7 @@ const SavedPlansTab = ({
               <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 All Roadmaps
               </h2>
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row-dense">
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
                 {savedTimeplans
                   .filter(timeplan => !isFavorite(timeplan.id))
                   .map(renderRoadmapCard)}

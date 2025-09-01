@@ -19,7 +19,6 @@ import {
 import Settings from "@/components/settings/Settings";
 
 const Header = ({
-  toggleSidebar,
   activeTab,
   setActiveTab,
   theme,
@@ -51,125 +50,101 @@ const Header = ({
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 z-10 sticky top-0 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-        {/* Left Section */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className={`${iconButtonClasses} lg:hidden`}
-            aria-label="Toggle sidebar"
-          >
-            <Menu size={24} />
-          </button>
-
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center justify-between relative">
+          {/* Left Section - Logo and Text */}
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
               <Brain size={24} className="text-white" />
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-                AI Study Planner
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
-                Powered by AI
-              </p>
-            </div>
-            <h1 className="sm:hidden text-lg font-bold text-gray-800 dark:text-white">
-              Study Planner
+            <h1 className="text-lg font-bold text-gray-800 dark:text-white whitespace-nowrap sm:hidden">
+              Roadmap Planner
             </h1>
           </div>
-        </div>
 
-        {/* Center Navigation - Desktop */}
-        <nav className="flex space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
-          <button
-            onClick={() => setActiveTab("create")}
-            className={tabButtonClasses(activeTab === "create")}
-          >
-            Create Roadmap
-          </button>
-          <button
-            onClick={() => setActiveTab("view")}
-            className={tabButtonClasses(activeTab === "view")}
-          >
-            View Roadmap
-          </button>
-          <button
-            onClick={() => setActiveTab("ongoing")}
-            className={tabButtonClasses(activeTab === "ongoing")}
-          >
-            Ongoing
-          </button>
-          <button
-            onClick={() => setActiveTab("saved")}
-            className={tabButtonClasses(activeTab === "saved")}
-          >
-            Saved Plans
-          </button>
-        </nav>
-
-        {/* Right Section */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className={iconButtonClasses}
-            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-          >
-            {theme === "light" ? (
-              <Moon size={20} className="text-blue-600" />
-            ) : (
-              <Sun size={20} className="text-yellow-500" />
-            )}
-          </button>
-
-          <button
-            onClick={toggleFullScreen}
-            className={`${iconButtonClasses} hidden sm:block`}
-            title={`${fullScreenMode ? "Exit" : "Enter"} fullscreen`}
-          >
-            {fullScreenMode ? (
-              <Minimize
-                size={20}
-                className="text-gray-600 dark:text-gray-300"
-              />
-            ) : (
-              <Maximize
-                size={20}
-                className="text-gray-600 dark:text-gray-300"
-              />
-            )}
-          </button>
-
-          <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <SheetTrigger asChild>
+          {/* Center Navigation */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
               <button
-                className={`${iconButtonClasses} relative`}
-                title="Settings"
+                onClick={() => setActiveTab("create")}
+                className={tabButtonClasses(activeTab === "create")}
               >
-                <SettingsIcon
-                  size={20}
-                  className="text-gray-600 dark:text-gray-300"
-                />
+                Create
               </button>
-            </SheetTrigger>
-            <SheetOverlay className="bg-black/50 backdrop-blur-sm" />
-            <SheetContent className="w-full sm:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
-              <SheetHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                <SheetTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                  <SettingsIcon size={20} className="text-blue-500" />
-                  Settings
-                </SheetTitle>
-              </SheetHeader>
-              <Settings
-                onSave={handleSave}
-                theme={theme}
-                toggleTheme={toggleTheme}
-              />
-            </SheetContent>
-          </Sheet>
+              <button
+                onClick={() => setActiveTab("view")}
+                className={tabButtonClasses(activeTab === "view")}
+              >
+                View
+              </button>
+              <button
+                onClick={() => setActiveTab("ongoing")}
+                className={tabButtonClasses(activeTab === "ongoing")}
+              >
+                Ongoing
+              </button>
+              <button
+                onClick={() => setActiveTab("saved")}
+                className={tabButtonClasses(activeTab === "saved")}
+              >
+                Saved
+              </button>
+            </div>
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={toggleTheme}
+              className={iconButtonClasses}
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            >
+              {theme === "light" ? (
+                <Moon size={20} className="text-blue-600" />
+              ) : (
+                <Sun size={20} className="text-yellow-500" />
+              )}
+            </button>
+
+            <button
+              onClick={toggleFullScreen}
+              className={`${iconButtonClasses} hidden sm:block`}
+              title={`${fullScreenMode ? "Exit" : "Enter"} fullscreen`}
+            >
+              {fullScreenMode ? (
+                <Minimize size={20} className="text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Maximize size={20} className="text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
+
+            <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className={`${iconButtonClasses} relative`}
+                  title="Settings"
+                >
+                  <SettingsIcon size={20} className="text-gray-600 dark:text-gray-300" />
+                </button>
+              </SheetTrigger>
+              <SheetOverlay className="bg-black/50 backdrop-blur-sm" />
+              <SheetContent className="w-full sm:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
+                <SheetHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <SheetTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                    <SettingsIcon size={20} className="text-blue-500" />
+                    Settings
+                  </SheetTitle>
+                </SheetHeader>
+                <Settings
+                  onSave={handleSave}
+                  theme={theme}
+                  toggleTheme={toggleTheme}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
-
     </header>
   );
 };

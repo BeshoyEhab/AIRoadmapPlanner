@@ -118,3 +118,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.hover\:shadow-glow-blue:hover {
+  box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.4);
+}
