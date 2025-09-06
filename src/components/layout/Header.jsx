@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
+import "./Header.css";
 import {
   Brain,
   Menu,
@@ -35,7 +36,7 @@ const Header = ({
   };
 
   const tabButtonClasses = (isActive) => `
-    px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300
+    px-2 sm:px-4 py-2 rounded-lg text-sm font-semibold nav-tab-button whitespace-nowrap
     ${
       isActive
         ? "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200 shadow-md transform scale-105"
@@ -45,26 +46,26 @@ const Header = ({
 
   const iconButtonClasses = `
     p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700
-    transition-all duration-300 hover:shadow-glow-white
+    icon-button hover:shadow-glow-white min-w-[2.5rem] flex items-center justify-center
   `;
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 z-10 sticky top-0 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex items-center justify-between relative">
+      <div className="container mx-auto px-2 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center justify-between relative header-wrapper">
           {/* Left Section - Logo and Text */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
-              <Brain size={24} className="text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md logo-container">
+              <Brain size={24} className="text-white logo-brain" />
             </div>
-            <h1 className="text-lg font-bold text-gray-800 dark:text-white whitespace-nowrap sm:hidden">
+            <h1 className="header-title text-lg font-bold text-gray-800 dark:text-white whitespace-nowrap">
               Roadmap Planner
             </h1>
           </div>
 
           {/* Center Navigation */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            <div className="flex space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
+          <div className="fixed left-1/2 nav-tabs">
+            <div className="flex space-x-1 sm:space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
               <button
                 onClick={() => setActiveTab("create")}
                 className={tabButtonClasses(activeTab === "create")}
@@ -112,9 +113,15 @@ const Header = ({
               title={`${fullScreenMode ? "Exit" : "Enter"} fullscreen`}
             >
               {fullScreenMode ? (
-                <Minimize size={20} className="text-gray-600 dark:text-gray-300" />
+                <Minimize
+                  size={20}
+                  className="text-gray-600 dark:text-gray-300"
+                />
               ) : (
-                <Maximize size={20} className="text-gray-600 dark:text-gray-300" />
+                <Maximize
+                  size={20}
+                  className="text-gray-600 dark:text-gray-300"
+                />
               )}
             </button>
 
@@ -124,7 +131,10 @@ const Header = ({
                   className={`${iconButtonClasses} relative`}
                   title="Settings"
                 >
-                  <SettingsIcon size={20} className="text-gray-600 dark:text-gray-300" />
+                  <SettingsIcon
+                    size={20}
+                    className="text-gray-600 dark:text-gray-300"
+                  />
                 </button>
               </SheetTrigger>
               <SheetOverlay className="bg-black/50 backdrop-blur-sm" />
@@ -149,4 +159,4 @@ const Header = ({
   );
 };
 
-export default Header;
+export default memo(Header);

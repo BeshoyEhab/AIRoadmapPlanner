@@ -1,0 +1,95 @@
+/* Header transitions and animations */
+.logo-brain {
+    transform-origin: center;
+    backface-visibility: hidden;
+    will-change: transform;
+    min-width: 24px;
+}
+
+.logo-container {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-container:hover .logo-brain {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.nav-tabs {
+    transform: translateX(-50%);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
+    max-width: calc(100vw - 220px);
+    z-index: 10;
+}
+
+.nav-tab-button {
+    transform-origin: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;
+}
+
+.nav-tab-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Performance optimizations */
+.header-wrapper {
+    contain: layout style;
+    isolation: isolate;
+}
+
+/* Responsive text handling */
+@media (max-width: 768px) {
+    .header-title {
+        display: none;
+    }
+
+    .nav-tabs {
+        max-width: calc(100vw - 140px);
+    }
+
+    .nav-tab-button {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+@media (min-width: 769px) {
+    .header-title {
+        opacity: 1;
+        width: auto;
+        transition: opacity 0.2s ease-in;
+    }
+}
+
+/* Smooth icon transitions */
+.icon-button {
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+    will-change: transform, background-color;
+}
+
+.icon-button:hover {
+    transform: scale(1.05);
+}
+
+.icon-button:active {
+    transform: scale(0.95);
+}

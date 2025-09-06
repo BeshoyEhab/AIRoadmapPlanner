@@ -1,11 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  Suspense,
+} from "react";
 import useRoadmap from "./hooks/useRoadmap";
 import Header from "./components/layout/Header";
 
-import CreateRoadmapTab from "./components/tabs/CreateRoadmapTab";
-import ViewRoadmapTab from "./components/tabs/ViewRoadmapTab";
-import SavedPlansTab from "./components/tabs/SavedPlansTab";
-import OngoingTab from "./components/tabs/OngoingTab";
+const CreateRoadmapTab = React.lazy(
+  () => import("./components/tabs/CreateRoadmapTab"),
+);
+const ViewRoadmapTab = React.lazy(
+  () => import("./components/tabs/ViewRoadmapTab"),
+);
+const SavedPlansTab = React.lazy(
+  () => import("./components/tabs/SavedPlansTab"),
+);
+const OngoingTab = React.lazy(() => import("./components/tabs/OngoingTab"));
 import {
   Dialog,
   DialogContent,
@@ -20,6 +32,12 @@ import { Label } from "@/components/ui/label";
 import { ConfirmationDialog } from "./components/common/ConfirmationDialog";
 import { toast } from "sonner";
 import "./App.css";
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 const App = () => {
   const [theme, setTheme] = useState(() => {
@@ -51,9 +69,9 @@ const App = () => {
 
   const toggleFunctions = {
     toggleTheme: () => {
-      setTheme(prevTheme => {
-        const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('theme', newTheme);
+      setTheme((prevTheme) => {
+        const newTheme = prevTheme === "light" ? "dark" : "light";
+        localStorage.setItem("theme", newTheme);
         return newTheme;
       });
     },
@@ -82,7 +100,6 @@ const App = () => {
           });
       }
     },
-
   };
 
   const {
@@ -183,8 +200,8 @@ const App = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -344,7 +361,7 @@ const App = () => {
     URL.revokeObjectURL(url);
   };
 
-  const renderTabContent = () => {
+  const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case "create":
         return (
@@ -359,10 +376,11 @@ const App = () => {
             error={error}
             roadmap={roadmap}
             addToQueue={addToQueue}
-            removeFromQueue={removeFromQueue}  
+            removeFromQueue={removeFromQueue}
             setActiveTab={setActiveTab}
-            generationQueue={generationQueue}  
-            setRoadmap={setRoadmap}            
+            generationQueue={generationQueue}
+            key={activeTab}
+            setRoadmap={setRoadmap}
             interruptGeneration={interruptGeneration}
           />
         );
@@ -408,7 +426,7 @@ const App = () => {
             setObjective={setObjective}
             setFinalGoal={setFinalGoal}
             setRoadmap={setRoadmap}
-            generationQueue={generationQueue}  
+            generationQueue={generationQueue}
           />
         );
       case "ongoing":
@@ -431,28 +449,46 @@ const App = () => {
             loadingMessage={loadingMessage}
           />
         );
-        default:
-          return (
-            <CreateRoadmapTab
-              objective={objective}
-              setObjective={setObjective}
-              finalGoal={finalGoal}
-              setFinalGoal={setFinalGoal}
-              generateRoadmap={generateRoadmap}
-              loading={loading}
-              loadingMessage={loadingMessage}
-              error={error}
-              roadmap={roadmap}
-              addToQueue={addToQueue}
-              removeFromQueue={removeFromQueue}  // ADD THIS
-              setActiveTab={setActiveTab}
-              generationQueue={generationQueue}  // ADD THIS
-              setRoadmap={setRoadmap}            // ADD THIS
-              interruptGeneration={interruptGeneration}
-            />
-          );
+      default:
+        return (
+          <CreateRoadmapTab
+            objective={objective}
+            setObjective={setObjective}
+            finalGoal={finalGoal}
+            setFinalGoal={setFinalGoal}
+            generateRoadmap={generateRoadmap}
+            loading={loading}
+            loadingMessage={loadingMessage}
+            error={error}
+            roadmap={roadmap}
+            addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue} // ADD THIS
+            setActiveTab={setActiveTab}
+            generationQueue={generationQueue} // ADD THIS
+            setRoadmap={setRoadmap} // ADD THIS
+            interruptGeneration={interruptGeneration}
+          />
+        );
     }
-  };
+  }, [
+    activeTab,
+    objective,
+    finalGoal,
+    generateRoadmap,
+    loading,
+    loadingMessage,
+    error,
+    roadmap,
+    addToQueue,
+    removeFromQueue,
+    setActiveTab,
+    generationQueue,
+    setRoadmap,
+    interruptGeneration,
+    savedTimeplans,
+    toggleFavorite,
+    isFavorite,
+  ]);
 
   const handleDeleteConfirm = async () => {
     if (!roadmapToDelete) return;
@@ -475,7 +511,6 @@ const App = () => {
             toggleTheme={toggleFunctions.toggleTheme}
             fullScreenMode={fullScreenMode}
             toggleFullScreen={toggleFunctions.toggleFullScreen}
-
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -496,12 +531,14 @@ const App = () => {
                     To get started, please provide a Gemini API key.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Click the gear icon in the top-right corner to open the settings
-                    and add your key.
+                    Click the gear icon in the top-right corner to open the
+                    settings and add your key.
                   </p>
                 </div>
               ) : (
-                renderTabContent()
+                <Suspense fallback={<LoadingFallback />}>
+                  {renderTabContent()}
+                </Suspense>
               )}
             </div>
           </main>
