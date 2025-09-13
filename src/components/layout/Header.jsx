@@ -46,7 +46,7 @@ const Header = ({
 
   const iconButtonClasses = `
     p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700
-    icon-button hover:shadow-glow-white min-w-[2.5rem] flex items-center justify-center
+    icon-button hover:shadow-glow-white min-w-[2.5rem] flex items-center justify-center ml-2
   `;
 
   return (
@@ -54,17 +54,19 @@ const Header = ({
       <div className="container mx-auto px-2 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between relative header-wrapper">
           {/* Left Section - Logo and Text */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md logo-container">
-              <Brain size={24} className="text-white logo-brain" />
+          <div className="flex shrink-0 items-center">
+            <div className="flex items-center">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md logo-container">
+                <Brain size={24} className="text-white logo-brain" />
+              </div>
+              <h1 className="ml-2 text-lg font-bold text-gray-800 dark:text-white whitespace-nowrap">
+                AISRP
+              </h1>
             </div>
-            <h1 className="header-title text-lg font-bold text-gray-800 dark:text-white whitespace-nowrap">
-              Roadmap Planner
-            </h1>
           </div>
 
           {/* Center Navigation */}
-          <div className="fixed left-1/2 nav-tabs">
+          <div className="flex justify-center px-4 max-w-[400px] w-full mx-auto">
             <div className="flex space-x-1 sm:space-x-2 bg-gray-50 dark:bg-gray-700 p-1 rounded-lg shadow-inner">
               <button
                 onClick={() => setActiveTab("create")}
@@ -94,7 +96,7 @@ const Header = ({
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex shrink-0 items-center">
             <button
               onClick={toggleTheme}
               className={iconButtonClasses}

@@ -1,41 +1,25 @@
 /* Header transitions and animations */
 .logo-brain {
     transform-origin: center;
-    backface-visibility: hidden;
-    will-change: transform;
     min-width: 24px;
-}
-
-.logo-container {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo-container:hover .logo-brain {
     animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.nav-tabs {
-    transform: translateX(-50%);
-    backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform;
-    max-width: calc(100vw - 220px);
-    z-index: 10;
+.header-title {
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
 }
 
 .nav-tab-button {
-    transform-origin: center;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    backface-visibility: hidden;
-    will-change: transform, opacity;
+    transition: all 0.2s ease;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 120px;
-}
-
-.nav-tab-button:active {
-    transform: scale(0.95);
+    min-width: 60px;
 }
 
 @keyframes pulse {
@@ -55,41 +39,28 @@
 }
 
 /* Responsive text handling */
-@media (max-width: 768px) {
-    .header-title {
-        display: none;
-    }
-
-    .nav-tabs {
-        max-width: calc(100vw - 140px);
-    }
-
+@media (max-width: 1024px) {
     .nav-tab-button {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
+
+    .header-title {
+        font-size: 1rem;
+    }
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
     .header-title {
-        opacity: 1;
-        width: auto;
-        transition: opacity 0.2s ease-in;
+        font-size: 1.125rem;
     }
 }
 
 /* Smooth icon transitions */
 .icon-button {
-    transition:
-        transform 0.2s ease,
-        background-color 0.2s ease;
-    will-change: transform, background-color;
+    transition: all 0.2s ease;
 }
 
 .icon-button:hover {
     transform: scale(1.05);
-}
-
-.icon-button:active {
-    transform: scale(0.95);
 }

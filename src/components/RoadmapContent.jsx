@@ -30,6 +30,7 @@ const RoadmapContent = ({
   saveCurrentRoadmap,
   downloadMarkdown,
   exportToPDF,
+  exportToJSON,
   handleCopyCode,
   handlePrint,
   toggleMiniGoal,
@@ -162,6 +163,8 @@ const RoadmapContent = ({
                     downloadMarkdown();
                   } else if (exportFormat === "pdf") {
                     exportToPDF();
+                  } else if (exportFormat === "json") {
+                    exportToJSON();
                   } else if (
                     exportFormat === "html" &&
                     typeof window !== "undefined"
@@ -353,6 +356,7 @@ const RoadmapContent = ({
                 <option value="markdown">Markdown</option>
                 <option value="pdf">PDF</option>
                 <option value="html">HTML</option>
+                <option value="json">JSON</option>
               </select>
             </div>
           </div>

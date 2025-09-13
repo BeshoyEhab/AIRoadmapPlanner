@@ -12,6 +12,7 @@ const ViewRoadmapTab = ({
   finalGoal,
   saveCurrentRoadmap,
   downloadMarkdown,
+  exportToJSON,
   toggleMiniGoal,
   calculateOverallProgress,
   calculatePhaseProgress,
@@ -256,6 +257,7 @@ const ViewRoadmapTab = ({
           setRoadmap={setRoadmap}
           saveCurrentRoadmap={saveCurrentRoadmap}
           downloadMarkdown={downloadMarkdown}
+          exportToJSON={exportToJSON}
           exportToPDF={exportToPDF}
           handleCopyCode={handleCopyCode}
           handlePrint={handlePrint}

@@ -282,6 +282,14 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     saveAs(blob, `${roadmap.sanitizedName}.html`);
   };
 
+  const exportToJSON = () => {
+    if (!roadmap) return;
+
+    const jsonContent = JSON.stringify(roadmap, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8" });
+    saveAs(blob, `${roadmap.sanitizedName}.json`);
+  };
+
   // Function to create a sanitized version of the roadmap for storage
   const getSanitizedRoadmap = useCallback((roadmap) => {
     if (!roadmap) return null;
@@ -1312,6 +1320,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     loadRoadmap,
     deleteRoadmap,
     interruptGeneration,
+    exportToJSON, // Add this line
     isQueuePaused,
     currentlyGenerating,
     generationQueue,
