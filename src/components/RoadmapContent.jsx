@@ -27,10 +27,10 @@ const RoadmapContent = ({
   roadmap,
   objective,
   finalGoal,
-  saveCurrentRoadmap,
   downloadMarkdown,
   exportToPDF,
   exportToJSON,
+  exportToHTML,
   handleCopyCode,
   handlePrint,
   toggleMiniGoal,
@@ -148,35 +148,29 @@ const RoadmapContent = ({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 no-print">
-              <button
-                onClick={saveCurrentRoadmap}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-blue flex items-center gap-2 text-sm"
-                title="Save Roadmap"
-              >
-                <Download size={16} />
-                <span>Save</span>
-              </button>
               {/* Single Export Button based on exportFormat */}
               <button
                 onClick={() => {
-                  if (exportFormat === "markdown") {
-                    downloadMarkdown();
-                  } else if (exportFormat === "pdf") {
-                    exportToPDF();
-                  } else if (exportFormat === "json") {
-                    exportToJSON();
-                  } else if (
-                    exportFormat === "html" &&
-                    typeof window !== "undefined"
-                  ) {
-                    // fallback: export HTML
-                    if (typeof window.exportToHTML === "function") {
-                      window.exportToHTML();
+                  try {
+                    if (exportFormat === "markdown") {
+                      downloadMarkdown();
+                    } else if (exportFormat === "pdf") {
+                      exportToPDF();
+                    } else if (exportFormat === "json") {
+                      exportToJSON();
+                    } else if (exportFormat === "html" && exportToHTML) {
+                      exportToHTML();
+                    } else {
+                      console.error(`Unsupported export format: ${exportFormat}`);
                     }
+                  } catch (error) {
+                    console.error('Error during export:', error);
+                    alert(`Failed to export: ${error.message}`);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-green flex items-center gap-2 text-sm"
-                title={`Export as ${exportFormat.toUpperCase()}`}
+                title={`Export as ${exportFormat?.toUpperCase() || 'file'}`}
+                disabled={!roadmap}
               >
                 <Download size={16} />
                 <span>

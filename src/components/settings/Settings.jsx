@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,7 @@ import {
   Upload,
   RotateCcw,
   Trash2,
+  Eye,
 } from "lucide-react";
 
 const Settings = ({ onSave, theme, toggleTheme }) => {
@@ -42,6 +43,9 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
   const [minPhases, setMinPhases] = useState(15);
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [isApiKeyChanged, setIsApiKeyChanged] = useState(false);
 
   useEffect(() => {
     const savedModels = localStorage.getItem("available-models");

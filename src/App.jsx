@@ -123,6 +123,9 @@ const App = () => {
     loadRoadmap,
     deleteRoadmap,
     interruptGeneration,
+    exportToPDF,
+    exportToHTML,
+    exportToJSON,
     isSaveDialogOpen,
     setIsSaveDialogOpen,
     roadmapName,
@@ -361,20 +364,20 @@ const App = () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportToJSON = () => {
-    if (!roadmap) return;
+  // const exportToJSON = () => {
+  //   if (!roadmap) return;
 
-    const jsonContent = JSON.stringify(roadmap, null, 2);
-    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${roadmap.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_roadmap.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  //   const jsonContent = JSON.stringify(roadmap, null, 2);
+  //   const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = `${roadmap.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_roadmap.json`;
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   document.body.removeChild(a);
+  //   URL.revokeObjectURL(url);
+  // };
 
   const renderTabContent = useCallback(() => {
     switch (activeTab) {
@@ -409,6 +412,8 @@ const App = () => {
             saveCurrentRoadmap={saveCurrentRoadmap}
             downloadMarkdown={downloadMarkdown}
             exportToJSON={exportToJSON}
+            exportToPDF={exportToPDF}
+            exportToHTML={exportToHTML}
             toggleMiniGoal={toggleMiniGoal}
             calculateOverallProgress={calculateOverallProgress}
             calculatePhaseProgress={calculatePhaseProgress}
