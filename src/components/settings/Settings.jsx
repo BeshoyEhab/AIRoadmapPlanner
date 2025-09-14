@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import APIKeySettings from "./APIKeySettings";
+import AIProviderSettings from "./AIProviderSettings";
+import ColorPicker from "./ColorPicker";
 import { useAppContext } from "@/contexts/AppContext";
+import { useColorTheme } from "@/hooks/useColorTheme";
 import {
   Brain,
   Palette,
@@ -27,15 +29,13 @@ import {
   RotateCcw,
   Trash2,
   Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Settings = ({ onSave, theme, toggleTheme }) => {
   const { exportData, importRoadmapData } = useAppContext();
-  const [model, setModel] = useState("gpt-3.5-turbo");
-  const [availableModels, setAvailableModels] = useState([]);
-  const [newModelName, setNewModelName] = useState("");
-  const [draggingIndex, setDraggingIndex] = useState(null);
-  const [saveButtonText, setSaveButtonText] = useState("Save Settings");
+  const isDarkMode = theme === 'dark';
+  const { currentTheme, changeTheme } = useColorTheme(isDarkMode);
   const [autoSave, setAutoSave] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [exportFormat, setExportFormat] = useState("markdown");
@@ -43,29 +43,9 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
   const [minPhases, setMinPhases] = useState(15);
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [isApiKeyChanged, setIsApiKeyChanged] = useState(false);
+  const [aiManager, setAiManager] = useState(null);
 
   useEffect(() => {
-    const savedModels = localStorage.getItem("available-models");
-    if (savedModels) {
-      setAvailableModels(JSON.parse(savedModels));
-    } else {
-      setAvailableModels([
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-1.0-pro",
-      ]);
-    }
-
-    const savedModel = localStorage.getItem("gemini-model");
-    if (savedModel) {
-      setModel(savedModel);
-    }
-
     const savedAutoSave = localStorage.getItem("auto-save");
     if (savedAutoSave !== null) {
       setAutoSave(savedAutoSave === "true");
@@ -103,111 +83,47 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
   }, []);
 
   const handleSave = () => {
-    if (isApiKeyChanged) {
-      if (!apiKey) {
-        toast.error("API Key cannot be empty.");
-        return;
-      }
-      localStorage.setItem("gemini-api-key", apiKey);
-      setIsApiKeyChanged(false);
-      toast.success("API Key updated successfully!");
-    } else {
-      localStorage.setItem("gemini-model", model);
-      localStorage.setItem(
-        "gemini-available-models",
-        JSON.stringify(availableModels),
-      );
-      localStorage.setItem("auto-save", autoSave.toString());
-      localStorage.setItem("notifications", notifications.toString());
-      localStorage.setItem("export-format", exportFormat);
-      localStorage.setItem("language", language);
-      localStorage.setItem("min-phases", minPhases.toString());
-      localStorage.setItem("max-phases", maxPhases.toString());
-      localStorage.setItem(
-        "adaptive-difficulty",
-        adaptiveDifficulty.toString(),
-      );
-
-      if (onSave) {
-        onSave();
-      }
-      toast.success("Settings saved successfully!");
-    }
-  };
-
-  const handleAddModel = () => {
-    if (newModelName.trim() && !availableModels.includes(newModelName.trim())) {
-      const updatedModels = [...availableModels, newModelName.trim()];
-      setAvailableModels(updatedModels);
-      localStorage.setItem(
-        "gemini-available-models",
-        JSON.stringify(updatedModels),
-      );
-      setNewModelName("");
-      toast.success(`Model '${newModelName.trim()}' added.`);
-    } else if (availableModels.includes(newModelName.trim())) {
-      toast.error(`Model '${newModelName.trim()}' already exists.`);
-    }
-  };
-
-  const handleRemoveModel = (modelToRemove) => {
-    if (availableModels.length === 1) {
-      toast.error("Cannot remove the last model.");
-      return;
-    }
-    const updatedModels = availableModels.filter((m) => m !== modelToRemove);
-    setAvailableModels(updatedModels);
+    localStorage.setItem("auto-save", autoSave.toString());
+    localStorage.setItem("notifications", notifications.toString());
+    localStorage.setItem("export-format", exportFormat);
+    localStorage.setItem("language", language);
+    localStorage.setItem("min-phases", minPhases.toString());
+    localStorage.setItem("max-phases", maxPhases.toString());
     localStorage.setItem(
-      "gemini-available-models",
-      JSON.stringify(updatedModels),
+      "adaptive-difficulty",
+      adaptiveDifficulty.toString(),
     );
-    if (model === modelToRemove) {
-      setModel(updatedModels[0]);
-      localStorage.setItem("gemini-model", updatedModels[0]);
+
+    if (onSave) {
+      onSave();
     }
-    toast.success(`Model '${modelToRemove}' removed.`);
+    toast.success("Settings saved successfully!");
   };
 
-  const handleMoveModel = (fromIndex, toIndex) => {
-    const updatedModels = [...availableModels];
-    const [movedModel] = updatedModels.splice(fromIndex, 1);
-    updatedModels.splice(toIndex, 0, movedModel);
-    setAvailableModels(updatedModels);
-    localStorage.setItem(
-      "gemini-available-models",
-      JSON.stringify(updatedModels),
-    );
-    toast.success(`Model '${movedModel}' moved.`);
-  };
 
   const handleReset = () => {
     localStorage.clear();
-    setApiKey("");
-    setModel("gemini-2.5-flash");
-    setAvailableModels([
-      "gemini-2.5-flash",
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
-      "gemini-1.5-pro",
-      "gemini-1.0-pro",
-    ]);
     setAutoSave(true);
     setNotifications(true);
     setExportFormat("markdown");
     setLanguage("en");
-    setIsApiKeyChanged(false);
+    setMinPhases(15);
+    setMaxPhases(50);
+    setAdaptiveDifficulty(true);
     toast.success("Settings reset to defaults!");
   };
 
   const exportSettings = () => {
     const settings = {
-      model,
       autoSave,
       notifications,
       exportFormat,
       language,
       theme: theme || "dark",
-      availableModels,
+      colorTheme: currentTheme,
+      minPhases,
+      maxPhases,
+      adaptiveDifficulty,
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(settings, null, 2)], {
@@ -231,14 +147,16 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
     reader.onload = (e) => {
       try {
         const settings = JSON.parse(e.target.result);
-        if (settings.model) setModel(settings.model);
         if (settings.autoSave !== undefined) setAutoSave(settings.autoSave);
         if (settings.notifications !== undefined)
           setNotifications(settings.notifications);
         if (settings.exportFormat) setExportFormat(settings.exportFormat);
         if (settings.language) setLanguage(settings.language);
-        if (settings.availableModels)
-          setAvailableModels(settings.availableModels);
+        if (settings.colorTheme) changeTheme(settings.colorTheme);
+        if (settings.minPhases) setMinPhases(settings.minPhases);
+        if (settings.maxPhases) setMaxPhases(settings.maxPhases);
+        if (settings.adaptiveDifficulty !== undefined)
+          setAdaptiveDifficulty(settings.adaptiveDifficulty);
         toast.success("Settings imported successfully!");
       } catch (error) {
         toast.error("Invalid settings file format.");
@@ -250,112 +168,10 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
 
   return (
     <div className="h-full w-full p-5 overflow-y-auto no-scrollbar">
-      {/* API Configuration */}
+      {/* AI Providers */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-          API Configuration
-        </h3>
-        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-          <div className="space-y-2">
-            <Label htmlFor="api-key" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Gemini API Key
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="api-key"
-                type={showApiKey ? "text" : "password"}
-                value={apiKey}
-                onChange={(e) => {
-                  setApiKey(e.target.value);
-                  setIsApiKeyChanged(true);
-                }}
-                placeholder="Enter your Gemini API key"
-                className="font-mono bg-transparent"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowApiKey(!showApiKey)}
-              >
-                {showApiKey ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            {isApiKeyChanged && (
-              <Button onClick={handleSave} className="w-full mt-2">
-                Update API Key
-              </Button>
-            )}
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Globe className="h-3 w-3" />
-              Get your API key from{" "}
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-primary transition-colors"
-              >
-                Google AI Studio
-              </a>
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="model-select" className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              Default AI Model
-            </Label>
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger id="model-select">
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableModels.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              Available AI Models (Drag to reorder)
-            </Label>
-            <div className="space-y-2 mt-2">
-              {availableModels.map((m, index) => (
-                <div
-                  key={m}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", index);
-                    setDraggingIndex(index);
-                  }}
-                  onDragEnd={() => setDraggingIndex(null)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    const draggedIndex = e.dataTransfer.getData("text/plain");
-                    handleMoveModel(parseInt(draggedIndex), index);
-                  }}
-                  className={`flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md cursor-grab ${draggingIndex === index ? "opacity-50" : ""}`}
-                >
-                  <span>{m}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveModel(m)}
-                    disabled={availableModels.length === 1}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="border border-border p-4 rounded-lg">
+          <AIProviderSettings onProviderChange={setAiManager} />
         </div>
       </div>
 
@@ -364,7 +180,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
           Appearance
         </h3>
-        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <div className="space-y-6 border border-border p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="flex items-center gap-2">
@@ -388,6 +204,15 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
               <Moon className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
+          
+          {/* Color Theme Picker */}
+          <div className="border-t border-border pt-6">
+            <ColorPicker 
+              currentTheme={currentTheme}
+              onThemeChange={changeTheme}
+              isDarkMode={isDarkMode}
+            />
+          </div>
         </div>
       </div>
 
@@ -396,7 +221,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
           Application Settings
         </h3>
-        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <div className="space-y-4 border border-border p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Auto-save Roadmaps</Label>
@@ -457,7 +282,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
           <Brain className="h-4 w-4" />
           Roadmap Generation
         </h3>
-        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <div className="space-y-4 border border-border p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label>Adaptive Difficulty Phases</Label>
@@ -516,11 +341,11 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
           </div>
 
           {adaptiveDifficulty && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+            <div className="border border-border rounded-lg p-3">
+              <h4 className="text-sm font-medium text-foreground mb-2">
                 Adaptive Phase Count
               </h4>
-              <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+              <div className="text-xs text-muted-foreground space-y-1">
                 <div>
                   • <strong>Easy:</strong> {Math.ceil(minPhases)} -{" "}
                   {Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} phases
@@ -551,7 +376,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
           Data Management
         </h3>
-        <div className="space-y-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <div className="space-y-4 border border-border p-4 rounded-lg">
           <div className="flex gap-2">
             <Button
               variant="outline"

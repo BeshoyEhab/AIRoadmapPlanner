@@ -171,25 +171,37 @@ pnpm server
 
 ### Frontend Stack
 
-- **React 19.1.0**: Modern React with latest features and performance improvements
-- **Vite 6.3.5**: Lightning-fast build tool and development server
-- **Tailwind CSS 4.1.7**: Utility-first CSS framework for rapid UI development
-- **shadcn/ui**: High-quality, accessible React components
-- **Framer Motion**: Smooth animations and transitions
-- **React Router DOM**: Client-side routing for single-page application navigation
+- **React 19.1.0**: Modern React with latest features including enhanced error boundaries
+- **Vite 6.3.5**: Lightning-fast build tool with modern development server
+- **Tailwind CSS 4.1.7**: Utility-first CSS framework with custom theming support
+- **shadcn/ui**: Accessible React components with full dark/light theme support
+- **Enhanced Error Handling**: Comprehensive error boundaries and graceful degradation
+- **Progressive Loading**: Lazy-loaded components with intelligent fallbacks
+- **Offline Detection**: Network status monitoring with user feedback
 
 ### Backend Integration
 
-- **Express.js**: Lightweight Node.js server for API endpoints
-- **CORS Support**: Cross-origin resource sharing for frontend-backend communication
-- **Google Gemini AI**: Advanced language models for intelligent roadmap generation
+- **Express.js**: RESTful API server with file-based JSON storage
+- **CORS Support**: Cross-origin resource sharing for development and production
+- **Google Gemini AI**: Multi-model fallback system (2.5 Flash, 2.0 Flash, etc.)
+- **Queue Management**: Advanced generation queue with priority handling
+- **Error Recovery**: Automatic retry logic with exponential backoff
 
-### Development Tools
+### Modern Development Features
 
-- **ESLint**: Code linting and quality assurance
-- **Concurrent Processing**: Simultaneous frontend and backend development
-- **Hot Module Replacement**: Instant updates during development
-- **TypeScript Support**: Optional TypeScript integration for enhanced development experience
+- **Enhanced State Management**: Custom hooks with optimized re-rendering
+- **Performance Optimization**: React.memo, useCallback, and useMemo usage
+- **Smooth Transitions**: Theme switching with CSS transitions
+- **Accessibility**: Full ARIA support and screen reader compatibility
+- **Mobile-First Design**: Responsive layout with touch-friendly interactions
+
+### Security & Error Handling
+
+- **Client-Side API Keys**: Secure localStorage-based key management
+- **Error Boundaries**: Comprehensive error catching and recovery
+- **Network Resilience**: Offline mode detection and graceful degradation
+- **Input Validation**: Robust form validation and sanitization
+- **CSP Ready**: Content Security Policy compatible architecture
 
 ### Key Dependencies
 
@@ -263,6 +275,158 @@ TimePlan requires a Google Gemini API key to function. The application supports 
 **Backup Options**: Export your settings and roadmaps for backup purposes or to transfer between devices.
 
 **Import Capabilities**: Import previously exported settings or roadmaps to restore your learning environment quickly.
+
+## 🌐 Deployment & Hosting
+
+### Free Hosting Options
+
+TimePlan can be deployed to various free hosting platforms. Here are the recommended options:
+
+#### Vercel (Recommended)
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy from project directory
+vercel --prod
+```
+
+**Why Vercel?**
+- Zero-configuration deployment
+- Automatic HTTPS and CDN
+- Perfect for React/Vite applications
+- Excellent performance and reliability
+
+#### Netlify
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Build and deploy
+pnpm build
+netlify deploy --prod --dir=dist
+```
+
+**Netlify Benefits:**
+- Simple drag-and-drop deployment
+- Automatic builds from Git
+- Built-in form handling
+- Edge functions support
+
+#### GitHub Pages
+```bash
+# Build the project
+pnpm build
+
+# Deploy to gh-pages branch
+npx gh-pages -d dist
+```
+
+**GitHub Pages Setup:**
+1. Enable GitHub Pages in repository settings
+2. Select `gh-pages` branch as source
+3. Configure custom domain if needed
+
+#### Cloudflare Pages
+```bash
+# Build command: pnpm build
+# Output directory: dist
+# Node.js version: 18+
+```
+
+### Production Deployment Checklist
+
+- [ ] **Build Optimization**: Run `pnpm build` to create optimized production build
+- [ ] **Environment Variables**: Configure any required environment variables
+- [ ] **HTTPS Setup**: Ensure HTTPS is enabled (automatic on most platforms)
+- [ ] **CSP Headers**: Configure Content Security Policy for enhanced security
+- [ ] **Error Monitoring**: Set up error tracking (optional)
+- [ ] **Performance Testing**: Test loading speed and responsiveness
+- [ ] **Cross-browser Testing**: Verify functionality across different browsers
+
+### Backend Deployment (Optional)
+
+If deploying the backend separately:
+
+```bash
+# For Railway, Render, or Heroku
+echo "web: node server.js" > Procfile
+
+# Set environment variables
+PORT=3000
+NODE_ENV=production
+```
+
+## 🔐 Security & Privacy
+
+### API Key Security Best Practices
+
+#### ✅ What TimePlan Does Right
+
+**Client-Side Storage**: API keys are stored only in your browser's localStorage, never on external servers.
+
+**Direct API Communication**: Your browser communicates directly with Google AI services, bypassing our servers entirely.
+
+**No Server-Side Key Storage**: TimePlan backend never sees or stores your API keys.
+
+**User Control**: You have complete control over your API key - add, remove, or update it anytime.
+
+**Local Validation**: API key format validation happens locally before any external requests.
+
+#### ❌ Security Anti-Patterns We Avoid
+
+- **No Environment Variables**: Never store client-side API keys in environment variables
+- **No Repository Commits**: API keys are never committed to version control
+- **No Server Proxying**: We don't proxy API requests through our servers
+- **No Shared Keys**: Each user manages their own individual API key
+- **No Third-Party Analytics**: No tracking or data collection of API usage
+
+### Content Security Policy (CSP)
+
+For enhanced security in production, configure these CSP headers:
+
+```http
+Content-Security-Policy: 
+  default-src 'self'; 
+  script-src 'self' 'unsafe-inline' 'unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  connect-src 'self' https://generativelanguage.googleapis.com;
+  img-src 'self' data: blob:;
+  font-src 'self' data:;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+```
+
+### Privacy Guarantees
+
+**🔒 Zero Data Collection**: TimePlan collects no personal information, usage statistics, or behavioral data.
+
+**🔒 Local-First Architecture**: All your data remains on your device unless you explicitly export it.
+
+**🔒 No Cookies**: The application doesn't use cookies or tracking technologies.
+
+**🔒 No User Accounts**: No sign-up required means no personal information collected.
+
+**🔒 Encrypted Communication**: All external API calls use HTTPS encryption.
+
+### API Key Management Tips
+
+1. **Keep Keys Private**: Never share your API key or commit it to public repositories
+2. **Regular Rotation**: Consider rotating your API key periodically for security
+3. **Monitor Usage**: Check your Google AI Studio dashboard for unusual usage patterns
+4. **Backup Safely**: If backing up, ensure API keys are stored securely
+5. **Use Restrictions**: Configure API key restrictions in Google Cloud Console if needed
+
+### Incident Response
+
+If you suspect your API key has been compromised:
+
+1. **Immediately Revoke**: Delete the compromised key from Google AI Studio
+2. **Generate New Key**: Create a new API key with fresh credentials
+3. **Update Application**: Replace the key in TimePlan settings
+4. **Monitor Billing**: Check Google Cloud billing for unexpected usage
+5. **Review Activity**: Look for suspicious activity in your Google account
 
 ## 📱 Responsive Design
 

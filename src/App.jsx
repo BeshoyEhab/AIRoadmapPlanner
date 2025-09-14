@@ -1,23 +1,43 @@
 import React, {
   useState,
   useEffect,
-  useRef,
   useCallback,
   Suspense,
+  useMemo,
 } from "react";
 import useRoadmap from "./hooks/useRoadmap";
 import Header from "./components/layout/Header";
+import ErrorBoundary from "./components/ErrorBoundary";
+import LoadingSpinner from "./components/LoadingSpinner";
+import { 
+  AlertTriangle, 
+  WifiOff, 
+  Brain,
+  Sparkles
+} from "lucide-react";
 
+// Lazy loaded components with better error handling
 const CreateRoadmapTab = React.lazy(
-  () => import("./components/tabs/CreateRoadmapTab"),
+  () => import("./components/tabs/CreateRoadmapTab").catch(() => ({ 
+    default: () => <div>Error loading Create tab</div> 
+  })),
 );
 const ViewRoadmapTab = React.lazy(
-  () => import("./components/tabs/ViewRoadmapTab"),
+  () => import("./components/tabs/ViewRoadmapTab").catch(() => ({ 
+    default: () => <div>Error loading View tab</div> 
+  })),
 );
 const SavedPlansTab = React.lazy(
-  () => import("./components/tabs/SavedPlansTab"),
+  () => import("./components/tabs/SavedPlansTab").catch(() => ({ 
+    default: () => <div>Error loading Saved tab</div> 
+  })),
 );
-const OngoingTab = React.lazy(() => import("./components/tabs/OngoingTab"));
+const OngoingTab = React.lazy(
+  () => import("./components/tabs/OngoingTab").catch(() => ({ 
+    default: () => <div>Error loading Ongoing tab</div> 
+  })),
+);
+
 import {
   Dialog,
   DialogContent,
@@ -33,80 +53,125 @@ import { ConfirmationDialog } from "./components/common/ConfirmationDialog";
 import { toast } from "sonner";
 import "./App.css";
 
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center p-4">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+const LoadingFallback = React.memo(({ message = "Loading component..." }) => (
+  <div className="flex flex-col items-center justify-center p-8 min-h-[200px] space-y-4" role="status" aria-live="polite">
+    <div className="relative">
+      <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary/20 border-t-primary"></div>
+      <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400 animate-ping" />
+    </div>
+    <p className="text-sm text-muted-foreground font-medium">{message}</p>
+    <span className="sr-only">Loading content, please wait...</span>
   </div>
-);
+));
 
 const App = () => {
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? savedTheme : "dark";
-  });
+  // Enhanced state management with better initial values
+  const [theme, setTheme] = useState(() => 
+    localStorage.getItem("theme") || "dark"
+  );
+  const [activeTab, setActiveTab] = useState(() => 
+    localStorage.getItem("activeTab") || "create"
+  );
   const [fullScreenMode, setFullScreenMode] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roadmapToDelete, setRoadmapToDelete] = useState(null);
-
-  const [activeTab, setActiveTab] = useState("create");
   const [apiKeyStatus, setApiKeyStatus] = useState("checking");
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [appError, setAppError] = useState(null);
 
+  // Enhanced API key checking with error handling
   useEffect(() => {
-    const checkApiKey = () => {
-      const apiKey = localStorage.getItem("gemini-api-key");
-      if (apiKey) {
-        setApiKeyStatus("present");
-      } else {
+    const checkApiKey = async () => {
+      try {
+        const apiKey = localStorage.getItem("gemini-api-key");
+        if (apiKey && apiKey.trim()) {
+          setApiKeyStatus("present");
+        } else {
+          setApiKeyStatus("missing");
+        }
+      } catch (error) {
+        console.error('Error checking API key:', error);
         setApiKeyStatus("missing");
+        setAppError('Failed to check API key configuration');
       }
     };
-    checkApiKey();
+    
+    // Add a small delay to prevent flash
+    const timer = setTimeout(checkApiKey, 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleSettingsSave = () => {
-    setApiKeyStatus("present");
-  };
+  // Network status monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      toast.success('Connection restored');
+    };
+    
+    const handleOffline = () => {
+      setIsOffline(true);
+      toast.error('No internet connection');
+    };
 
-  const toggleFunctions = {
-    toggleTheme: () => {
-      setTheme((prevTheme) => {
-        const newTheme = prevTheme === "light" ? "dark" : "light";
-        localStorage.setItem("theme", newTheme);
-        return newTheme;
-      });
-    },
-    toggleFullScreen: () => {
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Persist active tab
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+
+  // Enhanced settings save handler
+  const handleSettingsSave = useCallback(() => {
+    setApiKeyStatus("present");
+    toast.success('Settings saved successfully');
+  }, []);
+
+  // Enhanced theme toggle with smooth transitions
+  const toggleTheme = useCallback(() => {
+    setIsTransitioning(true);
+    setTheme((prevTheme) => {
+      const newTheme = prevTheme === "light" ? "dark" : "light";
+      localStorage.setItem("theme", newTheme);
+      return newTheme;
+    });
+    
+    // Reset transition after animation
+    setTimeout(() => setIsTransitioning(false), 300);
+  }, []);
+
+  // Enhanced fullscreen toggle with better error handling
+  const toggleFullScreen = useCallback(async () => {
+    try {
       if (!document.fullscreenElement) {
-        document.documentElement
-          .requestFullscreen()
-          .then(() => {
-            setFullScreenMode(true);
-          })
-          .catch((err) => {
-            console.error(
-              `Error attempting to enable full-screen mode: ${err.message} (${err.name})`,
-            );
-          });
+        await document.documentElement.requestFullscreen();
+        setFullScreenMode(true);
+        toast.success('Entered fullscreen mode');
       } else {
-        document
-          .exitFullscreen()
-          .then(() => {
-            setFullScreenMode(false);
-          })
-          .catch((err) => {
-            console.error(
-              `Error attempting to exit full-screen mode: ${err.message} (${err.name})`,
-            );
-          });
+        await document.exitFullscreen();
+        setFullScreenMode(false);
+        toast.success('Exited fullscreen mode');
       }
-    },
-  };
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+      toast.error(`Fullscreen ${!document.fullscreenElement ? 'entry' : 'exit'} failed`);
+    }
+  }, []);
 
   const {
     objective,
     setObjective,
     finalGoal,
     setFinalGoal,
+    startingLevel,
+    setStartingLevel,
     roadmap,
     setRoadmap,
     loading,
@@ -145,61 +210,56 @@ const App = () => {
     setGenerationQueue,
   } = useRoadmap({ setActiveTab });
 
-  // Enhanced theme effect with proper document class management
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
+  // Delete confirmation handler - must be defined before useMemo
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!roadmapToDelete) return;
+    try {
+      await deleteRoadmap(roadmapToDelete);
+      setIsDeleteDialogOpen(false);
+      setRoadmapToDelete(null);
+    } catch (error) {
+      console.error("Error in handleDeleteConfirm:", error);
+      // toast.error("Failed to delete roadmap.");
+    }
+  }, [roadmapToDelete, deleteRoadmap]);
 
-    // Apply theme to document root
+  // Enhanced theme effect with smooth transitions and better browser support
+  useEffect(() => {
     const root = document.documentElement;
+    
+    // Add transition class for smooth theme changes
+    if (isTransitioning) {
+      root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    }
+
+    // Apply theme classes
     root.classList.remove("light", "dark");
     root.classList.add(theme);
 
     // Set theme attribute for additional styling hooks
     root.setAttribute("data-theme", theme);
 
-    // Update meta theme-color for mobile browsers
+    // Update meta theme-color for mobile browsers and PWA support
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute(
         "content",
-        theme === "dark" ? "#1a1a1a" : "#ffffff",
+        theme === "dark" ? "#0a0a0a" : "#ffffff",
       );
     }
-  }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
-  };
-
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement
-        .requestFullscreen()
-        .then(() => {
-          setFullScreenMode(true);
-        })
-        .catch((err) => {
-          console.error(
-            `Error attempting to enable full-screen mode: ${err.message} (${err.name})`,
-          );
-        });
-    } else {
-      document
-        .exitFullscreen()
-        .then(() => {
-          setFullScreenMode(false);
-        })
-        .catch((err) => {
-          console.error(
-            `Error attempting to exit full-screen mode: ${err.message} (${err.name})`,
-          );
-        });
+    // Clean up transition after animation
+    const cleanup = () => {
+      root.style.transition = '';
+    };
+    
+    if (isTransitioning) {
+      const timer = setTimeout(cleanup, 300);
+      return () => clearTimeout(timer);
     }
-  };
+    
+    return cleanup;
+  }, [theme, isTransitioning]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -379,29 +439,29 @@ const App = () => {
   //   URL.revokeObjectURL(url);
   // };
 
-  const renderTabContent = useCallback(() => {
+  // Memoize the tab content to prevent unnecessary re-renders
+  const renderTabContent = useMemo(() => {
+    const commonCreateProps = {
+      objective,
+      setObjective,
+      finalGoal,
+      setFinalGoal,
+      generateRoadmap,
+      loading,
+      loadingMessage,
+      error,
+      roadmap,
+      addToQueue,
+      removeFromQueue,
+      setActiveTab,
+      generationQueue,
+      setRoadmap,
+      interruptGeneration,
+    };
+
     switch (activeTab) {
       case "create":
-        return (
-          <CreateRoadmapTab
-            objective={objective}
-            setObjective={setObjective}
-            finalGoal={finalGoal}
-            setFinalGoal={setFinalGoal}
-            generateRoadmap={generateRoadmap}
-            loading={loading}
-            loadingMessage={loadingMessage}
-            error={error}
-            roadmap={roadmap}
-            addToQueue={addToQueue}
-            removeFromQueue={removeFromQueue}
-            setActiveTab={setActiveTab}
-            generationQueue={generationQueue}
-            key={activeTab}
-            setRoadmap={setRoadmap}
-            interruptGeneration={interruptGeneration}
-          />
-        );
+        return <CreateRoadmapTab {...commonCreateProps} startingLevel={startingLevel} setStartingLevel={setStartingLevel} key={activeTab} />;
       case "view":
         return (
           <ViewRoadmapTab
@@ -471,30 +531,14 @@ const App = () => {
           />
         );
       default:
-        return (
-          <CreateRoadmapTab
-            objective={objective}
-            setObjective={setObjective}
-            finalGoal={finalGoal}
-            setFinalGoal={setFinalGoal}
-            generateRoadmap={generateRoadmap}
-            loading={loading}
-            loadingMessage={loadingMessage}
-            error={error}
-            roadmap={roadmap}
-            addToQueue={addToQueue}
-            removeFromQueue={removeFromQueue} // ADD THIS
-            setActiveTab={setActiveTab}
-            generationQueue={generationQueue} // ADD THIS
-            setRoadmap={setRoadmap} // ADD THIS
-            interruptGeneration={interruptGeneration}
-          />
-        );
+        return <CreateRoadmapTab {...commonCreateProps} startingLevel={startingLevel} setStartingLevel={setStartingLevel} />;
     }
   }, [
     activeTab,
     objective,
+    setObjective,
     finalGoal,
+    setFinalGoal,
     generateRoadmap,
     loading,
     loadingMessage,
@@ -507,64 +551,117 @@ const App = () => {
     setRoadmap,
     interruptGeneration,
     savedTimeplans,
+    loadRoadmap,
+    deleteRoadmap,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    handleDeleteConfirm,
     toggleFavorite,
     isFavorite,
+    saveCurrentRoadmap,
+    downloadMarkdown,
+    exportToJSON,
+    exportToPDF,
+    exportToHTML,
+    toggleMiniGoal,
+    calculateOverallProgress,
+    calculatePhaseProgress,
+    currentlyGenerating,
+    incompleteRoadmaps,
+    isQueuePaused,
+    pauseQueue,
+    resumeQueue,
+    retryGeneration,
+    clearQueue,
+    setGenerationQueue,
   ]);
 
-  const handleDeleteConfirm = async () => {
-    if (!roadmapToDelete) return;
-    try {
-      await deleteRoadmap(roadmapToDelete);
-      setIsDeleteDialogOpen(false);
-      setRoadmapToDelete(null);
-    } catch (error) {
-      console.error("Error in handleDeleteConfirm:", error);
-      // toast.error("Failed to delete roadmap.");
-    }
-  };
-
   return (
-    <div className={`flex flex-col min-h-screen ${theme} bg-background`}>
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Header
-            theme={theme}
-            toggleTheme={toggleFunctions.toggleTheme}
-            fullScreenMode={fullScreenMode}
-            toggleFullScreen={toggleFunctions.toggleFullScreen}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-          <main className="flex-1 overflow-auto">
-            <div className="container mx-auto p-4">
-              {apiKeyStatus === "checking" && (
-                <div className="text-center p-8">
-                  <div className="loading-spinner animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading...</p>
-                </div>
-              )}
-              {apiKeyStatus === "missing" ? (
-                <div className="text-center p-8 bg-theme-surface border-theme rounded-lg border shadow-theme">
-                  <h2 className="text-2xl font-bold mb-4 text-foreground">
-                    Welcome to AI Study Planner
-                  </h2>
-                  <p className="mb-4 text-muted-foreground">
-                    To get started, please provide a Gemini API key.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Click the gear icon in the top-right corner to open the
-                    settings and add your key.
-                  </p>
-                </div>
-              ) : (
-                <Suspense fallback={<LoadingFallback />}>
-                  {renderTabContent()}
-                </Suspense>
-              )}
+    <ErrorBoundary>
+      <div className={`flex flex-col min-h-screen ${theme} bg-background transition-colors duration-300`}>
+        {/* Offline indicator */}
+        {isOffline && (
+          <div className="bg-orange-500 text-white px-4 py-2 text-sm text-center flex items-center justify-center gap-2">
+            <WifiOff className="w-4 h-4" />
+            You're currently offline. Some features may not work.
+          </div>
+        )}
+        
+        {/* App error banner */}
+        {appError && (
+          <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2 text-sm text-destructive flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              {appError}
             </div>
-          </main>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setAppError(null)}
+              className="text-destructive hover:text-destructive"
+            >
+              ✕
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Header
+              theme={theme}
+              toggleTheme={toggleTheme}
+              fullScreenMode={fullScreenMode}
+              toggleFullScreen={toggleFullScreen}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              isOffline={isOffline}
+              onSettingsSave={handleSettingsSave}
+            />
+            <main className="flex-1 overflow-auto">
+              <div className="container mx-auto p-4">
+                {apiKeyStatus === "checking" ? (
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <LoadingSpinner 
+                      message="Checking API configuration..." 
+                      variant="brain" 
+                      size="lg" 
+                    />
+                  </div>
+                ) : apiKeyStatus === "missing" ? (
+                  <div className="text-center p-8 bg-card border rounded-lg shadow-lg max-w-2xl mx-auto mt-8">
+                    <div className="mb-6">
+                      <Brain className="w-16 h-16 mx-auto text-primary mb-4" />
+                      <h2 className="text-3xl font-bold mb-4 text-foreground">
+                        Welcome to AI Study Planner
+                      </h2>
+                      <p className="mb-4 text-muted-foreground text-lg">
+                        Generate personalized study roadmaps with AI assistance.
+                      </p>
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+                        <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+                          <AlertTriangle className="w-5 h-5" />
+                          <span className="font-medium">API Key Required</span>
+                        </div>
+                        <p className="text-sm mt-2 text-yellow-600 dark:text-yellow-300">
+                          To get started, please add your Gemini API key in the settings.
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Click the gear icon <span className="font-mono bg-muted px-1 rounded">⚙️</span> in the top-right corner to configure your API key.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <ErrorBoundary>
+                    <Suspense fallback={<LoadingFallback message="Loading component..." />}>
+                      {renderTabContent}
+                    </Suspense>
+                  </ErrorBoundary>
+                )}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
 
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
@@ -609,6 +706,7 @@ const App = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </ErrorBoundary>
   );
 };
 

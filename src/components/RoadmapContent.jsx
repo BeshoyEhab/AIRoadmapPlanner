@@ -103,7 +103,7 @@ const RoadmapContent = ({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
             <div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                {roadmap.title || title.name}
+                {roadmap.title || 'Untitled Roadmap'}
               </h2>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-1">
