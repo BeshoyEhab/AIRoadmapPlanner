@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import ModelManager from './ModelManager';
 import { 
   Brain, 
   Settings, 
@@ -34,7 +35,8 @@ import {
   Server,
   Cpu,
   Sparkles,
-  Edit
+  Edit,
+  Layers
 } from 'lucide-react';
 import { AIProviderManager } from '@/lib/ai/AIProviderManager';
 
@@ -49,6 +51,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
   const [showApiKeys, setShowApiKeys] = useState({});
   const [testingProvider, setTestingProvider] = useState(null);
   const [isEditingProvider, setIsEditingProvider] = useState(false);
+  const [expandedProviders, setExpandedProviders] = useState({});
+  const [availableModels, setAvailableModels] = useState({});
 
   useEffect(() => {
     loadExistingProviders();
@@ -198,9 +202,9 @@ const AIProviderSettings = ({ onProviderChange }) => {
     setTestingProvider(providerType);
     try {
       await aiManager.testProvider(providerType);
-      toast.success(`${aiManager.getProviderInfo(providerType).name} connection successful!`);
+      toast.success(`✅ ${aiManager.getProviderInfo(providerType).name} connection successful!`);
     } catch (error) {
-      toast.error(`Connection test failed: ${error.message}`);
+      toast.error(`❌ Connection test failed: ${error.message}`);
     } finally {
       setTestingProvider(null);
     }
@@ -210,6 +214,26 @@ const AIProviderSettings = ({ onProviderChange }) => {
     setShowApiKeys(prev => ({
       ...prev,
       [fieldName]: !prev[fieldName]
+    }));
+  };
+
+  const toggleProviderExpansion = (providerType) => {
+    setExpandedProviders(prev => ({
+      ...prev,
+      [providerType]: !prev[providerType]
+    }));
+  };
+
+  const getProviderModels = (providerType) => {
+    const requirements = aiManager.getProviderConfigRequirements(providerType);
+    const modelField = requirements?.fields?.find(field => field.name === 'model');
+    return modelField?.options || [];
+  };
+
+  const handleModelsUpdate = (providerType, models) => {
+    setAvailableModels(prev => ({
+      ...prev,
+      [providerType]: models
     }));
   };
 
@@ -305,7 +329,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             AI Providers
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -320,7 +344,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
               Add Provider
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{isEditingProvider ? 'Edit AI Provider' : 'Configure AI Provider'}</DialogTitle>
             </DialogHeader>
@@ -328,20 +352,20 @@ const AIProviderSettings = ({ onProviderChange }) => {
             {!selectedProviderForConfig ? (
               <div className="space-y-4">
                 <Label>Select Provider Type</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {availableProviders.map(provider => (
                     <Button
                       key={provider.key}
                       variant="outline"
-                      className="h-auto p-4 flex flex-col items-start gap-2"
+                      className="h-auto p-3 flex flex-col items-start gap-2 text-left min-h-[100px] justify-start"
                       onClick={() => openConfigDialog(provider.key)}
                       disabled={initializedProviders.includes(provider.key)}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         {getProviderIcon(provider.key)}
-                        <span className="font-medium">{provider.name}</span>
+                        <span className="font-medium truncate">{provider.name}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground text-left">
+                      <p className="text-xs text-muted-foreground text-left break-words w-full overflow-hidden">
                         {provider.description}
                       </p>
                       {initializedProviders.includes(provider.key) && (
@@ -388,14 +412,14 @@ const AIProviderSettings = ({ onProviderChange }) => {
 
       {/* Current Active Provider */}
       {currentProvider && (
-        <div className="border border-primary rounded-lg p-4">
+        <div className="border border-theme-primary bg-theme-primary/5 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Check className="h-4 w-4 text-primary" />
+            <Check className="h-4 w-4 text-theme-primary" />
             <span className="font-medium text-foreground">Active Provider</span>
           </div>
           <div className="flex items-center gap-2">
             {getProviderIcon(currentProvider)}
-            <span className="font-medium">{aiManager.getProviderInfo(currentProvider).name}</span>
+            <span className="font-medium text-theme-primary">{aiManager.getProviderInfo(currentProvider).name}</span>
           </div>
         </div>
       )}
@@ -409,24 +433,41 @@ const AIProviderSettings = ({ onProviderChange }) => {
             const isActive = currentProvider === providerType;
             
             return (
-              <div key={providerType} className={`border rounded-lg p-3 ${isActive ? 'border-primary' : 'border-border'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              <div key={providerType} className={`border rounded-lg p-4 ${isActive ? 'border-theme-primary bg-theme-primary/5' : 'border-border'} transition-all hover:shadow-md`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {getProviderIcon(providerType)}
-                    <div>
-                      <div className="font-medium">{providerInfo.name}</div>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-foreground truncate">{providerInfo.name}</div>
+                      <p className="text-sm text-muted-foreground break-words line-clamp-2 mt-1">
                         {providerInfo.description}
                       </p>
+                      {/* Model info if available */}
+                      {providerInfo.models && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {providerInfo.models.slice(0, 2).map((model) => (
+                            <Badge key={model} variant="secondary" className="text-xs">
+                              {model}
+                            </Badge>
+                          ))}
+                          {providerInfo.models.length > 2 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{providerInfo.models.length - 2} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-1 flex-shrink-0">
                     {!isActive && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleProviderSwitch(providerType)}
+                        className="bg-theme-primary/10 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
+                        title={`Switch to ${providerInfo.name}`}
                       >
                         Use
                       </Button>
@@ -436,6 +477,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => openConfigDialog(providerType, true)}
+                      className="hover:bg-theme-primary/10 hover:text-theme-primary"
+                      title={`Edit ${providerInfo.name} settings`}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -443,8 +486,20 @@ const AIProviderSettings = ({ onProviderChange }) => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => toggleProviderExpansion(providerType)}
+                      className="hover:bg-theme-primary/10 hover:text-theme-primary"
+                      title={`Manage models for ${providerInfo.name}`}
+                    >
+                      <Layers className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => testProvider(providerType)}
                       disabled={testingProvider === providerType}
+                      className="hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                      title={`Test connection to ${providerInfo.name}`}
                     >
                       {testingProvider === providerType ? (
                         <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
@@ -457,17 +512,31 @@ const AIProviderSettings = ({ onProviderChange }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleProviderRemove(providerType)}
+                      className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                      title={`Remove ${providerInfo.name}`}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 
                 {isActive && (
-                  <Badge variant="outline" className="mt-2 border-primary text-primary">
+                  <Badge variant="outline" className="mt-3 border-theme-primary text-theme-primary bg-theme-primary/10">
                     <Check className="h-3 w-3 mr-1" />
                     Active
                   </Badge>
+                )}
+                
+                {/* Expandable Model Management Section */}
+                {expandedProviders[providerType] && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <ModelManager
+                      providerType={providerType}
+                      providerName={providerInfo.name}
+                      currentModels={getProviderModels(providerType)}
+                      onModelsUpdate={(models) => handleModelsUpdate(providerType, models)}
+                    />
+                  </div>
                 )}
               </div>
             );

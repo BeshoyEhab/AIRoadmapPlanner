@@ -170,43 +170,49 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
     <div className="h-full w-full p-5 overflow-y-auto no-scrollbar">
       {/* AI Providers */}
       <div className="mb-8">
-        <div className="border border-border p-4 rounded-lg">
+        <div className="border border-default p-4 rounded-lg">
           <AIProviderSettings onProviderChange={setAiManager} />
         </div>
       </div>
 
       {/* Appearance Settings */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
           Appearance
         </h3>
-        <div className="space-y-6 border border-border p-4 rounded-lg">
+        <div className="space-y-6 border border-default p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="flex items-center gap-2">
+              <Label className="flex items-center gap-2 text-main">
                 {theme === "dark" ? (
-                  <Moon className="h-4 w-4" />
+                  <Moon className="h-4 w-4 text-main" />
                 ) : (
-                  <Sun className="h-4 w-4" />
+                  <Sun className="h-4 w-4 text-main" />
                 )}
                 Theme Mode
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-secondary">
                 Switch between light and dark themes
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Sun className="h-4 w-4 text-muted-foreground" />
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={toggleTheme}
-              />
-              <Moon className="h-4 w-4 text-muted-foreground" />
+              <button
+              onClick={toggleTheme}
+              className="p-3 rounded-xl text-muted hover:bg-hover hover:text-content
+    icon-button hover:shadow-md min-w-[2.75rem] flex items-center justify-center ml-2 transition-all duration-200 hover:scale-105"
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            >
+              {theme === "light" ? (
+                <Moon size={22} className="text-theme-primary" />
+              ) : (
+                <Sun size={22} className="text-warning" />
+              )}
+            </button>
             </div>
           </div>
           
           {/* Color Theme Picker */}
-          <div className="border-t border-border pt-6">
+          <div className="border-t border-default pt-6">
             <ColorPicker 
               currentTheme={currentTheme}
               onThemeChange={changeTheme}
@@ -218,14 +224,14 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
 
       {/* Application Settings */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
           Application Settings
         </h3>
-        <div className="space-y-4 border border-border p-4 rounded-lg">
+        <div className="space-y-4 border border-default p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Auto-save Roadmaps</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="text-main">Auto-save Roadmaps</Label>
+              <p className="text-sm text-secondary">
                 Automatically save your progress while working
               </p>
             </div>
@@ -233,8 +239,8 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Push Notifications</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="text-main">Push Notifications</Label>
+              <p className="text-sm text-secondary">
                 Receive notifications for important updates
               </p>
             </div>
@@ -244,21 +250,21 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="export-format">Default Export Format</Label>
+            <Label htmlFor="export-format" className="text-main">Default Export Format</Label>
             <Select value={exportFormat} onValueChange={setExportFormat}>
               <SelectTrigger id="export-format">
                 <SelectValue placeholder="Select export format" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="markdown">Markdown (.md)</SelectItem>
-                <SelectItem value="pdf">PDF Document</SelectItem>
-                <SelectItem value="json">JSON Data</SelectItem>
-                <SelectItem value="html">HTML Page</SelectItem>
+              <SelectContent className="bg-theme-primary text-white border-theme-primary/50">
+                <SelectItem value="markdown" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">Markdown (.md)</SelectItem>
+                <SelectItem value="pdf" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">PDF Document</SelectItem>
+                <SelectItem value="json" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">JSON Data</SelectItem>
+                <SelectItem value="html" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">HTML Page</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="language">Interface Language</Label>
+            <Label htmlFor="language" className="text-main">Interface Language</Label>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger id="language">
                 <SelectValue placeholder="Select language" />
@@ -278,15 +284,15 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
 
       {/* Roadmap Generation Settings */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Brain className="h-4 w-4" />
+        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Brain className="h-4 w-4 text-main" />
           Roadmap Generation
         </h3>
-        <div className="space-y-4 border border-border p-4 rounded-lg">
+        <div className="space-y-4 border border-default p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Adaptive Difficulty Phases</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="text-main">Adaptive Difficulty Phases</Label>
+              <p className="text-sm text-secondary">
                 Automatically adjust phase count based on difficulty level
               </p>
             </div>
@@ -298,7 +304,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="min-phases">Minimum Phases</Label>
+              <Label htmlFor="min-phases" className="text-main">Minimum Phases</Label>
               <Input
                 id="min-phases"
                 type="number"
@@ -311,15 +317,15 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
                     setMinPhases(value);
                   }
                 }}
-                className="w-full"
+                className="w-full text-main bg-surface border-default"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-secondary">
                 Minimum number of learning phases
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="max-phases">Maximum Phases</Label>
+              <Label htmlFor="max-phases" className="text-main">Maximum Phases</Label>
               <Input
                 id="max-phases"
                 type="number"
@@ -332,20 +338,20 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
                     setMaxPhases(value);
                   }
                 }}
-                className="w-full"
+                className="w-full text-main bg-surface border-default"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-secondary">
                 Maximum number of learning phases
               </p>
             </div>
           </div>
 
           {adaptiveDifficulty && (
-            <div className="border border-border rounded-lg p-3">
-              <h4 className="text-sm font-medium text-foreground mb-2">
+            <div className="border border-default rounded-lg p-3">
+              <h4 className="text-sm font-medium text-main mb-2">
                 Adaptive Phase Count
               </h4>
-              <div className="text-xs text-muted-foreground space-y-1">
+              <div className="text-xs text-secondary space-y-1">
                 <div>
                   • <strong>Easy:</strong> {Math.ceil(minPhases)} -{" "}
                   {Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} phases
@@ -373,10 +379,10 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
 
       {/* Data Management */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
           Data Management
         </h3>
-        <div className="space-y-4 border border-border p-4 rounded-lg">
+        <div className="space-y-4 border border-default p-4 rounded-lg">
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -413,13 +419,6 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3 pt-4">
-        <Button onClick={handleSave} className="flex-1 flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Save All Settings
-        </Button>
-      </div>
     </div>
   );
 };

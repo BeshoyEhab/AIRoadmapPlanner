@@ -161,6 +161,8 @@ const OngoingTab = ({
   clearQueue,
   loading,
   loadingMessage,
+  setObjective,
+  setFinalGoal,
 }) => {
   const getStatusBadge = (status) => {
     switch (status) {
@@ -246,13 +248,13 @@ const OngoingTab = ({
     <div className="flex flex-col gap-6">
       {/* Enhanced Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border-2 border-border mb-6">
-          <Brain className="text-foreground" size={32} />
-        </div>
-        <h1 className="text-4xl font-bold text-foreground mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border-2 border-default mb-6 bg-gradient-to-br from-theme-primary/10 to-theme-accent/10">
+            <Brain className="text-theme-primary" size={32} />
+          </div>
+        <h1 className="text-4xl font-bold text-main mb-4">
           AI Generation Hub
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg text-secondary max-w-2xl mx-auto">
           Monitor and manage your AI-powered roadmap generation queue with advanced controls and real-time insights.
         </p>
       </div>
@@ -277,16 +279,16 @@ const OngoingTab = ({
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-12 h-12 border-2 border-border rounded-xl flex items-center justify-center">
-                    <Brain className="text-foreground animate-pulse" size={24} />
+                  <div className="w-12 h-12 border-2 border-default rounded-xl flex items-center justify-center bg-surface">
+                    <Brain className="text-theme-primary animate-pulse" size={24} />
                   </div>
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-bounce"></div>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  <h3 className="text-2xl font-bold text-main mb-1">
                     AI Generation Active
                   </h3>
-                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                  <p className="text-theme-primary text-sm font-medium">
                     Creating your personalized roadmap
                   </p>
                 </div>
@@ -294,9 +296,9 @@ const OngoingTab = ({
               
               {/* Control Panel */}
               <div className="flex items-center gap-3">
-                <div className="bg-white dark:bg-gray-800 rounded-lg px-3 py-2 shadow-md border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Zap size={14} className="text-yellow-500" />
+                <div className="bg-surface rounded-lg px-3 py-2 shadow-md border border-default">
+                  <div className="flex items-center gap-2 text-sm text-secondary">
+                    <Zap size={14} className="text-warning" />
                     <span>Phase {Math.ceil((progress / 100) * (generatingRoadmapData?.phases?.length || 1))}</span>
                   </div>
                 </div>
@@ -304,8 +306,8 @@ const OngoingTab = ({
                 <button 
                   onClick={pauseQueue} 
                   disabled={!loading} 
-                  className="group relative p-3 border-2 border-border hover:border-primary 
-                           text-foreground rounded-xl transition-all duration-300 
+                  className="group relative p-3 border-2 border-default hover:border-theme-primary 
+                           text-main rounded-xl transition-all duration-300 
                            disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                   title="Pause generation"
                 >
@@ -320,32 +322,32 @@ const OngoingTab = ({
             </div>
             
             {/* Roadmap Info Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-600 mb-6">
+            <div className="bg-surface rounded-xl p-6 shadow-md border border-default mb-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-lg flex items-center justify-center">
-                    <Target className="text-blue-600 dark:text-blue-400" size={20} />
+                  <div className="w-10 h-10 bg-gradient-to-br from-theme-primary/20 to-theme-accent/20 rounded-lg flex items-center justify-center">
+                    <Target className="text-theme-primary" size={20} />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                  <h4 className="text-lg font-semibold text-main mb-2 line-clamp-2">
                     {currentlyGenerating.objective || "Untitled Roadmap"}
                   </h4>
                   {currentlyGenerating.finalGoal && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                    <p className="text-sm text-secondary line-clamp-2 mb-3">
                       <span className="font-medium">Goal:</span> {currentlyGenerating.finalGoal}
                     </p>
                   )}
                   
                   {/* Status and Metadata */}
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-4 text-sm text-muted">
                     <div className="flex items-center gap-1">
-                      <Activity size={14} className="text-green-500" />
+                      <Activity size={14} className="text-success" />
                       <span>Generating</span>
                     </div>
                     {generatingRoadmapData?.phases?.length && (
                       <div className="flex items-center gap-1">
-                        <Layers size={14} className="text-blue-500" />
+                        <Layers size={14} className="text-theme-primary" />
                         <span>{generatingRoadmapData.phases.length} phases</span>
                       </div>
                     )}
@@ -367,14 +369,14 @@ const OngoingTab = ({
             {/* Advanced Progress Bar */}
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-700 dark:text-gray-300">Generation Progress</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">{progress}% Complete</span>
+                <span className="font-medium text-main">Generation Progress</span>
+                <span className="font-bold text-theme-primary">{progress}% Complete</span>
               </div>
               
               <div className="relative">
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 shadow-inner">
+                <div className="w-full bg-border rounded-full h-6 shadow-inner">
                   <div
-                    className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 h-6 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+                    className="bg-gradient-to-r from-theme-primary via-theme-accent to-theme-primary h-6 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
                     style={{ width: `${Math.max(progress, 3)}%` }}
                   >
                     {/* Animated shimmer effect */}
@@ -384,7 +386,7 @@ const OngoingTab = ({
                 </div>
                 
                 {/* Progress Steps */}
-                <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-gray-400">
+                <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-muted">
                   <span>Start</span>
                   <span>25%</span>
                   <span>50%</span>
@@ -394,18 +396,18 @@ const OngoingTab = ({
               </div>
               
               {/* Status Message */}
-              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 mt-6">
+              <div className="bg-theme-primary/10 dark:bg-theme-primary/20 rounded-lg p-4 mt-6 border border-theme-primary/30">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-theme-primary rounded-full flex items-center justify-center">
                       <Sparkles className="text-white" size={16} />
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    <p className="text-sm font-medium text-theme-primary">
                       {loadingMessage || "AI is analyzing your learning objectives and creating a personalized roadmap..."}
                     </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-blue-600 dark:text-blue-400">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-theme-primary/80">
                       <div className="flex items-center gap-1">
                         <Timer size={12} />
                         <span>Est. time remaining: {Math.max(1, Math.ceil((100 - progress) / 10))}m</span>
@@ -424,17 +426,17 @@ const OngoingTab = ({
       )}
 
       {/* Enhanced Queue Section */}
-      <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-xl border border-default overflow-hidden">
         {/* Queue Header */}
-        <div className="bg-primary p-6 text-primary-foreground">
+        <div className="p-6 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Clock size={20} />
+                <Clock size={20} className="text-theme-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Generation Queue</h3>
-                <p className="text-blue-100 text-sm">
+                <h3 className="text-xl font-bold text-main">Generation Queue</h3>
+                <p className="text-main text-sm font-medium">
                   {queuedItems.length} {queuedItems.length === 1 ? 'roadmap' : 'roadmaps'} waiting to be processed
                 </p>
               </div>
@@ -442,10 +444,10 @@ const OngoingTab = ({
             
             {/* Queue Status Badge */}
             <div className="flex items-center gap-3">
-              <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              <div className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
                 isQueuePaused 
-                  ? 'bg-yellow-500/20 text-yellow-200 border border-yellow-400/30'
-                  : 'bg-green-500/20 text-green-200 border border-green-400/30'
+                  ? 'bg-yellow-500/30 text-yellow-100 border-yellow-300/50'
+                  : 'bg-green-500/30 text-green-100 border-green-300/50'
               }`}>
                 {isQueuePaused ? 'PAUSED' : 'PROCESSING'}
               </div>
@@ -455,7 +457,7 @@ const OngoingTab = ({
                 {isQueuePaused && generationQueue.length > 0 && (
                   <button 
                     onClick={resumeQueue} 
-                    className="p-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                    className="p-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors text-white shadow-md"
                     title="Resume Queue"
                   >
                     <Play size={16} />
@@ -464,7 +466,7 @@ const OngoingTab = ({
                 <button 
                   onClick={clearQueue} 
                   disabled={generationQueue.length === 0}
-                  className="p-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="p-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-white shadow-md"
                   title="Clear All"
                 >
                   <Trash2 size={16} />
@@ -497,13 +499,13 @@ const OngoingTab = ({
               </DndContext>
             ) : (
               <div className="text-center py-16">
-                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Clock className="text-gray-400" size={32} />
+                <div className="w-20 h-20 rounded-2xl border border-default flex items-center justify-center mx-auto mb-4">
+                  <Clock className="text-success" size={32} />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <h4 className="text-lg font-semibold text-main mb-2">
                   Queue is Empty
                 </h4>
-                <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                <p className="text-main max-w-sm mx-auto">
                   Create new roadmaps to see them appear here for AI generation. Your queue will process them automatically.
                 </p>
               </div>
@@ -513,16 +515,16 @@ const OngoingTab = ({
       </div>
 
       {/* Enhanced Incomplete Roadmaps Section */}
-      <div className="bg-card rounded-2xl shadow-xl border border-destructive/30 overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-xl border border-default border-destructive/30 overflow-hidden">
         {/* Section Header */}
         <div className="bg-destructive p-6 text-destructive-foreground">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <div className="text-theme-primary w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <AlertCircle size={20} />
             </div>
             <div>
-              <h3 className="text-xl font-bold">Incomplete Roadmaps</h3>
-              <p className="text-orange-100 text-sm">
+              <h3 className="text-xl font-bold text-main">Incomplete Roadmaps</h3>
+              <p className="text-main text-sm">
                 {filteredIncomplete.length} {filteredIncomplete.length === 1 ? 'roadmap' : 'roadmaps'} waiting to be completed
               </p>
             </div>
@@ -551,11 +553,11 @@ const OngoingTab = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <Target size={16} className="text-orange-500 flex-shrink-0" />
-                            <h4 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">
+                            <h4 className="font-semibold text-main text-sm line-clamp-1">
                               {roadmap.title || roadmap.name || "Untitled Roadmap"}
                             </h4>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                          <p className="text-sm text-secondary line-clamp-2 mb-3">
                             {roadmap.objective}
                           </p>
                         </div>
@@ -573,18 +575,18 @@ const OngoingTab = ({
                       {/* Progress Details */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600 dark:text-gray-400">Generation Progress</span>
-                          <span className="font-semibold text-orange-600 dark:text-orange-400">{progressPercent}%</span>
+                          <span className="text-secondary">Generation Progress</span>
+                          <span className="font-semibold text-warning">{progressPercent}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                        <div className="w-full bg-border rounded-full h-2.5">
                           <div 
-                            className="bg-gradient-to-r from-orange-500 to-red-500 h-2.5 rounded-full transition-all duration-500" 
+                            className="bg-gradient-to-r from-warning to-error h-2.5 rounded-full transition-all duration-500" 
                             style={{ width: `${progressPercent}%` }}
                           ></div>
                         </div>
                         
                         {/* Metadata */}
-                        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-4 mt-3 text-xs text-muted">
                           <div className="flex items-center gap-1">
                             <Layers size={12} />
                             <span>{roadmap.phases?.length || 0} phases</span>
@@ -602,23 +604,41 @@ const OngoingTab = ({
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
+                            // Ensure objective and finalGoal are set before adding to queue
+                            const objectiveText = roadmap.objective || roadmap.title || "Continue learning roadmap";
+                            const finalGoalText = roadmap.finalGoal || "Complete the learning objectives";
+                            
+                            // Set the form values for generation
+                            if (typeof setObjective === 'function') {
+                              setObjective(objectiveText);
+                            }
+                            if (typeof setFinalGoal === 'function') {
+                              setFinalGoal(finalGoalText);
+                            }
+                            
                             loadRoadmap(roadmap.sanitizedName);
                             if (!generationQueue.some(item => item.roadmapId === roadmap.id)) {
                               addToQueue({
                                 id: Date.now(),
                                 roadmapId: roadmap.id,
-                                name: roadmap.name,
-                                objective: roadmap.objective,
-                                finalGoal: roadmap.finalGoal,
+                                name: roadmap.name || roadmap.title,
+                                objective: objectiveText,
+                                finalGoal: finalGoalText,
                                 status: "queued",
                                 isResume: true,
+                                initialRoadmap: {
+                                  ...roadmap,
+                                  objective: objectiveText,
+                                  finalGoal: finalGoalText,
+                                  generationState: "in-progress"
+                                }
                               });
                             }
                             toast.success('Roadmap added to queue! 🚀');
                           }}
                           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium
-                                   bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 
-                                   text-white transition-all duration-300 hover:shadow-lg hover:shadow-blue-200 dark:hover:shadow-blue-900/50
+                                   bg-gradient-to-r from-theme-primary to-theme-accent hover:from-theme-accent hover:to-theme-primary 
+                                   text-white transition-all duration-300 hover:shadow-lg hover:shadow-theme-primary/20
                                    active:scale-95"
                         >
                           <Play size={16} />
@@ -649,13 +669,13 @@ const OngoingTab = ({
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="text-gray-400" size={32} />
+              <div className="w-20 h-20 bg-surface border border-default rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="text-success" size={32} />
               </div>
-              <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <h4 className="text-lg font-semibold text-main mb-2">
                 All Caught Up!
               </h4>
-              <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+              <p className="text-secondary max-w-sm mx-auto">
                 You don't have any incomplete roadmaps. All your roadmaps have been successfully generated or are in the queue.
               </p>
             </div>
@@ -663,12 +683,12 @@ const OngoingTab = ({
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-        <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2">
+      <div className="bg-theme-primary/10 dark:bg-theme-primary/20 border border-theme-primary/30 rounded-lg p-4 shadow-sm">
+        <h4 className="font-semibold text-theme-primary mb-2 flex items-center gap-2">
           <CheckCircle size={18} />
           Queue Management Tips
         </h4>
-        <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+        <ul className="text-sm text-theme-primary space-y-1">
           <li>• The queue processes roadmaps automatically in order.</li>
           <li>• You can pause/resume the queue at any time.</li>
           <li>• Creating a new roadmap will pause the queue temporarily.</li>

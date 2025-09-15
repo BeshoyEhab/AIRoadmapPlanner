@@ -10,6 +10,7 @@ import {
   Star,
   RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const SavedPlansTab = ({
   savedTimeplans,
@@ -103,23 +104,23 @@ const SavedPlansTab = ({
     return (
       <div
         key={timeplan.id}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700
+      className="border border-default rounded-xl shadow-md bg-surface
                  hover:shadow-xl transition-all duration-300 overflow-hidden group
-                 cursor-pointer flex flex-col hover:shadow-glow-blue w-full h-full min-h-[300px]"
+                 cursor-pointer flex flex-col hover:shadow-glow-theme w-full h-full min-h-[300px]"
         onClick={() => {
           loadRoadmap(timeplan.id);
           setActiveTab("view");
         }}
       >
         {/* Card Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white">
+        <div className="bg-gradient-to-r from-theme-primary to-theme-accent p-4 text-white">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold line-clamp-2 mb-2">
+              <h3 className="text-main font-semibold line-clamp-2 mb-2">
                 {timeplan.title || timeplan.name}
               </h3>
               {timeplan.objective && (
-                <p className="text-blue-100 text-sm line-clamp-2">
+                <p className="text-main text-sm line-clamp-2">
                   {timeplan.objective}
                 </p>
               )}
@@ -132,7 +133,7 @@ const SavedPlansTab = ({
                   toggleFavorite(timeplan.id);
                 }}
                 className={`p-1 rounded-full hover:bg-white/10 transition-colors ${
-                  isFavorite(timeplan.id) ? "text-yellow-400" : "text-gray-300"
+                  isFavorite(timeplan.id) ? "text-theme-secondary" : "text-muted"
                 }`}
                 title={
                   isFavorite(timeplan.id)
@@ -157,29 +158,29 @@ const SavedPlansTab = ({
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-1">
+              <div className="flex items-center justify-center w-8 h-8 bg-theme-primary/20 dark:bg-theme-primary/30 rounded-lg mx-auto mb-1">
                 <Calendar
-                  className="text-blue-600 dark:text-blue-400"
+                  className="text-theme-primary"
                   size={16}
                 />
               </div>
-              <p className="text-sm font-semibold text-gray-800 dark:text-white">
+              <p className="text-sm font-semibold text-main">
                 {timeplan.phases?.length || 0}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Phases</p>
+              <p className="text-xs text-muted">Phases</p>
             </div>
 
-            <div className="text-center">
-              <div className="flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-1">
-                <Clock
-                  className="text-green-600 dark:text-green-400"
-                  size={16}
-                />
-              </div>
-              <p className="text-sm font-semibold text-gray-800 dark:text-white">
+              <div className="text-center">
+                <div className="flex items-center justify-center w-8 h-8 bg-success/20 rounded-lg mx-auto mb-1">
+                  <Clock
+                    className="text-success"
+                    size={16}
+                  />
+                </div>
+              <p className="text-sm font-semibold text-main">
                 {timeplan.totalDuration || "N/A"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted">
                 Duration
               </p>
             </div>
@@ -187,12 +188,12 @@ const SavedPlansTab = ({
         </div>
 
         {/* Card Footer - This will stick to the bottom */}
-        <div className="px-0 py-0 bg-gray-50/80 dark:bg-gray-700/80 border-t border-gray-200/50 dark:border-gray-600/50 backdrop-blur-sm mt-auto">
+        <div className="px-0 py-0 border-t border-default backdrop-blur-sm mt-auto">
           {" "}
           {/* Added mt-auto */}
-          <div className="grid grid-cols-2 divide-x divide-gray-200 dark:divide-gray-600">
+          <div className="grid grid-cols-2 divide-x divide-default">
             {/* Regenerate Button */}
-            <div className="relative group/regenerate p-2.5 hover:bg-gray-100/50 dark:hover:bg-gray-600/30 transition-colors">
+            <div className="relative group/regenerate p-2.5 hover:bg-hover transition-colors">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -201,8 +202,8 @@ const SavedPlansTab = ({
                 disabled={isCurrentlyRegenerating}
                 className={`w-full h-full flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
                   isCurrentlyRegenerating
-                    ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                    : "text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400"
+                    ? "text-muted cursor-not-allowed"
+                    : "text-secondary hover:text-success"
                 }`}
               >
                 <RefreshCw
@@ -219,13 +220,13 @@ const SavedPlansTab = ({
               </button>
             </div>
             {/* Delete Button */}
-            <div className="relative group/delete p-2.5 hover:bg-gray-100/50 dark:hover:bg-gray-600/30 transition-colors">
+            <div className="relative group/delete p-2.5 hover:bg-hover transition-colors">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteRoadmap(timeplan.id);
                 }}
-                className="w-full h-full flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                className="w-full h-full flex items-center justify-center gap-2 text-sm font-medium text-secondary hover:text-error transition-colors"
               >
                 <Trash2
                   size={16}
@@ -242,22 +243,22 @@ const SavedPlansTab = ({
 
   if (savedTimeplans.length === 0) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
         <div className="text-center max-w-lg">
           {/* Empty State Icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl shadow-lg mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 border border-default rounded-2xl shadow-md bg-surface mb-6">
             <FolderOpen
               size={40}
-              className="text-gray-400 dark:text-gray-500"
+              className="text-muted"
             />
           </div>
 
           {/* Empty State Content */}
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-main mb-4">
             No Saved Plans Yet
           </h2>
 
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+          <p className="text-lg text-secondary mb-8 leading-relaxed">
             You haven't saved any learning roadmaps yet. Create and save your
             first personalized study plan to build your learning library!
           </p>
@@ -265,7 +266,7 @@ const SavedPlansTab = ({
           {/* Action Button */}
           <button
             onClick={() => setActiveTab("create")}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+            className="bg-gradient-to-r from-theme-primary to-theme-accent hover:from-theme-accent hover:to-theme-primary
                      text-white font-semibold py-3 px-8 rounded-lg shadow-lg
                      transition-all duration-300 hover:shadow-xl transform hover:scale-105
                      flex items-center justify-center gap-3 mx-auto"
@@ -275,8 +276,8 @@ const SavedPlansTab = ({
           </button>
 
           {/* Tips */}
-          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="mt-8 p-4 bg-theme-primary/10 dark:bg-theme-primary/20 rounded-lg border border-theme-primary/30">
+            <p className="text-sm text-theme-primary">
               💡 <strong>Tip:</strong> Save your roadmaps to track progress,
               resume generation, and organize multiple learning paths.
             </p>
@@ -287,26 +288,26 @@ const SavedPlansTab = ({
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[calc(100vh-64px)]">
       {/* Header Section */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="border-b border-default shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
-                  <BookOpen size={24} className="text-white" />
+              <h1 className="text-2xl sm:text-3xl font-bold text-main flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-theme-primary to-theme-accent rounded-lg shadow-md">
+                  <BookOpen size={24} className="text-main" />
                 </div>
                 Saved Learning Plans
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-2">
+              <p className="text-secondary mt-2">
                 Manage and continue your personalized study roadmaps
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              <div className="bg-theme-primary/10 dark:bg-theme-primary/20 px-3 py-2 rounded-lg border border-theme-primary/30">
+                <span className="text-sm font-medium text-theme-primary">
                   {savedTimeplans.length}{" "}
                   {savedTimeplans.length === 1 ? "Plan" : "Plans"} Saved
                 </span>
@@ -314,7 +315,7 @@ const SavedPlansTab = ({
 
               <button
                 onClick={() => setActiveTab("create")}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4
+                className="bg-theme-primary hover:bg-theme-accent text-white font-semibold py-2 px-4
                          rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
                          transform hover:scale-105 flex items-center gap-2"
               >
@@ -332,8 +333,8 @@ const SavedPlansTab = ({
           {/* Favorites Section */}
           {savedTimeplans.some((tp) => isFavorite(tp.id)) && (
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+              <h2 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                <Star className="w-5 h-5 text-theme-secondary fill-current" />
                 Favorite Roadmaps
               </h2>
               <div className="grid grid-cols-2 gap-6 w-full">
@@ -347,7 +348,7 @@ const SavedPlansTab = ({
           {/* All Roadmaps Section */}
           {savedTimeplans.some((tp) => !isFavorite(tp.id)) && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+              <h2 className="text-lg font-semibold text-main mb-4">
                 All Roadmaps
               </h2>
               <div className="grid grid-cols-2 gap-6 w-full">
@@ -357,33 +358,6 @@ const SavedPlansTab = ({
               </div>
             </div>
           )}
-
-          {/* Quick Actions */}
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Quick Actions
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => setActiveTab("create")}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <Plus size={16} />
-                Create New Roadmap
-              </button>
-              <button
-                onClick={() => {
-                  const searchInput =
-                    document.getElementById("search-roadmaps");
-                  if (searchInput) searchInput.focus();
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors"
-              >
-                <Search size={16} />
-                Search Roadmaps
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

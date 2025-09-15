@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import useRoadmap from "./hooks/useRoadmap";
+import { useColorTheme } from "./hooks/useColorTheme";
 import Header from "./components/layout/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -69,6 +70,10 @@ const App = () => {
   const [theme, setTheme] = useState(() => 
     localStorage.getItem("theme") || "dark"
   );
+  
+  // Initialize color theme management
+  const isDarkMode = theme === 'dark';
+  const colorTheme = useColorTheme(isDarkMode);
   const [activeTab, setActiveTab] = useState(() => 
     localStorage.getItem("activeTab") || "create"
   );
@@ -140,6 +145,15 @@ const App = () => {
     setTheme((prevTheme) => {
       const newTheme = prevTheme === "light" ? "dark" : "light";
       localStorage.setItem("theme", newTheme);
+      
+      // Re-apply the current color theme for the new mode immediately
+      if (window.currentColorTheme && window.currentColorTheme.applyTheme) {
+        setTimeout(() => {
+          const currentThemeId = localStorage.getItem('ai-roadmap-color-theme') || 'slate';
+          window.currentColorTheme.applyTheme(currentThemeId, newTheme === 'dark');
+        }, 10); // Small delay to ensure DOM update
+      }
+      
       return newTheme;
     });
     
@@ -528,6 +542,8 @@ const App = () => {
             clearQueue={clearQueue}
             loading={loading}
             loadingMessage={loadingMessage}
+            setObjective={setObjective}
+            setFinalGoal={setFinalGoal}
           />
         );
       default:

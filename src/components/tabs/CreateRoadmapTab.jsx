@@ -69,7 +69,7 @@ const CreateRoadmapTab = ({
     interruptGeneration
   });
 
-  // Enhanced handleGenerate function - supports objective OR finalGoal
+  // Enhanced handleGenerate function - now generates roadmap directly without queue
   const handleGenerate = async () => {
     console.log('handleGenerate called');
     
@@ -84,15 +84,13 @@ const CreateRoadmapTab = ({
     }
 
     try {
-      console.log('Clearing previous roadmap');
-      // Clear any previous roadmap
-      setRoadmap(null);
+      console.log('Starting direct roadmap generation');
       
       // Create a unique ID for the new roadmap
       const roadmapId = `roadmap-${Date.now()}`;
       console.log('Created roadmap ID:', roadmapId);
       
-      // Create initial roadmap structure - this will be passed to the queue
+      // Create initial roadmap structure
       const roadmapTitle = hasObjective 
         ? `Roadmap for ${objective}` 
         : `Achieve ${finalGoal}`;
@@ -103,48 +101,28 @@ const CreateRoadmapTab = ({
         objective: hasObjective ? objective : `Learn towards: ${finalGoal}`,
         finalGoal: hasFinalGoal ? finalGoal : `Master: ${objective}`,
         startingLevel: startingLevel || "Beginner",
-        generationState: "queued",
+        generationState: "in-progress",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        phases: [], // Empty initially - will be populated by AI
+        phases: [], // Empty initially - will be populated by generation
         totalDuration: "Calculating...",
         difficultyLevel: "To be determined"
       };
       
-      // Set the initial roadmap in the UI immediately
-      console.log('Setting initial roadmap:', initialRoadmap);
-      setRoadmap(initialRoadmap);
+      console.log('Calling generateRoadmap directly with:', initialRoadmap);
       
-      // Create queue item with the initialRoadmap
-      const queueItem = {
-        id: roadmapId,
-        name: roadmapTitle,
-        objective: initialRoadmap.objective,
-        finalGoal: initialRoadmap.finalGoal,
-        startingLevel: initialRoadmap.startingLevel,
-        status: "queued",
-        roadmapId: roadmapId,
-        createdAt: new Date().toISOString(),
-        initialRoadmap: initialRoadmap // Pass the initial roadmap to the queue
-      };
-      
-      console.log('Adding to queue:', queueItem);
-      
-      // Add to queue
-      const result = addToQueue(queueItem);
-      console.log('addToQueue result:', result);
+      // Generate roadmap directly
+      const result = await generateRoadmap(false, null, false, initialRoadmap);
+      console.log('generateRoadmap result:', result);
       
       if (result) {
-        // Switch to the ongoing tab to show progress
-        console.log('Switching to ongoing tab');
-        setActiveTab("ongoing");
-        
-        console.log('Showing success toast');
-        toast.success("Roadmap generation started! Check the 'Ongoing' tab for progress.");
+        console.log('Generation successful, switching to view tab');
+        setActiveTab("view");
+        toast.success("Roadmap generated successfully!");
       } else {
-        // If adding to queue failed, reset the roadmap
+        console.log('Generation failed');
         setRoadmap(null);
-        toast.error("Failed to add roadmap to generation queue");
+        toast.error("Failed to generate roadmap");
       }
     } catch (error) {
       console.error("Error generating roadmap:", error);
@@ -164,7 +142,7 @@ const CreateRoadmapTab = ({
       <Dialog open={duplicateRoadmapInfo.show} onOpenChange={handleCancelReplace}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+            <div className="flex items-center gap-2 text-theme-secondary">
               <AlertTriangle className="h-5 w-5" />
               <DialogTitle>Similar Roadmap Found</DialogTitle>
             </div>
@@ -177,11 +155,11 @@ const CreateRoadmapTab = ({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-4">
-              <h4 className="font-medium text-yellow-800 dark:text-yellow-200">
+            <div className="rounded-md bg-card p-4 border border-default">
+              <h4 className="font-medium text-theme-secondary">
                 {existingRoadmap?.objective}
               </h4>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+              <p className="text-sm text-secondary mt-1">
                 {existingRoadmap?.finalGoal}
               </p>
             </div>
@@ -197,7 +175,7 @@ const CreateRoadmapTab = ({
             </Button>
             <Button
               onClick={handleConfirmReplace}
-              className="gap-2 bg-yellow-600 hover:bg-yellow-700"
+              className="gap-2 bg-theme-secondary hover:bg-theme-secondary text-white"
             >
               <Check className="h-4 w-4" />
               Generate New
@@ -213,15 +191,15 @@ const CreateRoadmapTab = ({
       <div className="w-full max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border-2 border-border mb-6">
-            <Brain className="text-foreground" size={32} />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border-2 border-default mb-6 shadow-glow-theme-subtle">
+            <Brain className="text-theme-primary" size={32} />
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-main mb-4">
             AI Study Roadmap Planner
           </h1>
 
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-secondary max-w-2xl mx-auto leading-relaxed">
             Transform your learning journey with AI-powered personalized
             roadmaps. Define your goals and let our intelligent system create a
             comprehensive study plan tailored just for you.
@@ -229,16 +207,16 @@ const CreateRoadmapTab = ({
         </div>
 
         {/* Main Form Card */}
-        <div className="rounded-2xl border border-border overflow-hidden">
+        <div className="rounded-2xl border border-default bg-card overflow-hidden shadow-glow-theme-subtle">
           {/* Card Header */}
-          <div className="p-6 border-b border-border">
+          <div className="p-6 border-b border-default bg-header">
             <div className="flex items-center gap-3 mb-2">
-              <Sparkles size={24} />
-              <h2 className="text-xl font-semibold">
+              <Sparkles size={24} className="text-theme-primary" />
+              <h2 className="text-xl font-semibold text-main">
                 Create Your Learning Path
               </h2>
             </div>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-secondary text-sm">
               Provide your learning objective OR final goal (or both) to generate a
               detailed, actionable roadmap tailored to your starting level
             </p>
@@ -249,21 +227,21 @@ const CreateRoadmapTab = ({
             {/* Learning Objective Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-border">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-default">
                   <Target
-                    className="text-foreground"
+                    className="text-theme-primary"
                     size={18}
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="objective"
-                    className="block text-lg font-semibold text-foreground"
+                    className="block text-lg font-semibold text-main"
                   >
                     Your Learning Objective
-                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">(Optional if you have a final goal)</span>
+                    <span className="text-sm font-normal text-muted ml-2">(Optional if you have a final goal)</span>
                   </label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-secondary">
                     What do you want to learn or master?
                   </p>
                 </div>
@@ -271,10 +249,10 @@ const CreateRoadmapTab = ({
 
               <textarea
                 id="objective"
-                className="w-full px-4 py-3 border border-border rounded-lg
-                         focus:ring-2 focus:ring-primary focus:border-primary
-                         bg-transparent text-foreground
-                         placeholder-muted-foreground
+                className="w-full px-4 py-3 border border-default rounded-lg
+                         focus:ring-2 focus:ring-theme-primary focus:border-theme-primary
+                         bg-surface text-main
+                         placeholder:text-muted
                          transition-all duration-200 resize-none"
                 rows="4"
                 placeholder="Example: Master Data Science fundamentals to analyze complex datasets and build predictive models"
@@ -282,8 +260,8 @@ const CreateRoadmapTab = ({
                 onChange={(e) => setObjective(e.target.value)}
               />
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Lightbulb size={14} />
+              <div className="flex items-center gap-2 text-xs text-secondary">
+                <Lightbulb size={14} className="text-warning" />
                 <span>Be specific about what you want to learn and why</span>
               </div>
             </div>
@@ -291,21 +269,21 @@ const CreateRoadmapTab = ({
             {/* Final Goal Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-border">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-default">
                   <Rocket
-                    className="text-foreground"
+                    className="text-theme-primary"
                     size={18}
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="finalGoal"
-                    className="block text-lg font-semibold text-foreground"
+                    className="block text-lg font-semibold text-main"
                   >
                     Your Concrete Final Goal
-                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">(Optional if you have an objective)</span>
+                    <span className="text-sm font-normal text-muted ml-2">(Optional if you have an objective)</span>
                   </label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-secondary">
                     What specific project or outcome do you want to achieve?
                   </p>
                 </div>
@@ -313,10 +291,10 @@ const CreateRoadmapTab = ({
 
               <textarea
                 id="finalGoal"
-                className="w-full px-4 py-3 border border-border rounded-lg
-                         focus:ring-2 focus:ring-primary focus:border-primary
-                         bg-transparent text-foreground
-                         placeholder-muted-foreground
+                className="w-full px-4 py-3 border border-default rounded-lg
+                         focus:ring-2 focus:ring-theme-primary focus:border-theme-primary
+                         bg-surface text-main
+                         placeholder:text-muted
                          transition-all duration-200 resize-none"
                 rows="4"
                 placeholder="Example: Develop an end-to-end machine learning project for predicting stock prices with 85% accuracy"
@@ -324,8 +302,8 @@ const CreateRoadmapTab = ({
                 onChange={(e) => setFinalGoal(e.target.value)}
               />
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Lightbulb size={14} />
+              <div className="flex items-center gap-2 text-xs text-secondary">
+                <Lightbulb size={14} className="text-warning" />
                 <span>Include measurable outcomes and deliverables</span>
               </div>
             </div>
@@ -333,20 +311,20 @@ const CreateRoadmapTab = ({
             {/* Starting Level Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-border">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-default">
                   <GraduationCap
-                    className="text-foreground"
+                    className="text-theme-secondary"
                     size={18}
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="startingLevel"
-                    className="block text-lg font-semibold text-foreground"
+                    className="block text-lg font-semibold text-main"
                   >
                     Your Starting Level & Prerequisites
                   </label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-secondary">
                     What's your current knowledge level and what do you already know?
                   </p>
                 </div>
@@ -367,15 +345,15 @@ const CreateRoadmapTab = ({
                       onClick={() => setStartingLevel(level.value)}
                       className={`p-5 rounded-xl border-2 transition-all duration-300 text-left relative group overflow-hidden ${
                         isSelected
-                          ? 'border-primary text-primary transform scale-105'
-                          : 'border-border hover:border-primary/50 hover:-translate-y-0.5'
+                          ? 'border-theme-primary text-theme-primary transform scale-105 selected-theme'
+                          : 'border-default hover:border-theme-light hover:-translate-y-0.5'
                       }`}
                     >
                       {/* Selected indicator */}
                       {isSelected && (
                         <div className="absolute top-3 right-3">
-                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
-                            <svg className="w-4 h-4 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="w-6 h-6 bg-theme-primary rounded-full flex items-center justify-center shadow-lg">
+                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                           </div>
@@ -386,18 +364,18 @@ const CreateRoadmapTab = ({
                       <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
                           <div className={`p-3 rounded-lg transition-all duration-300 ${
-                            isSelected ? 'border border-primary/50' : 'border border-border'
+                            isSelected ? 'border border-theme-primary bg-card' : 'border border-default bg-card'
                           }`}>
                             <Icon size={20} className={`transition-all duration-300 ${
-                              isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                              isSelected ? 'text-theme-primary' : 'text-muted group-hover:text-theme-primary'
                             }`} />
                           </div>
                           <div className="flex-1">
                             <span className={`font-semibold text-base block transition-all duration-300 ${
-                              isSelected ? 'text-primary' : 'text-foreground group-hover:text-primary'
+                              isSelected ? 'text-theme-primary' : 'text-main group-hover:text-theme-primary'
                             }`}>{level.label}</span>
                             <p className={`text-sm mt-1 transition-all duration-300 ${
-                              isSelected ? 'text-primary/80' : 'text-muted-foreground group-hover:text-primary/80'
+                              isSelected ? 'text-secondary' : 'text-secondary group-hover:text-secondary'
                             }`}>{level.desc}</p>
                           </div>
                         </div>
@@ -410,10 +388,10 @@ const CreateRoadmapTab = ({
 
               <textarea
                 id="startingLevel"
-                className="w-full px-4 py-3 border border-border rounded-lg
-                         focus:ring-2 focus:ring-primary focus:border-primary
-                         bg-transparent text-foreground
-                         placeholder-muted-foreground
+                className="w-full px-4 py-3 border border-default rounded-lg
+                         focus:ring-2 focus:ring-theme-primary focus:border-theme-primary
+                         bg-surface text-main
+                         placeholder:text-muted
                          transition-all duration-200 resize-none"
                 rows="3"
                 placeholder="Describe what you already know, previous experience, tools you're familiar with, or any specific areas you want to focus on..."
@@ -421,8 +399,8 @@ const CreateRoadmapTab = ({
                 onChange={(e) => setStartingLevel(e.target.value)}
               />
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Lightbulb size={14} />
+              <div className="flex items-center gap-2 text-xs text-secondary">
+                <Lightbulb size={14} className="text-warning" />
                 <span>This helps AI create a roadmap perfectly suited to your current skill level</span>
               </div>
             </div>
@@ -430,14 +408,14 @@ const CreateRoadmapTab = ({
             {/* Action Buttons */}
             <div className="pt-4 space-y-4">
               {isResumable && !loading && (
-                <div className="border border-border rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-2 text-foreground mb-2">
-                    <AlertCircle size={18} />
+                <div className="border border-default rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 text-main mb-2">
+                    <AlertCircle size={18} className="text-warning" />
                     <span className="font-medium">
                       Incomplete Roadmap Detected
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-secondary">
                     You have a partially generated roadmap. You can resume
                     generation or start fresh.
                   </p>
@@ -449,8 +427,8 @@ const CreateRoadmapTab = ({
                   {isResumable && !loading && (
                     <button
                       onClick={handleResume}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6
-                               rounded-lg transition-all duration-300
+                      className="flex-1 bg-theme-primary hover:bg-theme-primary text-white font-semibold py-3 px-6
+                               rounded-lg transition-all duration-300 hover:shadow-glow-theme
                                flex items-center justify-center gap-2"
                     >
                       <Play size={20} />
@@ -460,11 +438,11 @@ const CreateRoadmapTab = ({
 
                   <button
                     onClick={handleGenerate}
-                    className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-primary hover:bg-primary/90
-                             text-primary-foreground font-semibold py-3 px-6 rounded-lg
-                             transition-all duration-300
+                    className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-theme-primary hover:bg-theme-primary
+                             text-white font-semibold py-3 px-6 rounded-lg
+                             transition-all duration-300 hover:shadow-glow-theme
                              flex items-center justify-center gap-2
-                             disabled:opacity-50 disabled:cursor-not-allowed`}
+                             disabled:bg-muted disabled:cursor-not-allowed`}
                     disabled={!objective.trim() && !finalGoal.trim()}
                   >
                     {loading ? (
@@ -484,31 +462,31 @@ const CreateRoadmapTab = ({
 
               {/* Progress Indicator */}
               {loading && (
-                <div className="border border-border rounded-lg p-4">
+                <div className="border border-default rounded-lg p-4">
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 border border-border rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 border border-default rounded-full flex items-center justify-center">
                         <Loader
-                          className="animate-spin text-foreground"
+                          className="animate-spin text-theme-primary"
                           size={18}
                         />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-medium text-main">
                         {loadingMessage ||
                           "Generating your personalized roadmap..."}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-secondary mt-1">
                         Generation in progress. Click "Generate Roadmap" again
                         to add more to queue.
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-3 bg-muted rounded-full h-1">
+                  <div className="mt-3 bg-border rounded-full h-1">
                     <div
-                      className="bg-primary h-1 rounded-full animate-pulse"
+                      className="bg-theme-primary h-1 rounded-full animate-pulse"
                       style={{ width: "45%" }}
                     ></div>
                   </div>
@@ -517,21 +495,21 @@ const CreateRoadmapTab = ({
 
               {/* Error Display */}
               {error && (
-                <div className="border border-border rounded-lg p-4">
+                <div className="border border-default rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 border border-border rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 border border-default rounded-full flex items-center justify-center">
                         <AlertCircle
-                          className="text-foreground"
+                          className="text-error"
                           size={18}
                         />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium text-foreground mb-1">
+                      <h4 className="text-sm font-medium text-main mb-1">
                         Generation Failed
                       </h4>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-secondary">
                         {error}
                       </p>
                     </div>
@@ -544,41 +522,41 @@ const CreateRoadmapTab = ({
 
         {/* Tips Section */}
         <div className="mt-8 grid grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg border border-border text-center">
-            <div className="w-8 h-8 border border-border rounded-lg flex items-center justify-center mx-auto mb-2">
+          <div className="p-4 rounded-lg border border-default text-center bg-surface">
+            <div className="w-8 h-8 border border-default rounded-lg flex items-center justify-center mx-auto mb-2">
               <Sparkles
-                className="text-foreground"
+                className="text-theme-primary"
                 size={16}
               />
             </div>
-            <h3 className="font-semibold text-foreground text-sm mb-1">
+            <h3 className="font-semibold text-main text-sm mb-1">
               AI Powered
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-secondary">
               Personalized learning paths designed for you
             </p>
           </div>
 
-          <div className="p-4 rounded-lg border border-border text-center">
-            <div className="w-8 h-8 border border-border rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Brain className="text-foreground" size={16} />
+          <div className="p-4 rounded-lg border border-default text-center bg-surface">
+            <div className="w-8 h-8 border border-default rounded-lg flex items-center justify-center mx-auto mb-2">
+              <Brain className="text-theme-primary" size={16} />
             </div>
-            <h3 className="font-semibold text-foreground text-sm mb-1">
+            <h3 className="font-semibold text-main text-sm mb-1">
               Instant Generation
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-secondary">
               Generate immediately and pause other work
             </p>
           </div>
 
-          <div className="p-4 rounded-lg border border-border text-center">
-            <div className="w-8 h-8 border border-border rounded-lg flex items-center justify-center mx-auto mb-2">
-              <Clock className="text-foreground" size={16} />
+          <div className="p-4 rounded-lg border border-default text-center bg-surface">
+            <div className="w-8 h-8 border border-default rounded-lg flex items-center justify-center mx-auto mb-2">
+              <Clock className="text-theme-primary" size={16} />
             </div>
-            <h3 className="font-semibold text-foreground text-sm mb-1">
+            <h3 className="font-semibold text-main text-sm mb-1">
               Smart Queue
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-secondary">
               Auto-queues when busy, generates immediately when free
             </p>
           </div>

@@ -22,8 +22,8 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     return savedModels
       ? JSON.parse(savedModels)
       : [
-          "gemini-2.5-flash",
-          "gemini-2.0-flash", 
+          "gemini-2.0-flash-exp",
+          "gemini-2.0-flash-thinking-exp",
           "gemini-1.5-flash",
           "gemini-1.5-pro",
           "gemini-1.0-pro",
@@ -39,12 +39,30 @@ const useRoadmap = ({ setActiveTab } = {}) => {
   const queueProcessingRef = useRef(false);
   const shouldPauseAfterCurrent = useRef(false);
 
+  // API Key state
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("gemini-api-key"));
+  
   // Initialize GenAI with API key
   useEffect(() => {
-    const apiKey = localStorage.getItem("gemini-api-key");
-    if (apiKey) {
-      setGenAI(new GoogleGenerativeAI(apiKey));
+    const storedApiKey = localStorage.getItem("gemini-api-key");
+    setApiKey(storedApiKey);
+    if (storedApiKey) {
+      setGenAI(new GoogleGenerativeAI(storedApiKey));
     }
+  }, []);
+  
+  // Listen for API key changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newApiKey = localStorage.getItem("gemini-api-key");
+      setApiKey(newApiKey);
+      if (newApiKey) {
+        setGenAI(new GoogleGenerativeAI(newApiKey));
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Toggle favorite status for a roadmap
@@ -255,7 +273,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     }
   };
 
-  // Export roadmap as HTML - lazy loaded
+  // Export roadmap as HTML - lazy loaded interactive to-do list
   const exportToHTML = async () => {
     if (!roadmap) {
       toast.error('No roadmap available to export');
@@ -263,8 +281,9 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     }
     
     try {
-      const { exportToHTML: exportToHTMLHelper } = await import('../utils/exportHelpers.js');
-      await exportToHTMLHelper(roadmap, objective, finalGoal);
+      const { exportToHTMLTodoList } = await import('../lib/export/htmlTodoExporter.js');
+      exportToHTMLTodoList(roadmap);
+      toast.success('Interactive roadmap to-do list exported! 📋');
     } catch (error) {
       console.error('Error exporting to HTML:', error);
       toast.error('Failed to export roadmap as HTML');
@@ -330,25 +349,620 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     });
   }, [calculatePhaseProgress]);
 
-  // Simplified placeholder functions for complex generation logic
-  const generateRoadmap = async () => {
-    toast.info("Roadmap generation is currently being optimized for better performance...");
-    return null;
+  // AI Generation Helper Functions
+  const parseJsonResponse = (text) => {
+    let jsonString = text.trim();
+    let extractedJson = "";
+
+    const jsonBlockRegex = /```json\s*([\s\S]*?)\s*```/;
+    const match = jsonString.match(jsonBlockRegex);
+
+    if (match && match[1]) {
+      extractedJson = match[1];
+    } else {
+      const firstBrace = jsonString.indexOf("{");
+      const lastBrace = jsonString.lastIndexOf("}");
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        extractedJson = jsonString.substring(firstBrace, lastBrace + 1);
+      } else {
+        throw new Error(
+          "Could not find a valid JSON structure in the AI response.",
+        );
+      }
+    }
+
+    try {
+      return JSON.parse(extractedJson);
+    } catch (jsonParseError) {
+      console.error(
+        "Failed to parse JSON:",
+        jsonParseError,
+        "Attempted JSON string:",
+        extractedJson,
+      );
+      throw new Error(
+        `The AI model provided an invalid JSON response. Raw parsing error: ${jsonParseError.message}`,
+      );
+    }
   };
 
-  const interruptGeneration = useCallback(() => {
-    isInterrupted.current = true;
-    toast.success("Generation stopped");
-  }, []);
+  const initializePhaseDetails = (phase, pIdx) => {
+    const phaseWithProgress = {
+      ...phase,
+      miniGoals: phase.miniGoals
+        ? phase.miniGoals.map((mg, mgIdx) => ({
+            id: mg.id || `mini-goal-${pIdx + 1}-${mgIdx + 1}`,
+            completed: mg.completed || false,
+            completedDate: mg.completedDate || null,
+            ...mg,
+          }))
+        : [],
+    };
+    phaseWithProgress.progressPercentage =
+      calculatePhaseProgress(phaseWithProgress);
+    return phaseWithProgress;
+  };
 
-  // Simplified queue management
-  const addToQueue = useCallback(() => {
-    toast.info("Queue functionality is being optimized...");
-    return false;
-  }, []);
+  const createInitialPrompt = useCallback(
+    () => {
+      // Get phase settings from localStorage
+      const minPhases = parseInt(localStorage.getItem('min-phases')) || 15;
+      const maxPhases = parseInt(localStorage.getItem('max-phases')) || 50;
+      const adaptiveDifficulty = localStorage.getItem('adaptive-difficulty') !== 'false';
+      
+      // Calculate phase range based on difficulty if adaptive is enabled
+      let phaseRange = `${minPhases} to ${maxPhases}`;
+      
+      if (adaptiveDifficulty) {
+        // Determine difficulty level based on objective complexity
+        const objectiveLower = objective.toLowerCase();
+        const finalGoalLower = finalGoal.toLowerCase();
+        
+        // Keywords that suggest different difficulty levels
+        const easyKeywords = ['basic', 'beginner', 'introduction', 'fundamentals', 'getting started', 'simple'];
+        const mediumKeywords = ['intermediate', 'practical', 'hands-on', 'project', 'application'];
+        const hardKeywords = ['advanced', 'complex', 'professional', 'enterprise', 'architecture', 'system'];
+        const expertKeywords = ['expert', 'mastery', 'research', 'cutting-edge', 'innovation', 'leadership'];
+        
+        let difficultyLevel = 'medium'; // default
+        
+        if (easyKeywords.some(keyword => objectiveLower.includes(keyword) || finalGoalLower.includes(keyword))) {
+          difficultyLevel = 'easy';
+        } else if (expertKeywords.some(keyword => objectiveLower.includes(keyword) || finalGoalLower.includes(keyword))) {
+          difficultyLevel = 'expert';
+        } else if (hardKeywords.some(keyword => objectiveLower.includes(keyword) || finalGoalLower.includes(keyword))) {
+          difficultyLevel = 'hard';
+        } else if (mediumKeywords.some(keyword => objectiveLower.includes(keyword) || finalGoalLower.includes(keyword))) {
+          difficultyLevel = 'medium';
+        }
+        
+        // Calculate phase range based on difficulty
+        const range = maxPhases - minPhases;
+        switch (difficultyLevel) {
+          case 'easy': {
+            const easyMin = minPhases;
+            const easyMax = Math.ceil(minPhases + range * 0.3);
+            phaseRange = `${easyMin} to ${easyMax}`;
+            break;
+          }
+          case 'medium': {
+            const mediumMin = Math.ceil(minPhases + range * 0.3);
+            const mediumMax = Math.ceil(minPhases + range * 0.6);
+            phaseRange = `${mediumMin} to ${mediumMax}`;
+            break;
+          }
+          case 'hard': {
+            const hardMin = Math.ceil(minPhases + range * 0.6);
+            const hardMax = Math.ceil(minPhases + range * 0.8);
+            phaseRange = `${hardMin} to ${hardMax}`;
+            break;
+          }
+          case 'expert': {
+            const expertMin = Math.ceil(minPhases + range * 0.8);
+            const expertMax = maxPhases;
+            phaseRange = `${expertMin} to ${expertMax}`;
+            break;
+          }
+        }
+      }
+      
+      return `
+Create a high-level study roadmap structure for: "${objective}"
+Final Goal: "${finalGoal}"
+Starting Level: "${startingLevel}"
 
-  const removeFromQueue = useCallback(() => {
-    // Implementation would go here
+Provide the overall roadmap details and a list of phase titles.
+The roadmap should have ${phaseRange} DISTINCT, PROGRESSIVELY CHALLENGING PHASES.
+
+ADAPT THE DIFFICULTY AND PHASE COUNT BASED ON THE COMPLEXITY OF THE SUBJECT:
+- For BEGINNER/EASY topics: Use fewer phases (${Math.ceil(minPhases)} - ${Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)}) with foundational concepts
+- For INTERMEDIATE topics: Use moderate phases (${Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} - ${Math.ceil(minPhases + (maxPhases - minPhases) * 0.6)}) with practical applications
+- For ADVANCED topics: Use more phases (${Math.ceil(minPhases + (maxPhases - minPhases) * 0.6)} - ${Math.ceil(minPhases + (maxPhases - minPhases) * 0.8)}) with complex concepts
+- For EXPERT/MASTERY topics: Use maximum phases (${Math.ceil(minPhases + (maxPhases - minPhases) * 0.8)} - ${maxPhases}) with comprehensive coverage
+
+Format as JSON with this EXACT structure:
+{
+  "title": "Comprehensive Study Roadmap Title",
+  "totalDuration": "Be completely realistic - multiple years if needed for mastery and only tell the time without any other details like ('2 Years', '6 Months', '3 - 5 Years') not ('2 Years of part-time study', '6 - 10 Months to become proficient')",
+  "difficultyLevel": "Beginner/Intermediate/Advanced/Expert",
+  "totalEstimatedHours": "Realistic total hour commitment",
+  "phases": [
+    {
+      "phaseNumber": 1,
+      "title": "Descriptive Phase Title"
+    }
+  ],
+  "motivationMilestones": [
+    "Specific achievements that maintain long-term motivation"
+  ],
+  "careerProgression": [
+    "Clear career advancement steps and opportunities with this knowledge"
+  ],
+  "tips": [
+    "Expert-level strategic advice for maximizing success and avoiding common pitfalls"
+  ],
+  "prerequisites": ["Essential knowledge learner should have before starting"],
+  "careerOutcomes": [
+    { "role": "Software Engineer", "salary": "$100k - $150k" }
+  ],
+  "marketDemand": "Current market demand and future outlook for these skills",
+  "communityResources": ["Professional communities, forums, and networking opportunities"]
+}
+
+CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, no explanations, no additional text - just pure, valid JSON.
+`;
+    },
+    [objective, finalGoal, startingLevel],
+  );
+
+  const createPhaseDetailPrompt = useCallback(
+    (phaseTitle) => `
+You are generating one phase of a larger study roadmap for: "${objective}" with the final goal: "${finalGoal}".
+Starting Level: "${startingLevel}"
+The current phase is: "${phaseTitle}".
+
+Generate the detailed content for this single phase.
+
+**CRITICAL INSTRUCTION: Provide a detailed and realistic breakdown for this phase.**
+
+**MINI-GOAL REQUIREMENT:**
+Generate 7-12 actionable, highly detailed mini-goals for this phase.
+
+**RESOURCES & PROJECT:**
+Provide multiple, high-quality resources and a monetizable project for this phase.
+
+Format as JSON with this EXACT structure for the phase object:
+{
+  "duration": "Realistic timeframe based on actual complexity",
+  "goal": "Specific, measurable goal with clear success criteria",
+  "miniGoals": [
+    {
+      "id": "mini-goal-1-1",
+      "title": "Specific actionable mini-goal title",
+      "description": "Detailed description with expected outcomes and deliverables",
+      "estimatedTime": "Realistic time estimate (days/weeks)",
+      "priority": "high/medium/low",
+      "completed": false,
+      "completedDate": null,
+      "dependencies": [],
+      "successCriteria": "Measurable criteria for completion",
+      "url": "https://optional-direct-link-for-this-mini-goal.com"
+    }
+  ],
+  "resources": [
+    {
+      "name": "Specific Resource Name",
+      "url": "https://actual-working-url.com",
+      "type": "documentation/course/book/paper/project/tool",
+      "description": "Why this specific resource is exceptional and valuable",
+      "difficulty": "beginner/intermediate/advanced/expert",
+      "estimatedTime": "Time to complete this resource",
+      "priority": "essential/recommended/optional"
+    }
+  ],
+  "project": {
+    "title": "Practical Project Title",
+    "description": "Comprehensive project description with clear objectives",
+    "deliverables": ["List of specific, measurable deliverables"],
+    "monetizationPotential": "Detailed explanation of how this could generate income",
+    "skillsApplied": ["Specific technical skills being practiced"],
+    "estimatedDuration": "Realistic project completion time",
+    "difficultyLevel": "Current complexity level",
+    "portfolioValue": "Why this adds value to a professional portfolio"
+  },
+  "skills": ["Specific technical and soft skills gained"],
+  "milestone": "Clear, measurable achievement marking phase completion",
+  "prerequisiteKnowledge": ["What should be mastered before starting this phase"],
+  "flexibleTimeAllocation": true,
+  "actualDuration": null,
+  "progressPercentage": 0
+}
+
+CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, no explanations, no additional text - just pure, valid JSON.
+`,
+    [objective, finalGoal, startingLevel],
+  );
+
+  // Main AI-powered roadmap generation function
+  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, wasQueuePaused = false, initialRoadmap = null) => {
+    console.log('[generateRoadmap] Starting generation', { 
+      isContinuation, 
+      roadmapId: roadmapToContinue?.id, 
+      hasInitialRoadmap: !!initialRoadmap 
+    });
+    
+    if (!apiKey || !genAI) {
+      const errorMsg = "Please set your Gemini API key in the settings.";
+      console.error('[generateRoadmap] Error:', errorMsg);
+      toast.error(errorMsg);
+      return null;
+    }
+
+    console.log('[generateRoadmap] Resetting interruption flag and setting loading state');
+    isInterrupted.current = false;
+    setLoading(true);
+    setError(null);
+
+    if (!isContinuation && !initialRoadmap) {
+      localStorage.removeItem("currentRoadmap");
+      setRoadmap(null);
+    }
+
+    const generateWithRetry = async (prompt) => {
+      const startingModelIndex = currentModelIndex.current;
+      let attempts = 0;
+      const maxAttempts = availableModels.length;
+
+      while (attempts < maxAttempts) {
+        if (isInterrupted.current) {
+          throw new Error("Generation interrupted by user.");
+        }
+
+        const modelName = availableModels[currentModelIndex.current];
+        attempts++;
+        
+        try {
+          console.log(`[generateWithRetry] Attempt ${attempts}/${maxAttempts} with model: ${modelName}`);
+          setLoadingMessage(`Generating with ${modelName}... (attempt ${attempts}/${maxAttempts})`);
+          
+          const generativeModel = genAI.getGenerativeModel({
+            model: modelName,
+          });
+          
+          const result = await generativeModel.generateContent(prompt);
+          const response = await result.response;
+          
+          console.log(`[generateWithRetry] Success with model: ${modelName}`);
+          return parseJsonResponse(response.text());
+          
+        } catch (err) {
+          if (isInterrupted.current) {
+            throw err;
+          }
+
+          console.error(`[generateWithRetry] Error with model ${modelName}:`, err.message);
+          
+          const isQuotaError = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
+          const isModelNotFound = err.message.includes('404') || err.message.includes('not found');
+          const isServerError = err.message.includes('500') || err.message.includes('502') || err.message.includes('503');
+          
+          if (isQuotaError || isModelNotFound || isServerError) {
+            console.log(`[generateWithRetry] ${modelName} failed with recoverable error, switching to next model`);
+            
+            currentModelIndex.current = (currentModelIndex.current + 1) % availableModels.length;
+            
+            if (currentModelIndex.current === startingModelIndex) {
+              console.error(`[generateWithRetry] All models failed after ${attempts} attempts`);
+              setLoadingMessage("All models failed. Please check your API key and model availability.");
+              throw new Error(`All available models failed. Last error: ${err.message}`);
+            }
+            
+            const nextModel = availableModels[currentModelIndex.current];
+            console.log(`[generateWithRetry] Switching to model: ${nextModel}`);
+            setLoadingMessage(`Switching to model ${nextModel}... (attempt ${attempts + 1}/${maxAttempts})`);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            continue;
+          } else {
+            console.error(`[generateWithRetry] Non-recoverable error with ${modelName}:`, err);
+            throw err;
+          }
+        }
+      }
+      
+      throw new Error("Maximum retry attempts exceeded");
+    };
+
+    try {
+      let currentRoadmap = null;
+
+      if (isContinuation && roadmapToContinue) {
+        console.log('[generateRoadmap] Continuing existing roadmap:', roadmapToContinue.id);
+        currentRoadmap = roadmapToContinue;
+        setRoadmap(currentRoadmap);
+      } else if (initialRoadmap) {
+        // FIXED: Check if initialRoadmap needs structure generation
+        if (!initialRoadmap.phases || initialRoadmap.phases.length === 0) {
+          console.log('[generateRoadmap] Initial roadmap needs structure generation');
+          
+          // Generate the basic structure first
+          if (!objective || !finalGoal) {
+            // Use the roadmap's stored objective and finalGoal
+            setObjective(initialRoadmap.objective || "");
+            setFinalGoal(initialRoadmap.finalGoal || "");
+            setStartingLevel(initialRoadmap.startingLevel || "Beginner");
+          }
+          
+          if (!initialRoadmap.objective || !initialRoadmap.finalGoal) {
+            throw new Error("Initial roadmap missing objective or final goal");
+          }
+          
+          setLoadingMessage("Generating high-level plan structure...");
+          const initialPrompt = createInitialPrompt();
+          const initialJson = await generateWithRetry(initialPrompt);
+
+          if (!initialJson || !Array.isArray(initialJson.phases) || initialJson.phases.length === 0) {
+            throw new Error("The AI did not return a valid initial roadmap structure.");
+          }
+
+          // Update the initial roadmap with the generated structure
+          currentRoadmap = {
+            ...initialRoadmap,
+            ...initialJson, // This includes title, totalDuration, etc.
+            id: initialRoadmap.id, // Keep the original ID
+            objective: initialRoadmap.objective, // Keep original objective
+            finalGoal: initialRoadmap.finalGoal, // Keep original finalGoal
+            startingLevel: initialRoadmap.startingLevel, // Keep original starting level
+            generationState: "in-progress",
+            updatedAt: new Date().toISOString(),
+            phases: initialJson.phases.map((p, pIdx) => ({
+              phaseNumber: p.phaseNumber || pIdx + 1,
+              title: p.title,
+              duration: "...",
+              goal: "...",
+              miniGoals: [],
+              resources: [],
+              project: {},
+              skills: [],
+              milestone: "...",
+              prerequisiteKnowledge: [],
+              progressPercentage: 0,
+            })),
+          };
+          
+          console.log('[generateRoadmap] Generated structure for initial roadmap:', currentRoadmap);
+        } else {
+          console.log('[generateRoadmap] Using provided initial roadmap with existing structure:', initialRoadmap.id);
+          currentRoadmap = initialRoadmap;
+        }
+        
+        setRoadmap(currentRoadmap);
+        
+        // Save the updated roadmap
+        const savedRoadmap = await saveRoadmapToDisk(
+          currentRoadmap,
+          currentRoadmap.title || `Roadmap-${Date.now()}`,
+        );
+        
+        if (!savedRoadmap) {
+          throw new Error("Failed to save roadmap with structure");
+        }
+        
+        currentRoadmap = savedRoadmap;
+        setRoadmap(savedRoadmap);
+      } else {
+        // Generate completely new roadmap
+        if (!objective || !finalGoal) {
+          throw new Error("Please provide both an objective and a final goal.");
+        }
+        
+        console.log('[generateRoadmap] Generating new roadmap structure');
+        setLoadingMessage("Generating high-level plan...");
+        const initialPrompt = createInitialPrompt();
+        const initialJson = await generateWithRetry(initialPrompt);
+
+        if (!initialJson || !Array.isArray(initialJson.phases) || initialJson.phases.length === 0) {
+          throw new Error("The AI did not return a valid initial roadmap structure.");
+        }
+
+        const newRoadmap = {
+          ...initialJson,
+          id: `roadmap-${Date.now()}`,
+          objective: objective,
+          finalGoal: finalGoal,
+          startingLevel: startingLevel,
+          generationState: "in-progress",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          phases: initialJson.phases.map((p, pIdx) => ({
+            phaseNumber: p.phaseNumber || pIdx + 1,
+            title: p.title,
+            duration: "...",
+            goal: "...",
+            miniGoals: [],
+            resources: [],
+            project: {},
+            skills: [],
+            milestone: "...",
+            prerequisiteKnowledge: [],
+            progressPercentage: 0,
+          })),
+        };
+
+        // Save the initial roadmap
+        const savedRoadmap = await saveRoadmapToDisk(
+          newRoadmap,
+          newRoadmap.title || `Roadmap-${Date.now()}`,
+        );
+        
+        if (!savedRoadmap) {
+          throw new Error("Failed to save initial roadmap");
+        }
+        
+        currentRoadmap = savedRoadmap;
+        setRoadmap(savedRoadmap);
+      }
+
+      // Generate phase details
+      const startIndex = currentRoadmap.phases.findIndex(p => p.goal === "...");
+      if (startIndex === -1) {
+        console.log('[generateRoadmap] Roadmap already complete');
+        currentRoadmap.generationState = "completed";
+        await saveRoadmapToDisk(currentRoadmap, currentRoadmap.title);
+        setLoading(false);
+        return currentRoadmap;
+      }
+
+      let accumulatingRoadmap = { ...currentRoadmap };
+
+      for (let i = startIndex; i < accumulatingRoadmap.phases.length; i++) {
+        if (isInterrupted.current) {
+          console.log("Generation interrupted by user.");
+          accumulatingRoadmap = {
+            ...accumulatingRoadmap,
+            generationState: "in-progress",
+          };
+          await saveRoadmapToDisk(accumulatingRoadmap, accumulatingRoadmap.title);
+          break;
+        }
+
+        const phase = accumulatingRoadmap.phases[i];
+        setLoadingMessage(
+          `Generating details for phase ${i + 1}/${accumulatingRoadmap.phases.length}: ${phase.title}`,
+        );
+        
+        const phaseJson = await generateWithRetry(createPhaseDetailPrompt(phase.title));
+
+        if (isInterrupted.current) {
+          console.log("Generation interrupted by user after fetch.");
+          accumulatingRoadmap = {
+            ...accumulatingRoadmap,
+            generationState: "in-progress",
+          };
+          await saveRoadmapToDisk(accumulatingRoadmap, accumulatingRoadmap.title);
+          break;
+        }
+
+        // Update phase
+        const newPhases = [...accumulatingRoadmap.phases];
+        newPhases[i] = initializePhaseDetails(
+          { ...newPhases[i], ...phaseJson },
+          i,
+        );
+        accumulatingRoadmap = { ...accumulatingRoadmap, phases: newPhases };
+
+        // Save progress
+        const savedStep = await saveRoadmapToDisk(
+          accumulatingRoadmap,
+          accumulatingRoadmap.title,
+        );
+        if (!savedStep) {
+          throw new Error("Failed to save roadmap progress during loop.");
+        }
+        accumulatingRoadmap = savedStep;
+        setRoadmap(savedStep); // Update the global state to reflect progress
+      }
+
+      if (!isInterrupted.current) {
+        accumulatingRoadmap.generationState = "completed";
+        await saveRoadmapToDisk(accumulatingRoadmap, accumulatingRoadmap.title);
+        console.log('[generateRoadmap] Roadmap generation completed');
+      }
+
+      if (!isInterrupted.current) {
+        if (setActiveTab) {
+          setActiveTab("view");
+        }
+        return accumulatingRoadmap; // Return the completed roadmap
+      }
+
+      // If interrupted, do not return the incomplete roadmap
+      return null;
+    } catch (err) {
+      if (err.message.includes("interrupted by user")) {
+        console.log("Caught user interruption. Halting generation.");
+        setError(null);
+      } else {
+        console.error("Error generating roadmap:", err);
+        setError("Failed to generate roadmap: " + err.message);
+        toast.error("Failed to generate roadmap: " + err.message);
+      }
+      return null;
+    } finally {
+      setLoading(false);
+      setLoadingMessage("");
+    }
+  };
+
+  /**
+   * Interrupts the current AI generation.
+   * Note: GoogleGenerativeAI API does NOT support aborting in-flight requests.
+   * This will only set a flag to ignore results after the current request completes.
+   * The network/API request will still run to completion in the background.
+   * UI should reflect that interruption takes effect after the current phase/request.
+   */
+  const interruptGeneration = useCallback((source = 'unknown') => {
+    console.log(`[interruptGeneration] Interrupting current generation from: ${source}`, {
+      isInterrupted: isInterrupted.current,
+      isQueuePaused,
+      queueProcessing: queueProcessingRef.current,
+      currentlyGenerating
+    });
+    if (currentlyGenerating || queueProcessingRef.current || loading) {
+      isInterrupted.current = true;
+      console.log(`[interruptGeneration] Set isInterrupted to true`);
+    } else {
+      console.log(`[interruptGeneration] No active generation, not setting interrupted flag`);
+    }
+    // Also pause the queue to prevent new items from being processed
+    pauseQueue();
+    // Clear any currently generating item
+    setCurrentlyGenerating(null);
+  }, [isQueuePaused, currentlyGenerating, loading]);
+
+  // Forward declaration for processQueue
+  const processQueueRef = useRef();
+  
+  // Working queue management
+  const addToQueue = useCallback((queueItem) => {
+    console.log('[addToQueue] Adding item to queue:', queueItem);
+    
+    if (!queueItem) {
+      console.error('[addToQueue] No queue item provided');
+      return false;
+    }
+    
+    try {
+      setGenerationQueue(prevQueue => {
+        const newQueue = [...prevQueue, {
+          ...queueItem,
+          id: queueItem.id || `queue-${Date.now()}`,
+          status: 'queued',
+          createdAt: queueItem.createdAt || new Date().toISOString()
+        }];
+        console.log('[addToQueue] Updated queue:', newQueue);
+        return newQueue;
+      });
+      
+      // Auto-start processing if queue isn't paused
+      setTimeout(() => {
+        if (!isQueuePaused && processQueueRef.current) {
+          processQueueRef.current();
+        }
+      }, 100);
+      
+      return true;
+    } catch (error) {
+      console.error('[addToQueue] Error adding to queue:', error);
+      return false;
+    }
+  }, [isQueuePaused]);
+
+  const removeFromQueue = useCallback((itemId) => {
+    setGenerationQueue(prevQueue => 
+      prevQueue.filter(item => item.id !== itemId)
+    );
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -363,12 +977,93 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     setIsQueuePaused(false);
   }, []);
 
-  const processQueue = useCallback(() => {
-    // Implementation would go here
-  }, []);
+  // Simple queue processor
+  const processQueue = useCallback(async () => {
+    if (queueProcessingRef.current || isQueuePaused) {
+      console.log('[processQueue] Already processing or paused');
+      return;
+    }
+    
+    queueProcessingRef.current = true;
+    console.log('[processQueue] Starting queue processing');
+    
+    try {
+      // Get current queue state synchronously
+      let currentQueue = [];
+      setGenerationQueue(queue => {
+        currentQueue = [...queue];
+        return queue;
+      });
+      
+      while (currentQueue.length > 0 && !isQueuePaused && !isInterrupted.current) {
+        const nextItem = currentQueue[0];
+        console.log('[processQueue] Processing item:', nextItem);
+        
+        setCurrentlyGenerating(nextItem);
+        
+        try {
+          const result = await generateRoadmap(false, null, false, nextItem.initialRoadmap);
+          
+          if (result) {
+            // Remove completed item from queue
+            setGenerationQueue(prev => {
+              currentQueue = prev.slice(1);
+              return currentQueue;
+            });
+            toast.success(`Roadmap "${nextItem.name}" generated successfully!`);
+          } else {
+            // Mark item as failed but keep it in queue for retry
+            setGenerationQueue(prev => {
+              const updatedQueue = prev.map((item, index) => 
+                index === 0 ? { ...item, status: 'failed' } : item
+              );
+              currentQueue = [...updatedQueue];
+              return updatedQueue;
+            });
+            break; // Stop processing if failed
+          }
+        } catch (error) {
+          console.error('[processQueue] Error processing queue item:', error);
+          // Mark item as failed
+          setGenerationQueue(prev => {
+            const updatedQueue = prev.map((item, index) => 
+              index === 0 ? { ...item, status: 'failed', error: error.message } : item
+            );
+            currentQueue = [...updatedQueue];
+            return updatedQueue;
+          });
+          break; // Stop processing if failed
+        }
+        
+        setCurrentlyGenerating(null);
+      }
+    } catch (error) {
+      console.error('[processQueue] Error in queue processing:', error);
+    } finally {
+      queueProcessingRef.current = false;
+      setCurrentlyGenerating(null);
+      console.log('[processQueue] Queue processing finished');
+    }
+  }, [isQueuePaused, generateRoadmap]);
+  
+  // Assign processQueue to the ref
+  processQueueRef.current = processQueue;
 
-  const retryGeneration = useCallback(() => {
-    // Implementation would go here
+  const retryGeneration = useCallback((itemId) => {
+    setGenerationQueue(prevQueue => 
+      prevQueue.map(item => 
+        item.id === itemId 
+          ? { ...item, status: 'queued', error: null }
+          : item
+      )
+    );
+    
+    // Try to process the queue again
+    setTimeout(() => {
+      if (processQueueRef.current) {
+        processQueueRef.current();
+      }
+    }, 100);
   }, []);
 
   return {

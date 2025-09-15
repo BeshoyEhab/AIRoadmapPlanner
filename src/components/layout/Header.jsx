@@ -36,35 +36,35 @@ const Header = ({
   };
 
   const tabButtonClasses = (isActive) => `
-    px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold nav-tab-button whitespace-nowrap transition-all duration-200
+    px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold nav-tab-button whitespace-nowrap transition-all duration-300
     ${
       isActive
-        ? "bg-primary text-primary-foreground shadow-lg transform scale-105 ring-2 ring-primary/20"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm hover:scale-102"
+        ? "bg-theme-primary text-white shadow-glow-theme transform scale-105 border border-theme-primary"
+        : "bg-transparent text-secondary hover:bg-theme-primary/10 hover:text-main hover:shadow-glow-theme-subtle hover:scale-102 border border-transparent hover:border-theme-primary/30"
     }
   `;
 
   const iconButtonClasses = `
-    p-3 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground
+    p-3 rounded-xl text-muted hover:bg-hover hover:text-content
     icon-button hover:shadow-md min-w-[2.75rem] flex items-center justify-center ml-2 transition-all duration-200 hover:scale-105
   `;
 
   return (
-    <header className="bg-background/95 backdrop-blur-md shadow-lg border-b border-border z-10 sticky top-0 supports-[backdrop-filter]:bg-background/60">
+    <header className="shadow-lg border-b border-default z-10 sticky top-0 backdrop-blur-sm">
       <div className="container mx-auto px-2 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between relative header-wrapper">
           {/* Left Section - Logo and Text */}
           <div className="flex shrink-0 items-center">
             <div className="flex items-center group">
               <div className="relative p-3 bg-primary rounded-xl shadow-lg logo-container hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <Brain size={28} className="text-primary-foreground logo-brain transition-transform duration-300 group-hover:rotate-12" />
+                <Brain size={28} className="text-main logo-brain transition-transform duration-300 group-hover:rotate-12" />
                 <div className="absolute inset-0 bg-primary/20 rounded-xl animate-pulse opacity-50"></div>
               </div>
               <div className="ml-3">
-                <h1 className="text-xl font-bold text-foreground whitespace-nowrap tracking-tight">
+                <h1 className="text-xl font-bold text-content whitespace-nowrap tracking-tight">
                   AI Roadmap
                 </h1>
-                <p className="text-xs text-muted-foreground font-medium">
+                <p className="text-xs text-secondary font-medium">
                   Study Planner
                 </p>
               </div>
@@ -73,7 +73,7 @@ const Header = ({
 
           {/* Center Navigation */}
           <div className="flex justify-center px-4 max-w-[450px] w-full mx-auto">
-            <div className="flex space-x-1 sm:space-x-2 bg-muted/50 p-1.5 rounded-2xl shadow-inner backdrop-blur-sm border border-border/50">
+            <div className="flex space-x-1 sm:space-x-2 p-1.5 rounded-2xl shadow-inner border border-default backdrop-blur-sm">
               <button
                 onClick={() => setActiveTab("create")}
                 className={tabButtonClasses(activeTab === "create")}
@@ -109,9 +109,9 @@ const Header = ({
               title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
             >
               {theme === "light" ? (
-                <Moon size={22} className="text-primary" />
+                <Moon size={22} className="text-theme-primary" />
               ) : (
-                <Sun size={22} className="text-yellow-500" />
+                <Sun size={22} className="text-warning" />
               )}
             </button>
 
@@ -123,12 +123,12 @@ const Header = ({
               {fullScreenMode ? (
                 <Minimize
                   size={22}
-                  className="text-muted-foreground"
+                  className="text-muted"
                 />
               ) : (
                 <Maximize
                   size={22}
-                  className="text-muted-foreground"
+                  className="text-muted"
                 />
               )}
             </button>
@@ -136,20 +136,19 @@ const Header = ({
             <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
               <SheetTrigger asChild>
                 <button
-                  className={`${iconButtonClasses} relative`}
+                  className={`${iconButtonClasses} relative hover:shadow-glow-theme`}
                   title="Settings"
                 >
                   <SettingsIcon
                     size={22}
-                    className="text-muted-foreground"
+                    className="text-theme-primary transition-all duration-300 hover:scale-110"
                   />
                 </button>
               </SheetTrigger>
-              <SheetOverlay className="bg-black/50 backdrop-blur-sm" />
-              <SheetContent className="w-full sm:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
-                <SheetHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                  <SheetTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                    <SettingsIcon size={20} className="text-blue-500" />
+              <SheetContent className="w-full sm:w-96 border-l border-default">
+                <SheetHeader className="pb-4 border-b border-default">
+                  <SheetTitle className="text-xl font-bold text-content flex items-center gap-2">
+                    <SettingsIcon size={20} className="text-theme-primary" />
                     Settings
                   </SheetTitle>
                 </SheetHeader>

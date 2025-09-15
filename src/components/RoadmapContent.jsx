@@ -55,7 +55,7 @@ const RoadmapContent = ({
           <div className="text-gray-500 mb-2">No roadmap data available</div>
           <button 
             onClick={() => setActiveTab('create')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+            className="bg-theme-primary hover:bg-theme-accent text-white px-4 py-2 rounded-lg transition-colors"
           >
             Create New Roadmap
           </button>
@@ -99,13 +99,13 @@ const RoadmapContent = ({
   return (
     <div className="space-y-6" ref={roadmapRef}>
       {showActionButtons && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 dark:from-blue-900 dark:to-indigo-900 dark:border-blue-700">
+        <div className="bg-gradient-to-r from-theme-primary/10 to-theme-accent/10 p-6 rounded-lg border border-theme-primary/30 dark:from-theme-primary/20 dark:to-theme-accent/20 dark:border-theme-primary/40">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+              <h2 className="text-2xl font-bold text-main">
                 {roadmap.title || 'Untitled Roadmap'}
               </h2>
-              <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex flex-wrap gap-4 mt-2 text-sm text-secondary">
                 <div className="flex items-center gap-1">
                   <Clock size={16} />
                   Duration: {roadmap.totalDuration}
@@ -127,7 +127,7 @@ const RoadmapContent = ({
                   </div>
                 )}
                 <div className="flex items-center gap-4">
-                  <div className="text-green-600 font-medium">
+                  <div className="text-success font-medium">
                     Progress: {calculateOverallProgress(roadmap)}%
                   </div>
                   <button
@@ -168,7 +168,7 @@ const RoadmapContent = ({
                     alert(`Failed to export: ${error.message}`);
                   }
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-green flex items-center gap-2 text-sm"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-theme-accent flex items-center gap-2 text-sm"
                 title={`Export as ${exportFormat?.toUpperCase() || 'file'}`}
                 disabled={!roadmap}
               >
@@ -202,7 +202,7 @@ const RoadmapContent = ({
                   return (
                     <div className="flex flex-col items-center gap-2">
                       <button
-                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-orange flex items-center gap-3 text-sm relative overflow-hidden group"
+                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-theme flex items-center gap-3 text-sm relative overflow-hidden group"
                         onClick={() => handlePause(roadmap)}
                         title={isGenerating ? "Pause Current Generation" : "Remove from Queue"}
                       >
@@ -238,8 +238,8 @@ const RoadmapContent = ({
                             Currently Generating
                           </span>
                         ) : (
-                          <span className="text-blue-600 font-medium flex items-center gap-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-theme-primary font-medium flex items-center gap-1">
+                            <div className="w-2 h-2 bg-theme-primary rounded-full"></div>
                             Queue Position: #{queuePosition}
                           </span>
                         )}
@@ -263,7 +263,7 @@ const RoadmapContent = ({
                   return (
                     <div className="flex flex-col items-center gap-2">
                       <button
-                        className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-green flex items-center gap-3 text-sm relative overflow-hidden group ${
+                        className={`bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-glow-theme-accent flex items-center gap-3 text-sm relative overflow-hidden group ${
                           alreadyGenerating ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         onClick={() => !alreadyGenerating && handleResume(roadmap)}
@@ -345,7 +345,7 @@ const RoadmapContent = ({
                   setExportFormat(e.target.value);
                   localStorage.setItem("export-format", e.target.value);
                 }}
-                className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm"
+                className="bg-white text-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm"
               >
                 <option value="markdown">Markdown</option>
                 <option value="pdf">PDF</option>
@@ -380,7 +380,7 @@ const RoadmapContent = ({
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                         <div className="w-32 bg-gray-200 rounded-full h-2 dark:bg-gray-600">
                           <div
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-theme-primary h-2 rounded-full transition-all duration-300"
                             style={{
                               width: `${calculatePhaseProgress(phase)}%`,
                             }}
@@ -449,7 +449,7 @@ const RoadmapContent = ({
                                           href={miniGoal.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 dark:text-blue-400 dark:hover:text-blue-300"
+                                          className="text-theme-primary hover:text-theme-accent flex items-center gap-1"
                                         >
                                           {miniGoal.title}{" "}
                                           <ExternalLink size={14} />
@@ -481,7 +481,7 @@ const RoadmapContent = ({
                                     {miniGoal.description}
                                   </p>
                                   {miniGoal.successCriteria && (
-                                    <p className="text-xs text-blue-600 mt-1 dark:text-blue-400">
+                                    <p className="text-xs text-theme-primary mt-1">
                                       ✓ Success: {miniGoal.successCriteria}
                                     </p>
                                   )}
@@ -504,7 +504,7 @@ const RoadmapContent = ({
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
-                          <BookOpen size={18} className="text-blue-600" />
+                          <BookOpen size={18} className="text-theme-primary" />
                           Premium Resources
                         </h4>
                         <div className="space-y-3">
@@ -523,7 +523,7 @@ const RoadmapContent = ({
                                       <span
                                         className={`inline-block px-2 py-1 text-xs rounded-full ${
                                           resource.type === "documentation"
-                                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                            ? "bg-theme-primary/20 text-theme-primary"
                                             : resource.type === "course"
                                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                               : resource.type === "book"
@@ -545,7 +545,7 @@ const RoadmapContent = ({
                                             ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                             : resource.priority ===
                                                 "recommended"
-                                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                              ? "bg-theme-primary/20 text-theme-primary"
                                               : "bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200"
                                         }`}
                                       >
@@ -559,7 +559,7 @@ const RoadmapContent = ({
                                     href={resource.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 ml-2 dark:text-blue-400 dark:hover:text-blue-300"
+                                    className="text-theme-primary hover:text-theme-accent ml-2"
                                   >
                                     <ExternalLink size={16} />
                                   </a>
@@ -662,8 +662,8 @@ const RoadmapContent = ({
                           )}
 
                           {phase.milestone && (
-                            <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-3 dark:bg-blue-900 dark:border-blue-700">
-                              <p className="text-sm text-blue-800 dark:text-blue-200">
+                            <div className="bg-theme-primary/10 border border-theme-primary/30 rounded p-2 mt-3">
+                              <p className="text-sm text-theme-primary">
                                 <strong>🎯 Milestone:</strong> {phase.milestone}
                               </p>
                             </div>
@@ -677,7 +677,7 @@ const RoadmapContent = ({
                           {phase.skills.map((skill, skillIndex) => (
                             <span
                               key={skillIndex}
-                              className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm dark:bg-blue-900 dark:text-blue-200"
+                              className="bg-theme-primary/20 text-theme-primary px-3 py-1 rounded-full text-sm"
                             >
                               {skill}
                             </span>

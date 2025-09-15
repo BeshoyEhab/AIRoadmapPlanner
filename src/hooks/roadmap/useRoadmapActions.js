@@ -66,9 +66,23 @@ export const useRoadmapActions = ({
     (roadmap) => {
       if (!roadmap) return;
 
+      // Ensure we have the required data from the roadmap
+      const roadmapObjective = roadmap.objective || "Continue learning roadmap";
+      const roadmapFinalGoal = roadmap.finalGoal || "Complete the learning objectives";
+      
+      // Update form state with roadmap data if needed
+      if (setObjective && roadmapObjective && (!objective || objective.trim() === '')) {
+        setObjective(roadmapObjective);
+      }
+      if (setFinalGoal && roadmapFinalGoal && (!finalGoal || finalGoal.trim() === '')) {
+        setFinalGoal(roadmapFinalGoal);
+      }
+
       // Calculate pause duration if available
       const resumeData = {
         ...roadmap,
+        objective: roadmapObjective,
+        finalGoal: roadmapFinalGoal,
         generationState: "in-progress",
         lastResumedAt: new Date().toISOString(),
       };
@@ -80,8 +94,8 @@ export const useRoadmapActions = ({
       const queueItem = {
         id: roadmap.id || Date.now(),
         name: roadmap.title || "Resumed Roadmap",
-        objective: roadmap.objective || "Resumed Roadmap",
-        finalGoal: roadmap.finalGoal || "",
+        objective: roadmapObjective,
+        finalGoal: roadmapFinalGoal,
         status: "queued",
         isResume: true,
         roadmapId: roadmap.id,
@@ -141,7 +155,7 @@ export const useRoadmapActions = ({
         setActiveTab("view");
       }
     },
-    [addToQueue, setRoadmap, setActiveTab],
+    [addToQueue, setRoadmap, setActiveTab, setObjective, setFinalGoal, objective, finalGoal, removeFromQueue, generationQueue],
   );
 
   /**

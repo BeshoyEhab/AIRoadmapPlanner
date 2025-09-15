@@ -55,19 +55,19 @@ const ViewRoadmapTab = ({
 
   if (!roadmap) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-[calc(100vh-64px)] bg-page flex items-center justify-center p-4">
         <div className="text-center max-w-lg">
           {/* Empty State Icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl shadow-lg mb-6">
-            <Search size={40} className="text-gray-400 dark:text-gray-500" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-theme rounded-2xl shadow-lg mb-6">
+            <Search size={40} className="text-white" />
           </div>
 
           {/* Empty State Content */}
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-main mb-4">
             No Roadmap Found
           </h2>
 
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+          <p className="text-lg text-muted mb-8 leading-relaxed">
             You haven't generated a roadmap yet. Create your first AI-powered
             learning plan to get started on your journey!
           </p>
@@ -75,18 +75,18 @@ const ViewRoadmapTab = ({
           {/* Action Button */}
           <button
             onClick={() => setActiveTab("create")}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
-                     text-white font-semibold py-3 px-8 rounded-lg shadow-lg
-                     transition-all duration-300 hover:shadow-glow-blue
-                     flex items-center justify-center gap-3 mx-auto"
+            className="bg-gradient-theme hover:bg-gradient-theme-reverse
+                     text-white font-semibold py-3 px-8 rounded-lg 
+                     transition-all duration-300 hover:shadow-glow-theme-strong hover:scale-105
+                     border-glow-theme-strong flex items-center justify-center gap-3 mx-auto"
           >
             <Brain size={20} />
             Generate New Roadmap
           </button>
 
           {/* Additional Help */}
-          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="mt-8 p-4 bg-theme-primary/10 dark:bg-theme-primary/20 border border-theme-primary/30 rounded-lg shadow-sm">
+            <p className="text-sm text-theme-primary">
               💡 <strong>Tip:</strong> Be specific about your learning
               objectives and final goals to get the most personalized roadmap.
             </p>
@@ -97,24 +97,24 @@ const ViewRoadmapTab = ({
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[calc(100vh-64px)] bg-gradient-page">
       {/* Error Display */}
       {error && (
-        <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="mt-4 bg-error/10 border border-error/20 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-error/20 rounded-full flex items-center justify-center">
                 <AlertCircle
-                  className="text-red-600 dark:text-red-400"
+                  className="text-error"
                   size={18}
                 />
               </div>
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
+              <h4 className="text-sm font-medium text-error mb-1">
                 Generation Error
               </h4>
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              <p className="text-sm text-error/80">{error}</p>
             </div>
           </div>
         </div>

@@ -14,8 +14,8 @@ export default {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'rgb(var(--color-primary))',
-          foreground: 'rgb(var(--color-primary-foreground))',
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -30,8 +30,8 @@ export default {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'rgb(var(--color-accent))',
-          foreground: 'rgb(var(--color-accent-foreground))',
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
@@ -48,9 +48,11 @@ export default {
       },
       borderColor: {
         'theme': 'rgb(var(--color-border-accent))',
+        'theme-primary': 'rgb(var(--color-primary))',
       },
       ringColor: {
         'theme': 'rgb(var(--color-ring))',
+        'theme-primary': 'rgb(var(--color-primary))',
       },
       backgroundImage: {
         'theme-gradient': 'var(--color-gradient)',
