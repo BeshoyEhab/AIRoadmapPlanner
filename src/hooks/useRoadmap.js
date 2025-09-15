@@ -1151,6 +1151,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         setCurrentlyGenerating(nextItem);
         
         try {
+          // Use the pre-created roadmap from the queue instead of generating a new one
           const result = await generateRoadmap(false, null, false, nextItem.initialRoadmap);
           
           if (result) {

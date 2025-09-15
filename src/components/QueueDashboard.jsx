@@ -118,7 +118,7 @@ const QueueDashboard = ({
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-surface via-surface to-surface/90 rounded-3xl p-8 shadow-2xl shadow-theme-primary/10 border border-default/50 overflow-hidden hover:shadow-3xl hover:shadow-theme-primary/20 transition-all duration-500 group">
+    <div className="relative bg-gradient-to-br from-surface via-surface to-surface/90 rounded-3xl p-8 shadow-2xl shadow-theme-primary/10 border border-default overflow-hidden hover:shadow-3xl hover:shadow-theme-primary/20 transition-all duration-500 group">
       <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/8 to-theme-accent/8 rounded-3xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-theme-primary via-theme-accent to-theme-primary opacity-60"></div>
       {/* Header */}
@@ -131,7 +131,7 @@ const QueueDashboard = ({
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
             </div>
             {(loading || currentlyGenerating) && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse border-2 border-surface shadow-lg">
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse border-2 border-default shadow-lg">
                 <div className="absolute inset-0 bg-success rounded-full animate-ping opacity-30"></div>
               </div>
             )}
@@ -163,7 +163,7 @@ const QueueDashboard = ({
           {showSettings && (
             <div 
               ref={settingsDropdownRef}
-              className="absolute right-0 top-full mt-2 w-72 bg-gradient-to-br from-theme-primary/90 via-theme-primary/95 to-theme-accent/90 dark:from-theme-primary/80 dark:via-theme-primary/85 dark:to-theme-accent/80 backdrop-blur-xl rounded-xl shadow-2xl shadow-theme-primary/30 border border-theme-primary/20 p-5 z-50 animate-in slide-in-from-top-2 duration-300"
+              className="absolute right-0 top-full mt-2 w-72 bg-gradient-to-br from-theme-primary/90 via-theme-primary/95 to-theme-accent/90 dark:from-theme-primary/80 dark:via-theme-primary/85 dark:to-theme-accent/80 backdrop-blur-xl rounded-xl shadow-2xl shadow-theme-primary/30 border border-theme-primary p-5 z-50 animate-in slide-in-from-top-2 duration-300"
             >
               {/* Overlay for better text contrast */}
               <div className="absolute inset-0 bg-white/10 dark:bg-black/20 rounded-xl"></div>
@@ -276,7 +276,7 @@ const QueueDashboard = ({
 
       {/* Stats Grid */}
       <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default/50 hover:border-theme-primary/50 hover:shadow-2xl hover:shadow-theme-primary/20 transition-all duration-500 hover:-translate-y-1">
+        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default hover:border-theme-primary hover:shadow-2xl hover:shadow-theme-primary/20 transition-all duration-500 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/5 to-theme-primary/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
@@ -291,7 +291,7 @@ const QueueDashboard = ({
           </div>
         </div>
 
-        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default/50 hover:border-success/50 hover:shadow-2xl hover:shadow-success/20 transition-all duration-500 hover:-translate-y-1">
+        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default hover:border-success hover:shadow-2xl hover:shadow-success/20 transition-all duration-500 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-success/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
@@ -306,7 +306,7 @@ const QueueDashboard = ({
           </div>
         </div>
 
-        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default/50 hover:border-theme-accent/50 hover:shadow-2xl hover:shadow-theme-accent/20 transition-all duration-500 hover:-translate-y-1">
+        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default hover:border-theme-accent hover:shadow-2xl hover:shadow-theme-accent/20 transition-all duration-500 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-theme-accent/5 to-theme-accent/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
@@ -321,7 +321,7 @@ const QueueDashboard = ({
           </div>
         </div>
 
-        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default/50 hover:border-warning/50 hover:shadow-2xl hover:shadow-warning/20 transition-all duration-500 hover:-translate-y-1">
+        <div className="group relative bg-gradient-to-br from-surface to-surface/80 rounded-2xl p-6 shadow-lg border border-default hover:border-warning hover:shadow-2xl hover:shadow-warning/20 transition-all duration-500 hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-warning/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative">
             <div className="flex items-center gap-3 mb-4">
@@ -379,7 +379,7 @@ const QueueDashboard = ({
         <div className="flex gap-2">
           <button
             onClick={handlePauseResume}
-            className={`flex-1 bg-gradient-theme text-main inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:shadow-lg ${
+            className={`flex-1 bg-gradient-theme inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:shadow-lg ${
               isQueuePaused
                 ? 'bg-success hover:bg-success/90 text-main hover:shadow-glow-theme-subtle'
                 : 'bg-warning hover:bg-warning/90 text-main hover:shadow-glow-theme-subtle'

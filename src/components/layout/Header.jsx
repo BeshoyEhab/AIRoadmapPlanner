@@ -53,20 +53,26 @@ const Header = ({
     <header className="shadow-lg border-b border-default z-10 sticky top-0 backdrop-blur-sm">
       <div className="container mx-auto px-2 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between relative header-wrapper">
-          {/* Left Section - Logo and Text */}
+          {/* Left Section - Logo and Text with Gradient Background */}
           <div className="flex shrink-0 items-center">
-            <div className="flex items-center group">
-              <div className="relative p-3 bg-primary rounded-xl shadow-lg logo-container hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <Brain size={28} className="text-main logo-brain transition-transform duration-300 group-hover:rotate-12" />
-                <div className="absolute inset-0 bg-primary/20 rounded-xl animate-pulse opacity-50"></div>
-              </div>
-              <div className="ml-3">
-                <h1 className="text-xl font-bold text-content whitespace-nowrap tracking-tight">
-                  AI Roadmap
-                </h1>
-                <p className="text-xs text-secondary font-medium">
-                  Study Planner
-                </p>
+            <div className="relative flex items-center group">
+              {/* Gradient Background */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-theme-primary/20 via-theme-accent/10 to-theme-primary/20 rounded-2xl blur-md opacity-50 group-hover:opacity-70 transition-all duration-500"></div>
+              
+              {/* Content */}
+              <div className="relative flex items-center">
+                <div className="relative p-3 bg-gradient-to-br from-theme-primary to-theme-accent rounded-xl shadow-lg logo-container hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                  <Brain size={28} className="text-white logo-brain transition-transform duration-300 group-hover:rotate-12" />
+                  <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse opacity-30"></div>
+                </div>
+                <div className="ml-3">
+                  <h1 className="text-xl font-bold text-main whitespace-nowrap tracking-tight">
+                    AI Roadmap
+                  </h1>
+                  <p className="text-xs text-secondary font-medium">
+                    Study Planner
+                  </p>
+                </div>
               </div>
             </div>
           </div>

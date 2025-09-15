@@ -105,12 +105,12 @@ const SavedPlansTab = ({
     return (
       <div
         key={timeplan.id}
-        className="relative group bg-gradient-to-br from-surface via-surface to-surface/80
-                   border border-default/50 rounded-2xl overflow-hidden
-                   hover:border-theme-primary/50 hover:shadow-2xl hover:shadow-theme-primary/20
+        className="relative group bg-gradient-to-br from-surface via-surface to-surface
+                   border border-default rounded-2xl overflow-hidden
+                   hover:border-theme-primary hover:shadow-2xl hover:shadow-theme-primary
                    transition-all duration-500 ease-out cursor-pointer
                    hover:-translate-y-2 hover:scale-[1.02]
-                   before:absolute before:inset-0 before:bg-gradient-to-br before:from-theme-primary/5 before:to-theme-accent/5
+                   before:absolute before:inset-0 before:bg-gradient-to-br before:from-theme-primary before:to-theme-accent
                    before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
         onClick={() => {
           loadRoadmap(timeplan.id);
@@ -118,7 +118,7 @@ const SavedPlansTab = ({
         }}
       >
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-theme-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-theme-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
         {/* Favorite Star - Floating */}
         <div className="absolute top-4 right-4 z-20">

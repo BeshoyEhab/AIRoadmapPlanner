@@ -59,26 +59,25 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`group relative 
-                  rounded-xl border-2 transition-all duration-300 
-                  ${isDragging ? 'border-primary rotate-2' : 'border-border hover:border-primary/50'}
-                  ${isHovered ? 'transform -translate-y-1' : ''}`}
+                  rounded-xl border-2 border-default transition-all duration-300 
+                  ${isDragging ? 'border-primary rotate-2' : 'border-border hover:border-primary/50'}`}
     >
       {/* Priority Indicator */}
       <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"></div>
       
       {/* Position Badge */}
-      <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full 
-                      flex items-center justify-center text-xs font-bold text-primary-foreground shadow-lg">
+      <div className="absolute w-6 h-6 bg-primary rounded-full 
+                      flex items-center justify-center text-xs font-bold text-muted shadow-lg">
         #{position}
       </div>
 
-      <div className="p-4">
+      <div className="p-4 text-main">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1">
             {/* Drag Handle */}
             <button 
               {...listeners} 
-              className={`mt-1 p-2 rounded-lg transition-all duration-200 hover:bg-muted
+              className={`mt-1 p-2 text-theme-primary rounded-lg transition-all duration-200 hover:bg-muted
                          ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}
                          active:scale-95`}
               title="Drag to reorder"
@@ -89,7 +88,7 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <Target size={14} className="text-primary flex-shrink-0" />
+                <Target size={14} className="text-theme-primary flex-shrink-0" />
                 <h4 className="font-semibold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
                   {objective || "Untitled Roadmap"}
                 </h4>
@@ -104,11 +103,11 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
               {/* Metadata Row */}
               <div className="flex items-center gap-4 text-xs text-muted-foreground pl-5">
                 <div className="flex items-center gap-1">
-                  <Timer size={12} />
+                  <Timer size={12} className="text-theme-primary" />
                   <span>Est. {estimatedTime || '2-4h'}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Activity size={12} />
+                  <Activity size={12} className="text-theme-primary" />
                   <span>Ready to start</span>
                 </div>
               </div>
@@ -120,7 +119,7 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
             {/* Status Badge */}
             <div className="relative">
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium 
-                             border border-border text-foreground">
+                             border border-default">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                 Queued
               </span>
@@ -136,7 +135,7 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
                          transition-all duration-200 active:scale-90"
               title="Remove from queue"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} className="text-red-400 hover:text-red-600 transition duration-200" />
             </button>
           </div>
         </div>
@@ -407,7 +406,7 @@ const OngoingTab = ({
               </div>
               
               {/* Status Message */}
-              <div className="bg-theme-primary/10 dark:bg-theme-primary/20 rounded-lg p-4 mt-6 border border-theme-primary/30">
+              <div className="bg-muted dark:bg-theme-primary rounded-lg p-4 mt-6 border border-default">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-theme-primary rounded-full flex items-center justify-center">
@@ -418,7 +417,7 @@ const OngoingTab = ({
                     <p className="text-sm font-medium text-theme-primary">
                       {loadingMessage || "AI is analyzing your learning objectives and creating a personalized roadmap..."}
                     </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-theme-primary/80">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-main">
                       <div className="flex items-center gap-1">
                         <Timer size={12} />
                         <span>Est. time remaining: {Math.max(1, Math.ceil((100 - progress) / 10))}m</span>

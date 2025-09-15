@@ -198,7 +198,185 @@ body {
   .selected-theme-strong {
     background-color: rgba(var(--color-primary), 0.25);
     border-color: rgb(var(--color-primary));
-    color: rgb(var(--color-primary));
+  }
+  
+  /* ===== MOBILE RESPONSIVE STYLES ===== */
+  
+  /* Touch-friendly sizing */
+  @media (max-width: 768px) {
+    /* Increase touch targets */
+    button, .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better spacing for mobile */
+    .mobile-spacing {
+      padding: 1rem;
+    }
+    
+    /* Larger text for readability */
+    .mobile-text {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    /* Stack grids on mobile */
+    .mobile-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    /* Full width dialogs on mobile */
+    .mobile-dialog {
+      width: calc(100vw - 2rem);
+      max-width: none;
+      margin: 1rem;
+    }
+    
+    /* Hide overflow on mobile */
+    body {
+      overflow-x: hidden;
+    }
+    
+    /* Better scrolling */
+    .mobile-scroll {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+    }
+  }
+  
+  /* Small mobile devices */
+  @media (max-width: 480px) {
+    /* Even smaller spacing */
+    .mobile-spacing {
+      padding: 0.75rem;
+    }
+    
+    /* Single column layouts */
+    .mobile-single-col {
+      grid-template-columns: 1fr !important;
+    }
+    
+    /* Larger touch targets */
+    button, .touch-target {
+      min-height: 48px;
+      padding: 12px 16px;
+    }
+  }
+  
+  /* Tablet responsive */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .tablet-grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+  
+  /* Focus indicators */
+  .focus-visible:focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .text-main {
+      font-weight: 600;
+    }
+    
+    .border {
+      border-width: 2px;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* ===== IMPROVED UI ELEMENTS ===== */
+  
+  /* Better card styles */
+  .card-elevated {
+    background-color: rgb(var(--color-surface));
+    border: 1px solid rgb(var(--color-border));
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-elevated:hover {
+    box-shadow: 0 4px 12px rgba(var(--color-shadow), 0.15);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+  }
+  
+  /* Better button styles */
+  .btn-primary {
+    background-color: rgb(var(--color-primary));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: rgb(var(--color-accent));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(var(--color-primary), 0.25);
+  }
+  
+  /* Better input styles */
+  .input-enhanced {
+    border: 2px solid rgb(var(--color-border));
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    background-color: rgb(var(--color-surface));
+    color: rgb(var(--color-text-primary));
+    transition: all 0.2s ease;
+  }
+  
+  .input-enhanced:focus {
+    border-color: rgb(var(--color-primary));
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.1);
+  }
+  
+  /* Loading states */
+  .loading-shimmer {
+    background: linear-gradient(90deg, 
+      rgb(var(--color-surface)) 25%, 
+      rgb(var(--color-border)) 50%, 
+      rgb(var(--color-surface)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Custom scrollbars */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgb(var(--color-surface));
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border));
+    border-radius: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-text-muted));
   }
   
   .dark .selected-theme {

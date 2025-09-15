@@ -16,7 +16,15 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
     primaryColor: '#6366f1',
     accentColor: '#8b5cf6',
     backgroundLight: '#f8fafc',
-    backgroundDark: '#0f172a'
+    backgroundDark: '#0f172a',
+    borderColor: '#e2e8f0',
+    borderColorDark: '#475569',
+    surfaceColor: '#ffffff',
+    surfaceColorDark: '#1e293b',
+    textPrimaryColor: '#0f172a',
+    textPrimaryColorDark: '#f8fafc',
+    textSecondaryColor: '#475569',
+    textSecondaryColorDark: '#cbd5e1'
   });
 
   // Save custom themes to localStorage
@@ -51,8 +59,16 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
     const accent = hexToRgb(customForm.accentColor);
     const bgLight = hexToRgb(customForm.backgroundLight);
     const bgDark = hexToRgb(customForm.backgroundDark);
+    const borderLight = hexToRgb(customForm.borderColor);
+    const borderDark = hexToRgb(customForm.borderColorDark);
+    const surfaceLight = hexToRgb(customForm.surfaceColor);
+    const surfaceDark = hexToRgb(customForm.surfaceColorDark);
+    const textPrimLight = hexToRgb(customForm.textPrimaryColor);
+    const textPrimDark = hexToRgb(customForm.textPrimaryColorDark);
+    const textSecLight = hexToRgb(customForm.textSecondaryColor);
+    const textSecDark = hexToRgb(customForm.textSecondaryColorDark);
 
-    if (!primary || !accent || !bgLight || !bgDark) {
+    if (!primary || !accent || !bgLight || !bgDark || !borderLight || !borderDark || !surfaceLight || !surfaceDark || !textPrimLight || !textPrimDark || !textSecLight || !textSecDark) {
       toast.error('Invalid color values');
       return;
     }
@@ -66,11 +82,11 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
         primary: `${primary.r} ${primary.g} ${primary.b}`,
         accent: `${accent.r} ${accent.g} ${accent.b}`,
         background: `${bgLight.r} ${bgLight.g} ${bgLight.b}`,
-        surface: '255 255 255',
-        border: '226 232 240',
-        textPrimary: '15 23 42',
-        textSecondary: '71 85 105',
-        textMuted: '148 163 184',
+        surface: `${surfaceLight.r} ${surfaceLight.g} ${surfaceLight.b}`,
+        border: `${borderLight.r} ${borderLight.g} ${borderLight.b}`,
+        textPrimary: `${textPrimLight.r} ${textPrimLight.g} ${textPrimLight.b}`,
+        textSecondary: `${textSecLight.r} ${textSecLight.g} ${textSecLight.b}`,
+        textMuted: `${Math.floor((textSecLight.r + 100) / 2)} ${Math.floor((textSecLight.g + 100) / 2)} ${Math.floor((textSecLight.b + 100) / 2)}`,
         shadow: `${primary.r} ${primary.g} ${primary.b}`,
         ring: `${primary.r} ${primary.g} ${primary.b}`,
       },
@@ -78,11 +94,11 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
         primary: `${primary.r} ${primary.g} ${primary.b}`,
         accent: `${accent.r} ${accent.g} ${accent.b}`,
         background: `${bgDark.r} ${bgDark.g} ${bgDark.b}`,
-        surface: '30 41 59',
-        border: '71 85 105',
-        textPrimary: '248 250 252',
-        textSecondary: '203 213 225',
-        textMuted: '148 163 184',
+        surface: `${surfaceDark.r} ${surfaceDark.g} ${surfaceDark.b}`,
+        border: `${borderDark.r} ${borderDark.g} ${borderDark.b}`,
+        textPrimary: `${textPrimDark.r} ${textPrimDark.g} ${textPrimDark.b}`,
+        textSecondary: `${textSecDark.r} ${textSecDark.g} ${textSecDark.b}`,
+        textMuted: `${Math.floor((textSecDark.r + textPrimDark.r) / 2)} ${Math.floor((textSecDark.g + textPrimDark.g) / 2)} ${Math.floor((textSecDark.b + textPrimDark.b) / 2)}`,
         shadow: `${primary.r} ${primary.g} ${primary.b}`,
         ring: `${primary.r} ${primary.g} ${primary.b}`,
       }
@@ -91,8 +107,12 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
     const updatedThemes = { ...customThemes, [themeId]: newTheme };
     saveCustomThemes(updatedThemes);
     
-    // Apply the newly created theme immediately
-    onThemeChange(themeId);
+    // Force refresh custom themes to make it available immediately
+    setTimeout(() => {
+      refreshCustomThemes();
+      // Apply the newly created theme immediately
+      onThemeChange(themeId);
+    }, 50);
     
     // Reset form
     setCustomForm({
@@ -100,12 +120,20 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
       primaryColor: '#6366f1',
       accentColor: '#8b5cf6',
       backgroundLight: '#f8fafc',
-      backgroundDark: '#0f172a'
+      backgroundDark: '#0f172a',
+      borderColor: '#e2e8f0',
+      borderColorDark: '#475569',
+      surfaceColor: '#ffffff',
+      surfaceColorDark: '#1e293b',
+      textPrimaryColor: '#0f172a',
+      textPrimaryColorDark: '#f8fafc',
+      textSecondaryColor: '#475569',
+      textSecondaryColorDark: '#cbd5e1'
     });
     setShowCustomForm(false);
     setEditingTheme(null);
     
-    toast.success(editingTheme ? 'Theme updated!' : 'Custom theme created!');
+    toast.success(editingTheme ? 'Theme updated and applied!' : 'Custom theme created and applied!');
   };
 
   // Delete custom theme
@@ -437,6 +465,171 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
                 </div>
               </div>
             </div>
+            
+            {/* Additional Customization */}
+            <details className="border border-border rounded-lg p-3">
+              <summary className="cursor-pointer text-sm font-medium text-main mb-3">Advanced Customization</summary>
+              
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <Label htmlFor="surface-light" className="text-sm font-medium text-main">Light Surface</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="surface-light"
+                      type="color"
+                      value={customForm.surfaceColor}
+                      onChange={(e) => setCustomForm({...customForm, surfaceColor: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.surfaceColor}
+                      onChange={(e) => setCustomForm({...customForm, surfaceColor: e.target.value})}
+                      placeholder="#ffffff"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="surface-dark" className="text-sm font-medium text-main">Dark Surface</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="surface-dark"
+                      type="color"
+                      value={customForm.surfaceColorDark}
+                      onChange={(e) => setCustomForm({...customForm, surfaceColorDark: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.surfaceColorDark}
+                      onChange={(e) => setCustomForm({...customForm, surfaceColorDark: e.target.value})}
+                      placeholder="#1e293b"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <Label htmlFor="border-light" className="text-sm font-medium text-main">Light Borders</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="border-light"
+                      type="color"
+                      value={customForm.borderColor}
+                      onChange={(e) => setCustomForm({...customForm, borderColor: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.borderColor}
+                      onChange={(e) => setCustomForm({...customForm, borderColor: e.target.value})}
+                      placeholder="#e2e8f0"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="border-dark" className="text-sm font-medium text-main">Dark Borders</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="border-dark"
+                      type="color"
+                      value={customForm.borderColorDark}
+                      onChange={(e) => setCustomForm({...customForm, borderColorDark: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.borderColorDark}
+                      onChange={(e) => setCustomForm({...customForm, borderColorDark: e.target.value})}
+                      placeholder="#475569"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <Label htmlFor="text-primary-light" className="text-sm font-medium text-main">Light Text (Primary)</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="text-primary-light"
+                      type="color"
+                      value={customForm.textPrimaryColor}
+                      onChange={(e) => setCustomForm({...customForm, textPrimaryColor: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.textPrimaryColor}
+                      onChange={(e) => setCustomForm({...customForm, textPrimaryColor: e.target.value})}
+                      placeholder="#0f172a"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="text-primary-dark" className="text-sm font-medium text-main">Dark Text (Primary)</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="text-primary-dark"
+                      type="color"
+                      value={customForm.textPrimaryColorDark}
+                      onChange={(e) => setCustomForm({...customForm, textPrimaryColorDark: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.textPrimaryColorDark}
+                      onChange={(e) => setCustomForm({...customForm, textPrimaryColorDark: e.target.value})}
+                      placeholder="#f8fafc"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <Label htmlFor="text-secondary-light" className="text-sm font-medium text-main">Light Text (Secondary)</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="text-secondary-light"
+                      type="color"
+                      value={customForm.textSecondaryColor}
+                      onChange={(e) => setCustomForm({...customForm, textSecondaryColor: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.textSecondaryColor}
+                      onChange={(e) => setCustomForm({...customForm, textSecondaryColor: e.target.value})}
+                      placeholder="#475569"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="text-secondary-dark" className="text-sm font-medium text-main">Dark Text (Secondary)</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="text-secondary-dark"
+                      type="color"
+                      value={customForm.textSecondaryColorDark}
+                      onChange={(e) => setCustomForm({...customForm, textSecondaryColorDark: e.target.value})}
+                      className="w-16 h-10 p-1 border-default"
+                    />
+                    <Input
+                      value={customForm.textSecondaryColorDark}
+                      onChange={(e) => setCustomForm({...customForm, textSecondaryColorDark: e.target.value})}
+                      placeholder="#cbd5e1"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </details>
             
             {/* Preview */}
             <div>
