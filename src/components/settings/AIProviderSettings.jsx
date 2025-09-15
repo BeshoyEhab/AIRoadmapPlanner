@@ -241,7 +241,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
     if (!requirements) return null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 text-main">
         {requirements.apiKey && (
           <div className="space-y-2">
             <Label htmlFor="apiKey">API Key</Label>
@@ -269,7 +269,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
           <div key={field.name} className="space-y-2">
             <Label htmlFor={field.name}>
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-theme-primary ml-1">*</span>}
             </Label>
             
             {field.type === 'select' ? (
@@ -317,7 +317,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
             )}
             
             {field.description && (
-              <p className="text-sm text-muted-foreground">{field.description}</p>
+              <p className="text-sm text-secondry">{field.description}</p>
             )}
           </div>
         ))}
@@ -326,25 +326,25 @@ const AIProviderSettings = ({ onProviderChange }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-main">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <h3 className="text-xs font-semibold text-main uppercase tracking-wider">
             AI Providers
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-main mt-1">
             Configure and manage your AI providers
           </p>
         </div>
         
         <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-main">
               <Plus className="h-4 w-4 mr-2" />
               Add Provider
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto text-main">
             <DialogHeader>
               <DialogTitle>{isEditingProvider ? 'Edit AI Provider' : 'Configure AI Provider'}</DialogTitle>
             </DialogHeader>
@@ -365,7 +365,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
                         {getProviderIcon(provider.key)}
                         <span className="font-medium truncate">{provider.name}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground text-left break-words w-full overflow-hidden">
+                      <p className="text-xs text-left break-words w-full overflow-hidden">
                         {provider.description}
                       </p>
                       {initializedProviders.includes(provider.key) && (
@@ -414,12 +414,12 @@ const AIProviderSettings = ({ onProviderChange }) => {
       {currentProvider && (
         <div className="border border-theme-primary bg-theme-primary/5 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Check className="h-4 w-4 text-theme-primary" />
-            <span className="font-medium text-foreground">Active Provider</span>
+            <Check className="h-4 w-4 text-main" />
+            <span className="font-medium text-main">Active Provider</span>
           </div>
           <div className="flex items-center gap-2">
             {getProviderIcon(currentProvider)}
-            <span className="font-medium text-theme-primary">{aiManager.getProviderInfo(currentProvider).name}</span>
+            <span className="font-medium text-main">{aiManager.getProviderInfo(currentProvider).name}</span>
           </div>
         </div>
       )}
@@ -438,8 +438,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {getProviderIcon(providerType)}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground truncate">{providerInfo.name}</div>
-                      <p className="text-sm text-muted-foreground break-words line-clamp-2 mt-1">
+                      <div className="font-medium text-main truncate">{providerInfo.name}</div>
+                      <p className="text-sm text-secondry break-words line-clamp-2 mt-1">
                         {providerInfo.description}
                       </p>
                       {/* Model info if available */}
@@ -466,7 +466,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleProviderSwitch(providerType)}
-                        className="bg-theme-primary/10 border-theme-primary text-theme-primary hover:bg-theme-primary hover:text-white"
+                        className="bg-theme-primary/10 border-theme-primary text-secondry hover:bg-theme-primary hover:text-main"
                         title={`Switch to ${providerInfo.name}`}
                       >
                         Use

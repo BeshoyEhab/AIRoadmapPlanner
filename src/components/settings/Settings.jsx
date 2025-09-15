@@ -223,8 +223,8 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
       </div>
 
       {/* Application Settings */}
-      <div className="mb-8">
-        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
+      <div className="mb-8 text-main">
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
           Application Settings
         </h3>
         <div className="space-y-4 border border-default p-4 rounded-lg">
@@ -378,8 +378,8 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
       </div>
 
       {/* Data Management */}
-      <div className="mb-8">
-        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
+      <div className="mb-8 text-main">
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
           Data Management
         </h3>
         <div className="space-y-4 border border-default p-4 rounded-lg">

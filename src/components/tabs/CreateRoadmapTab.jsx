@@ -438,8 +438,8 @@ const CreateRoadmapTab = ({
 
                   <button
                     onClick={handleGenerate}
-                    className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-theme-primary hover:bg-theme-primary
-                             text-white font-semibold py-3 px-6 rounded-lg
+                    className={`${isResumable && !loading ? "flex-1" : "w-full"} bg-gradient-theme hover:bg-gradient-theme-reverse
+                             text-main font-semibold py-3 px-6 rounded-lg
                              transition-all duration-300 hover:shadow-glow-theme
                              flex items-center justify-center gap-2
                              disabled:bg-muted disabled:cursor-not-allowed`}

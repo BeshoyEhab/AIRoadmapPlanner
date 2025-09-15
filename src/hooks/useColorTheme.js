@@ -4,14 +4,35 @@ import { colorThemes } from '@/lib/colorThemes';
 const STORAGE_KEY = 'ai-roadmap-color-theme';
 
 export const useColorTheme = (isDarkMode) => {
+  // Load custom themes synchronously during initialization
+  const getCustomThemes = () => {
+    try {
+      const stored = localStorage.getItem('custom-color-themes');
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('Error loading custom themes:', error);
+      return {};
+    }
+  };
+
+  const [customThemes, setCustomThemes] = useState(getCustomThemes);
+  
+  // Refresh custom themes from localStorage
+  const refreshCustomThemes = () => {
+    const updated = getCustomThemes();
+    setCustomThemes(updated);
+  };
+  
   // Initialize theme from localStorage or default to 'slate'
   const [currentTheme, setCurrentTheme] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      const themeId = stored && colorThemes[stored] ? stored : 'slate';
+      const loadedCustomThemes = getCustomThemes();
+      const allThemes = { ...colorThemes, ...loadedCustomThemes };
+      const themeId = stored && allThemes[stored] ? stored : 'slate';
       
       // Apply theme immediately on initialization
-      const theme = colorThemes[themeId];
+      const theme = allThemes[themeId];
       if (theme) {
         const colors = isDarkMode ? theme.dark : theme.light;
         const root = document.documentElement;
@@ -35,14 +56,15 @@ export const useColorTheme = (isDarkMode) => {
 
   // Apply theme colors to CSS custom properties
   const applyTheme = (themeId, darkMode = isDarkMode) => {
-    const theme = colorThemes[themeId];
+    const allThemes = { ...colorThemes, ...customThemes };
+    const theme = allThemes[themeId];
     if (!theme) {
       console.warn(`Theme '${themeId}' not found, falling back to 'slate'`);
       themeId = 'slate';
     }
 
     const root = document.documentElement;
-    const colors = darkMode ? colorThemes[themeId].dark : colorThemes[themeId].light;
+    const colors = darkMode ? allThemes[themeId].dark : allThemes[themeId].light;
 
     // Apply comprehensive color system
     root.style.setProperty(`--color-primary`, colors.primary);
@@ -151,7 +173,8 @@ export const useColorTheme = (isDarkMode) => {
 
   // Change theme and persist to localStorage
   const changeTheme = (newThemeId) => {
-    if (!colorThemes[newThemeId]) {
+    const allThemes = { ...colorThemes, ...customThemes };
+    if (!allThemes[newThemeId]) {
       console.error(`Theme '${newThemeId}' not found`);
       return;
     }
@@ -168,9 +191,23 @@ export const useColorTheme = (isDarkMode) => {
 
   // Apply theme on mount and when dark mode changes
   useEffect(() => {
-    applyTheme(currentTheme, isDarkMode);
-    
-    // Dispatch custom event for global theme access
+    applyTheme(currentTheme);
+  }, [currentTheme]);
+
+  // Listen for custom theme changes from other tabs/components
+  useEffect(() => {
+    const handleCustomThemesChanged = () => {
+      refreshCustomThemes();
+    };
+
+    window.addEventListener('customThemesChanged', handleCustomThemesChanged);
+    return () => {
+      window.removeEventListener('customThemesChanged', handleCustomThemesChanged);
+    };
+  }, []);
+
+  // Dispatch custom event for global theme access
+  useEffect(() => {
     window.dispatchEvent(new CustomEvent('colorThemeChanged', {
       detail: { themeId: currentTheme, isDarkMode }
     }));
@@ -188,7 +225,8 @@ export const useColorTheme = (isDarkMode) => {
 
   // Get current theme object
   const getThemeColors = (themeId = currentTheme, darkMode = isDarkMode) => {
-    const theme = colorThemes[themeId];
+    const allThemes = { ...colorThemes, ...customThemes };
+    const theme = allThemes[themeId];
     if (!theme) return colorThemes.slate[darkMode ? 'dark' : 'light'];
     
     return theme[darkMode ? 'dark' : 'light'];
@@ -224,7 +262,18 @@ export const useColorTheme = (isDarkMode) => {
     getThemeColor,
     hasGradient,
     getGradient,
-    availableThemes: Object.keys(colorThemes),
+    availableThemes: Object.keys({ ...colorThemes, ...customThemes }),
+    customThemes,
+    refreshCustomThemes,
     applyTheme, // Expose for manual theme application if needed
   };
 };
+
+// Listen for storage changes to sync custom themes across tabs
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'custom-color-themes') {
+      window.dispatchEvent(new CustomEvent('customThemesChanged'));
+    }
+  });
+}

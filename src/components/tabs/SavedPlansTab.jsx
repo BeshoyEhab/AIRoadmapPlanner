@@ -9,6 +9,7 @@ import {
   Plus,
   Star,
   RefreshCw,
+  Brain,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -104,138 +105,159 @@ const SavedPlansTab = ({
     return (
       <div
         key={timeplan.id}
-      className="border border-default rounded-xl shadow-md bg-surface
-                 hover:shadow-xl transition-all duration-300 overflow-hidden group
-                 cursor-pointer flex flex-col hover:shadow-glow-theme w-full h-full min-h-[300px]"
+        className="relative group bg-gradient-to-br from-surface via-surface to-surface/80
+                   border border-default/50 rounded-2xl overflow-hidden
+                   hover:border-theme-primary/50 hover:shadow-2xl hover:shadow-theme-primary/20
+                   transition-all duration-500 ease-out cursor-pointer
+                   hover:-translate-y-2 hover:scale-[1.02]
+                   before:absolute before:inset-0 before:bg-gradient-to-br before:from-theme-primary/5 before:to-theme-accent/5
+                   before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
         onClick={() => {
           loadRoadmap(timeplan.id);
           setActiveTab("view");
         }}
       >
-        {/* Card Header */}
-        <div className="bg-gradient-to-r from-theme-primary to-theme-accent p-4 text-white">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3 className="text-main font-semibold line-clamp-2 mb-2">
-                {timeplan.title || timeplan.name}
-              </h3>
-              {timeplan.objective && (
-                <p className="text-main text-sm line-clamp-2">
-                  {timeplan.objective}
-                </p>
-              )}
-            </div>
-            <div className="ml-2 flex items-center gap-1">
-              {/* Favorite Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(timeplan.id);
-                }}
-                className={`p-1 rounded-full hover:bg-white/10 transition-colors ${
-                  isFavorite(timeplan.id) ? "text-theme-secondary" : "text-muted"
-                }`}
-                title={
-                  isFavorite(timeplan.id)
-                    ? "Remove from favorites"
-                    : "Add to favorites"
-                }
-              >
-                {isFavorite(timeplan.id) ? (
-                  <Star className="w-5 h-5 fill-current" />
-                ) : (
-                  <Star className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-theme-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        
+        {/* Favorite Star - Floating */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(timeplan.id);
+            }}
+            className={`p-2 rounded-full backdrop-blur-sm border transition-all duration-300 hover:scale-110 ${
+              isFavorite(timeplan.id)
+                ? "bg-theme-secondary/20 border-theme-secondary/30 text-theme-secondary shadow-lg shadow-theme-secondary/25"
+                : "bg-surface/80 border-default/50 text-muted hover:border-theme-primary/50 hover:text-theme-primary"
+            }`}
+            title={isFavorite(timeplan.id) ? "Remove from favorites" : "Add to favorites"}
+          >
+            {isFavorite(timeplan.id) ? (
+              <Star className="w-4 h-4 fill-current" />
+            ) : (
+              <Star className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
-        {/* Card Content - This will grow to fill available space */}
-        <div className="p-4 flex-1 flex flex-col justify-center">
-          {" "}
-          {/* Added flex-1 and centering */}
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="flex items-center justify-center w-8 h-8 bg-theme-primary/20 dark:bg-theme-primary/30 rounded-lg mx-auto mb-1">
-                <Calendar
-                  className="text-theme-primary"
-                  size={16}
-                />
+        {/* Card Content */}
+        <div className="relative z-10 p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-theme-primary to-theme-accent rounded-xl flex items-center justify-center shadow-lg shadow-theme-primary/25">
+                <Brain className="w-6 h-6 text-main" />
               </div>
-              <p className="text-sm font-semibold text-main">
-                {timeplan.phases?.length || 0}
-              </p>
-              <p className="text-xs text-muted">Phases</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-bold text-main mb-1 line-clamp-2 group-hover:text-theme-primary transition-colors duration-300">
+                  {timeplan.title || timeplan.name}
+                </h3>
+                {timeplan.objective && (
+                  <p className="text-sm text-secondary line-clamp-2">
+                    {timeplan.objective}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="text-center group/stat">
+              <div className="relative mb-3">
+                <div className="w-16 h-16 bg-gradient-to-br from-theme-primary/10 to-theme-primary/20 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 group-hover/stat:scale-110 group-hover/stat:shadow-lg group-hover/stat:shadow-theme-primary/20">
+                  <Calendar className="w-6 h-6 text-theme-primary" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/20 to-theme-accent/20 rounded-2xl opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300 blur-xl" />
+              </div>
+              <div className="relative">
+                <p className="text-2xl font-bold text-main mb-1">
+                  {timeplan.phases?.length || 0}
+                </p>
+                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
+                  Phases
+                </p>
+              </div>
             </div>
 
-              <div className="text-center">
-                <div className="flex items-center justify-center w-8 h-8 bg-success/20 rounded-lg mx-auto mb-1">
-                  <Clock
-                    className="text-success"
-                    size={16}
-                  />
+            <div className="text-center group/stat">
+              <div className="relative mb-3">
+                <div className="w-16 h-16 bg-gradient-to-br from-success/10 to-success/20 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 group-hover/stat:scale-110 group-hover/stat:shadow-lg group-hover/stat:shadow-success/20">
+                  <Clock className="w-6 h-6 text-success" />
                 </div>
-              <p className="text-sm font-semibold text-main">
-                {timeplan.totalDuration || "N/A"}
-              </p>
-              <p className="text-xs text-muted">
-                Duration
-              </p>
+                <div className="absolute inset-0 bg-gradient-to-br from-success/20 to-theme-accent/20 rounded-2xl opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300 blur-xl" />
+              </div>
+              <div className="relative">
+                <p className="text-2xl font-bold text-main mb-1">
+                  {timeplan.totalDuration || "N/A"}
+                </p>
+                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
+                  Duration
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Card Footer - This will stick to the bottom */}
-        <div className="px-0 py-0 border-t border-default backdrop-blur-sm mt-auto">
-          {" "}
-          {/* Added mt-auto */}
-          <div className="grid grid-cols-2 divide-x divide-default">
+        {/* Card Footer - Enhanced Action Buttons */}
+        <div className="relative border-t border-default/50 bg-gradient-to-r from-surface/50 to-surface backdrop-blur-sm">
+          <div className="grid grid-cols-2">
             {/* Regenerate Button */}
-            <div className="relative group/regenerate p-2.5 hover:bg-hover transition-colors">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRegenerateRoadmap(timeplan);
-                }}
-                disabled={isCurrentlyRegenerating}
-                className={`w-full h-full flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
-                  isCurrentlyRegenerating
-                    ? "text-muted cursor-not-allowed"
-                    : "text-secondary hover:text-success"
-                }`}
-              >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRegenerateRoadmap(timeplan);
+              }}
+              disabled={isCurrentlyRegenerating}
+              className="group/regenerate relative p-4 flex items-center justify-center gap-3 transition-all duration-300 hover:bg-success/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="relative">
                 <RefreshCw
-                  size={16}
-                  className={`transition-transform ${
+                  size={18}
+                  className={`transition-all duration-300 ${
                     isCurrentlyRegenerating
-                      ? "animate-spin"
-                      : "group-hover/regenerate:rotate-180"
+                      ? "animate-spin text-theme-primary"
+                      : "text-secondary group-hover/regenerate:text-success group-hover/regenerate:rotate-180 group-hover/regenerate:scale-110"
                   }`}
                 />
-                <span>
-                  {isCurrentlyRegenerating ? "Regenerating..." : "Regenerate"}
-                </span>
-              </button>
-            </div>
+                {!isCurrentlyRegenerating && (
+                  <div className="absolute inset-0 bg-success/20 rounded-full opacity-0 group-hover/regenerate:opacity-100 transition-opacity duration-300 blur-md" />
+                )}
+              </div>
+              <span className={`text-sm font-medium transition-colors duration-300 ${
+                isCurrentlyRegenerating
+                  ? "text-theme-primary"
+                  : "text-secondary group-hover/regenerate:text-success"
+              }`}>
+                {isCurrentlyRegenerating ? "Regenerating..." : "Regenerate"}
+              </span>
+            </button>
+
             {/* Delete Button */}
-            <div className="relative group/delete p-2.5 hover:bg-hover transition-colors">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteRoadmap(timeplan.id);
-                }}
-                className="w-full h-full flex items-center justify-center gap-2 text-sm font-medium text-secondary hover:text-error transition-colors"
-              >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteRoadmap(timeplan.id);
+              }}
+              className="group/delete relative p-4 flex items-center justify-center gap-3 transition-all duration-300 hover:bg-error/10 border-l border-default/50"
+            >
+              <div className="relative">
                 <Trash2
-                  size={16}
-                  className="transition-transform group-hover/delete:scale-110"
+                  size={18}
+                  className="text-secondary group-hover/delete:text-error group-hover/delete:scale-110 transition-all duration-300"
                 />
-                <span>Delete</span>
-              </button>
-            </div>
+                <div className="absolute inset-0 bg-error/20 rounded-full opacity-0 group-hover/delete:opacity-100 transition-opacity duration-300 blur-md" />
+              </div>
+              <span className="text-sm font-medium text-secondary group-hover/delete:text-error transition-colors duration-300">
+                Delete
+              </span>
+            </button>
           </div>
+          
+          {/* Bottom Glow Effect */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-theme-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
       </div>
     );
@@ -315,7 +337,7 @@ const SavedPlansTab = ({
 
               <button
                 onClick={() => setActiveTab("create")}
-                className="bg-theme-primary hover:bg-theme-accent text-white font-semibold py-2 px-4
+                className="bg-gradient-theme hover:bg-theme-accent text-white font-semibold py-2 px-4
                          rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
                          transform hover:scale-105 flex items-center gap-2"
               >

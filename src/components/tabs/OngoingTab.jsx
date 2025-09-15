@@ -246,17 +246,28 @@ const OngoingTab = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Enhanced Header */}
-      <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl border-2 border-default mb-6 bg-gradient-to-br from-theme-primary/10 to-theme-accent/10">
-            <Brain className="text-theme-primary" size={32} />
+      {/* Enhanced Header with Animations */}
+      <div className="text-center mb-12">
+        <div className="relative inline-flex items-center justify-center mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/20 to-theme-accent/20 rounded-3xl blur-xl animate-pulse" />
+          <div className="relative w-20 h-20 bg-gradient-to-br from-theme-primary to-theme-accent rounded-2xl flex items-center justify-center shadow-2xl shadow-theme-primary/30 transform hover:scale-110 transition-all duration-500">
+            <Brain className="text-main" size={36} />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl" />
           </div>
-        <h1 className="text-4xl font-bold text-main mb-4">
+        </div>
+        
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-theme-primary via-theme-accent to-theme-primary bg-clip-text text-main mb-6 animate-gradient">
           AI Generation Hub
         </h1>
-        <p className="text-lg text-secondary max-w-2xl mx-auto">
+        
+        <p className="text-xl text-secondary max-w-3xl mx-auto leading-relaxed">
           Monitor and manage your AI-powered roadmap generation queue with advanced controls and real-time insights.
         </p>
+        
+        {/* Floating particles */}
+        <div className="absolute top-0 left-1/4 w-2 h-2 bg-theme-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-theme-accent/40 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-1/2 left-1/6 w-1 h-1 bg-theme-primary/30 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
       </div>
 
       {/* Queue Dashboard */}

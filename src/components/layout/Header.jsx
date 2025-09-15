@@ -39,7 +39,7 @@ const Header = ({
     px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold nav-tab-button whitespace-nowrap transition-all duration-300
     ${
       isActive
-        ? "bg-theme-primary text-white shadow-glow-theme transform scale-105 border border-theme-primary"
+        ? "bg-gradient-theme text-white shadow-glow-theme transform scale-105 border border-theme-primary"
         : "bg-transparent text-secondary hover:bg-theme-primary/10 hover:text-main hover:shadow-glow-theme-subtle hover:scale-102 border border-transparent hover:border-theme-primary/30"
     }
   `;
@@ -123,12 +123,12 @@ const Header = ({
               {fullScreenMode ? (
                 <Minimize
                   size={22}
-                  className="text-muted"
+                  className="text-theme-primary"
                 />
               ) : (
                 <Maximize
                   size={22}
-                  className="text-muted"
+                  className="text-theme-primary"
                 />
               )}
             </button>
