@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 import express from "express";
 import fs from "fs/promises";
 import path from "path";

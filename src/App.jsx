@@ -67,13 +67,26 @@ const LoadingFallback = React.memo(({ message = "Loading component..." }) => (
 
 const App = () => {
   // Enhanced state management with better initial values
-  const [theme, setTheme] = useState(() => 
-    localStorage.getItem("theme") || "dark"
-  );
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme || "dark";
+  });
   
   // Initialize color theme management
   const isDarkMode = theme === 'dark';
-  const colorTheme = useColorTheme(isDarkMode);
+  const _colorTheme = useColorTheme(isDarkMode);
+  
+  // Apply dark/light class to HTML element immediately
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isDarkMode) {
+      html.classList.add('dark');
+      html.classList.remove('light');
+    } else {
+      html.classList.add('light');
+      html.classList.remove('dark');
+    }
+  }, [isDarkMode]);
   const [activeTab, setActiveTab] = useState(() => 
     localStorage.getItem("activeTab") || "create"
   );

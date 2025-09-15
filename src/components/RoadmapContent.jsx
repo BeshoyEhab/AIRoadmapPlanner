@@ -31,8 +31,6 @@ const RoadmapContent = ({
   exportToPDF,
   exportToJSON,
   exportToHTML,
-  handleCopyCode,
-  handlePrint,
   toggleMiniGoal,
   calculateOverallProgress,
   toggleFavorite,
@@ -48,6 +46,34 @@ const RoadmapContent = ({
   currentlyGenerating,
   setRoadmap,
 }) => {
+  // All hooks must be called before any early returns
+  const [expandedPhases, setExpandedPhases] = useState({});
+  const roadmapRef = useRef(null);
+  
+  const { handlePause, handleResume } = useRoadmapActions({
+    roadmap: roadmap || {},
+    setRoadmap,
+    removeFromQueue,
+    addToQueue,
+    interruptGeneration,
+    setActiveTab,
+    generationQueue,
+    generateRoadmap,
+    objective,
+    finalGoal,
+    setObjective: () => {},
+    setFinalGoal: () => {}
+  });
+
+  const calculatePhaseProgress = useCallback((phase) => {
+    if (!phase || !phase.miniGoals) return 0;
+    const total = phase.miniGoals.length;
+    if (total === 0) return 0;
+    const completed = phase.miniGoals.filter((mg) => mg.completed).length;
+    return Math.round((completed / total) * 100);
+  }, []);
+
+  // Early returns after hooks
   if (!roadmap || !roadmap.phases) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -63,23 +89,6 @@ const RoadmapContent = ({
       </div>
     );
   }
-  const [expandedPhases, setExpandedPhases] = useState({});
-
-  const { handlePause, handleResume } = useRoadmapActions({
-    roadmap,
-    setRoadmap,
-    removeFromQueue,
-    addToQueue,
-    interruptGeneration,
-    setActiveTab,
-    generationQueue,
-    generateRoadmap,
-    objective,
-    finalGoal,
-    setObjective: () => {},
-    setFinalGoal: () => {}
-  });
-  const roadmapRef = useRef(null);
 
   const togglePhase = (index) => {
     setExpandedPhases((prev) => ({
@@ -87,14 +96,6 @@ const RoadmapContent = ({
       [index]: !prev[index],
     }));
   };
-
-  const calculatePhaseProgress = useCallback((phase) => {
-    if (!phase || !phase.miniGoals) return 0;
-    const total = phase.miniGoals.length;
-    if (total === 0) return 0;
-    const completed = phase.miniGoals.filter((mg) => mg.completed).length;
-    return Math.round((completed / total) * 100);
-  }, []);
 
   return (
     <div className="space-y-6" ref={roadmapRef}>

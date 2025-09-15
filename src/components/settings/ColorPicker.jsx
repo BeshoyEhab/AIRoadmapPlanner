@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,7 +171,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
   };
 
   // Get all themes (built-in + custom)
-  const allThemes = { ...colorThemes, ...customThemes };
+  const _allThemes = { ...colorThemes, ...customThemes };
 
   return (
     <div className="space-y-6">
@@ -188,7 +188,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
       {/* Built-in Themes */}
       <div>
         <h4 className="text-sm font-medium text-main mb-3">Built-in Themes</h4>
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-3 mb-6">
           {Object.keys(colorThemes).map((themeId) => {
             const theme = colorThemes[themeId];
             const isSelected = currentTheme === themeId;
@@ -246,7 +246,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
         </div>
         
         {Object.keys(customThemes).length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {Object.keys(customThemes).map((themeId) => {
               const theme = customThemes[themeId];
               const isSelected = currentTheme === themeId;

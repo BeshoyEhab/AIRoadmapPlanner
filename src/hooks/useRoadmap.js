@@ -17,7 +17,27 @@ const useRoadmap = ({ setActiveTab } = {}) => {
   });
   const [genAI, setGenAI] = useState(null);
   const isInterrupted = useRef(false);
-  const [availableModels] = useState(() => {
+  const [availableModels, setAvailableModels] = useState(() => {
+    // First try the new models configuration
+    const modelsConfig = localStorage.getItem("ai-models-config");
+    if (modelsConfig) {
+      try {
+        const parsedModels = JSON.parse(modelsConfig);
+        // Extract model names from the models configuration, sorted by order
+        const modelNames = parsedModels
+          .filter(model => model.provider === 'gemini') // For now, only Gemini is supported
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(model => model.modelName);
+        
+        if (modelNames.length > 0) {
+          return modelNames;
+        }
+      } catch (error) {
+        console.warn('Failed to parse new models config, falling back to legacy:', error);
+      }
+    }
+    
+    // Fallback to legacy configuration
     const savedModels = localStorage.getItem("gemini-available-models");
     return savedModels
       ? JSON.parse(savedModels)
@@ -29,6 +49,47 @@ const useRoadmap = ({ setActiveTab } = {}) => {
           "gemini-1.0-pro",
         ];
   });
+  
+  // Function to refresh models from settings
+  const refreshModels = useCallback(() => {
+    const modelsConfig = localStorage.getItem("ai-models-config");
+    if (modelsConfig) {
+      try {
+        const parsedModels = JSON.parse(modelsConfig);
+        // Extract model names from the models configuration, sorted by order
+        const modelNames = parsedModels
+          .filter(model => model.provider === 'gemini') // For now, only Gemini is supported
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(model => model.modelName);
+        
+        if (modelNames.length > 0) {
+          setAvailableModels(modelNames);
+          currentModelIndex.current = 0; // Reset to first model
+          console.log('Models refreshed from settings:', modelNames);
+          return modelNames;
+        }
+      } catch (error) {
+        console.warn('Failed to parse models config during refresh:', error);
+      }
+    }
+    
+    // Fallback to legacy if no new config
+    const savedModels = localStorage.getItem("gemini-available-models");
+    const fallbackModels = savedModels
+      ? JSON.parse(savedModels)
+      : [
+          "gemini-2.0-flash-exp",
+          "gemini-2.0-flash-thinking-exp",
+          "gemini-1.5-flash",
+          "gemini-1.5-pro",
+          "gemini-1.0-pro",
+        ];
+    
+    setAvailableModels(fallbackModels);
+    currentModelIndex.current = 0;
+    console.log('Models refreshed with fallback:', fallbackModels);
+    return fallbackModels;
+  }, []);
   const currentModelIndex = useRef(0);
   const processingTriggerRef = useRef(false);
 
@@ -51,19 +112,24 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     }
   }, []);
   
-  // Listen for API key changes
+  // Listen for API key changes and model configuration changes
   useEffect(() => {
-    const handleStorageChange = () => {
-      const newApiKey = localStorage.getItem("gemini-api-key");
-      setApiKey(newApiKey);
-      if (newApiKey) {
-        setGenAI(new GoogleGenerativeAI(newApiKey));
+    const handleStorageChange = (e) => {
+      if (e.key === "gemini-api-key") {
+        const newApiKey = e.newValue;
+        setApiKey(newApiKey);
+        if (newApiKey) {
+          setGenAI(new GoogleGenerativeAI(newApiKey));
+        }
+      } else if (e.key === "ai-models-config") {
+        // Refresh models when configuration changes
+        refreshModels();
       }
     };
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [refreshModels]);
 
   // Toggle favorite status for a roadmap
   const toggleFavorite = useCallback((roadmapId) => {
@@ -584,18 +650,32 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     [objective, finalGoal, startingLevel],
   );
 
-  // Main AI-powered roadmap generation function
+  // Enhanced AI-powered roadmap generation function with better error handling
   const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, wasQueuePaused = false, initialRoadmap = null) => {
-    console.log('[generateRoadmap] Starting generation', { 
+    console.log('[generateRoadmap] Starting enhanced generation', { 
       isContinuation, 
       roadmapId: roadmapToContinue?.id, 
-      hasInitialRoadmap: !!initialRoadmap 
+      hasInitialRoadmap: !!initialRoadmap,
+      queueLength: generationQueue?.length || 0
     });
     
+    // Enhanced validation
     if (!apiKey || !genAI) {
       const errorMsg = "Please set your Gemini API key in the settings.";
       console.error('[generateRoadmap] Error:', errorMsg);
       toast.error(errorMsg);
+      setLoading(false);
+      setError(errorMsg);
+      return null;
+    }
+
+    // Validate required inputs for new generations
+    if (!isContinuation && !initialRoadmap && (!objective?.trim() || !finalGoal?.trim())) {
+      const errorMsg = "Please provide both an objective and final goal.";
+      console.error('[generateRoadmap] Error:', errorMsg);
+      toast.error(errorMsg);
+      setLoading(false);
+      setError(errorMsg);
       return null;
     }
 
@@ -603,19 +683,24 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     isInterrupted.current = false;
     setLoading(true);
     setError(null);
+    setLoadingMessage("Initializing generation...");
 
     if (!isContinuation && !initialRoadmap) {
       localStorage.removeItem("currentRoadmap");
       setRoadmap(null);
     }
 
-    const generateWithRetry = async (prompt) => {
+    const generateWithRetry = async (prompt, phase = 'unknown') => {
       const startingModelIndex = currentModelIndex.current;
       let attempts = 0;
       const maxAttempts = availableModels.length;
+      let lastError = null;
+
+      console.log(`[generateWithRetry] Starting ${phase} generation with ${maxAttempts} available models`);
 
       while (attempts < maxAttempts) {
         if (isInterrupted.current) {
+          console.log('[generateWithRetry] Generation interrupted by user');
           throw new Error("Generation interrupted by user.");
         }
 
@@ -623,51 +708,115 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         attempts++;
         
         try {
-          console.log(`[generateWithRetry] Attempt ${attempts}/${maxAttempts} with model: ${modelName}`);
-          setLoadingMessage(`Generating with ${modelName}... (attempt ${attempts}/${maxAttempts})`);
+          console.log(`[generateWithRetry] Attempt ${attempts}/${maxAttempts} for ${phase} with model: ${modelName}`);
+          setLoadingMessage(`Generating ${phase} with ${modelName}... (${attempts}/${maxAttempts})`);
           
+          // Enhanced model configuration
           const generativeModel = genAI.getGenerativeModel({
             model: modelName,
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 8192,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+            ],
           });
           
-          const result = await generativeModel.generateContent(prompt);
+          // Add timeout wrapper
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout after 60 seconds')), 60000)
+          );
+          
+          const generationPromise = generativeModel.generateContent(prompt);
+          const result = await Promise.race([generationPromise, timeoutPromise]);
           const response = await result.response;
           
-          console.log(`[generateWithRetry] Success with model: ${modelName}`);
-          return parseJsonResponse(response.text());
+          if (!response?.text) {
+            throw new Error('Empty response received from model');
+          }
+          
+          const parsedResult = parseJsonResponse(response.text());
+          console.log(`[generateWithRetry] Success with model: ${modelName} for ${phase}`);
+          return parsedResult;
           
         } catch (err) {
+          lastError = err;
+          
           if (isInterrupted.current) {
+            console.log('[generateWithRetry] Generation interrupted during processing');
             throw err;
           }
 
-          console.error(`[generateWithRetry] Error with model ${modelName}:`, err.message);
+          console.error(`[generateWithRetry] Error with model ${modelName} for ${phase}:`, err.message);
           
-          const isQuotaError = err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate limit');
-          const isModelNotFound = err.message.includes('404') || err.message.includes('not found');
-          const isServerError = err.message.includes('500') || err.message.includes('502') || err.message.includes('503');
+          // Enhanced error categorization
+          const isQuotaError = err.message.includes('429') || 
+                              err.message.includes('quota') || 
+                              err.message.includes('rate limit') ||
+                              err.message.includes('RATE_LIMIT_EXCEEDED');
           
-          if (isQuotaError || isModelNotFound || isServerError) {
-            console.log(`[generateWithRetry] ${modelName} failed with recoverable error, switching to next model`);
+          const isModelNotFound = err.message.includes('404') || 
+                                 err.message.includes('not found') ||
+                                 err.message.includes('MODEL_NOT_FOUND');
+          
+          const isServerError = err.message.includes('500') || 
+                               err.message.includes('502') || 
+                               err.message.includes('503') ||
+                               err.message.includes('INTERNAL');
+          
+          const isTimeoutError = err.message.includes('timeout') ||
+                                err.message.includes('TIMEOUT');
+          
+          const isContentError = err.message.includes('SAFETY') ||
+                                err.message.includes('content') ||
+                                err.message.includes('policy');
+          
+          // Determine if we should retry with another model
+          const shouldRetryWithDifferentModel = isQuotaError || isModelNotFound || isServerError || isTimeoutError;
+          
+          if (shouldRetryWithDifferentModel) {
+            console.log(`[generateWithRetry] ${modelName} failed with recoverable error (${err.message}), switching to next model`);
             
             currentModelIndex.current = (currentModelIndex.current + 1) % availableModels.length;
             
             if (currentModelIndex.current === startingModelIndex) {
-              console.error(`[generateWithRetry] All models failed after ${attempts} attempts`);
+              const errorMessage = `All models failed for ${phase}. Last error: ${err.message}`;
+              console.error(`[generateWithRetry] ${errorMessage}`);
               setLoadingMessage("All models failed. Please check your API key and model availability.");
-              throw new Error(`All available models failed. Last error: ${err.message}`);
+              throw new Error(errorMessage);
             }
             
             const nextModel = availableModels[currentModelIndex.current];
             console.log(`[generateWithRetry] Switching to model: ${nextModel}`);
-            setLoadingMessage(`Switching to model ${nextModel}... (attempt ${attempts + 1}/${maxAttempts})`);
+            setLoadingMessage(`Switching to ${nextModel} for ${phase}... (${attempts + 1}/${maxAttempts})`);
             
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Progressive backoff delay
+            const delay = Math.min(1000 * attempts, 5000);
+            await new Promise(resolve => setTimeout(resolve, delay));
             continue;
-          } else {
-            console.error(`[generateWithRetry] Non-recoverable error with ${modelName}:`, err);
-            throw err;
+          } else if (isContentError) {
+            console.warn(`[generateWithRetry] Content policy violation with ${modelName}, trying next model`);
+            // Try next model for content policy violations
+            currentModelIndex.current = (currentModelIndex.current + 1) % availableModels.length;
+            if (currentModelIndex.current !== startingModelIndex) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
           }
+          
+          // Non-recoverable error or all models exhausted
+          console.error(`[generateWithRetry] Non-recoverable error with ${modelName} for ${phase}:`, err);
+          throw err;
         }
       }
       
@@ -1108,6 +1257,9 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
     handleSaveConfirm,
     roadmapName,
     setRoadmapName,
+    // Models management
+    availableModels,
+    refreshModels,
   };
 };
 

@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import AIProviderSettings from "./AIProviderSettings";
+import ModelsManager from "./ModelsManager";
+import AIProvidersStatus from "./AIProvidersStatus";
 import ColorPicker from "./ColorPicker";
 import { useAppContext } from "@/contexts/AppContext";
 import { useColorTheme } from "@/hooks/useColorTheme";
@@ -171,7 +172,14 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
       {/* AI Providers */}
       <div className="mb-8">
         <div className="border border-default p-4 rounded-lg">
-          <AIProviderSettings onProviderChange={setAiManager} />
+          <AIProvidersStatus />
+        </div>
+      </div>
+
+      {/* AI Models */}
+      <div className="mb-8">
+        <div className="border border-default p-4 rounded-lg">
+          <ModelsManager />
         </div>
       </div>
 

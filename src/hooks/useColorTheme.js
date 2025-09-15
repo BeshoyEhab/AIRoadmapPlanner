@@ -191,8 +191,8 @@ export const useColorTheme = (isDarkMode) => {
 
   // Apply theme on mount and when dark mode changes
   useEffect(() => {
-    applyTheme(currentTheme);
-  }, [currentTheme]);
+    applyTheme(currentTheme, isDarkMode);
+  }, [currentTheme, isDarkMode]);
 
   // Listen for custom theme changes from other tabs/components
   useEffect(() => {

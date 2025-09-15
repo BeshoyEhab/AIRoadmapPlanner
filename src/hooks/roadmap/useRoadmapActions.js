@@ -22,24 +22,50 @@ export const useRoadmapActions = ({
 
   const handlePause = useCallback(
     async (roadmap) => {
-      if (!roadmap) return;
+      if (!roadmap) {
+        console.warn('[handlePause] No roadmap provided');
+        return { success: false, error: 'No roadmap provided' };
+      }
 
+      console.log('[handlePause] Pausing roadmap:', roadmap.id);
+      
       try {
+        // Enhanced pause with better state management
+        const pauseStartTime = new Date().toISOString();
+        
         // First interrupt any ongoing generation
         if (typeof interruptGeneration === "function") {
-          interruptGeneration();
+          console.log('[handlePause] Interrupting generation');
+          interruptGeneration('pause_request');
         }
 
-        // Then remove from queue
+        // Remove from queue with multiple ID checks
         if (typeof removeFromQueue === "function") {
+          console.log('[handlePause] Removing from queue');
           removeFromQueue(roadmap.id);
+          removeFromQueue(roadmap.sanitizedName);
+          // Also check for queue items by roadmapId
+          if (generationQueue && Array.isArray(generationQueue)) {
+            generationQueue.forEach(item => {
+              if (item.roadmapId === roadmap.id) {
+                removeFromQueue(item.id);
+              }
+            });
+          }
         }
 
-        // Mark as paused and update state
+        // Enhanced paused roadmap state
         const pausedRoadmap = {
           ...roadmap,
           generationState: "paused",
-          pausedAt: new Date().toISOString(),
+          pausedAt: pauseStartTime,
+          lastActivity: pauseStartTime,
+          pauseReason: 'user_requested',
+          pauseContext: {
+            completedPhases: roadmap.phases?.filter(p => p.goal !== '...')?.length || 0,
+            totalPhases: roadmap.phases?.length || 0,
+            lastCompletedPhase: roadmap.phases?.findIndex(p => p.goal === '...') - 1
+          }
         };
 
         if (typeof setRoadmap === "function") {
@@ -47,15 +73,25 @@ export const useRoadmapActions = ({
           setIsPaused(true);
         }
 
-        // Save to localStorage
+        // Enhanced localStorage save with error handling
         if (typeof window !== "undefined" && window.localStorage) {
-          localStorage.setItem("currentRoadmap", JSON.stringify(pausedRoadmap));
+          try {
+            localStorage.setItem("currentRoadmap", JSON.stringify(pausedRoadmap));
+            console.log('[handlePause] Roadmap saved to localStorage');
+          } catch (localStorageError) {
+            console.warn('[handlePause] Failed to save to localStorage:', localStorageError);
+          }
         }
+
+        console.log('[handlePause] Roadmap paused successfully');
+        return { success: true, roadmap: pausedRoadmap };
+        
       } catch (error) {
-        console.error("Error pausing roadmap generation:", error);
+        console.error("[handlePause] Error pausing roadmap generation:", error);
+        return { success: false, error: error.message };
       }
     },
-    [removeFromQueue, setRoadmap, interruptGeneration],
+    [removeFromQueue, setRoadmap, interruptGeneration, generationQueue],
   );
 
   /**
@@ -63,96 +99,150 @@ export const useRoadmapActions = ({
    * @param {Object} roadmap - The roadmap to resume
    */
   const handleResume = useCallback(
-    (roadmap) => {
-      if (!roadmap) return;
-
-      // Ensure we have the required data from the roadmap
-      const roadmapObjective = roadmap.objective || "Continue learning roadmap";
-      const roadmapFinalGoal = roadmap.finalGoal || "Complete the learning objectives";
-      
-      // Update form state with roadmap data if needed
-      if (setObjective && roadmapObjective && (!objective || objective.trim() === '')) {
-        setObjective(roadmapObjective);
-      }
-      if (setFinalGoal && roadmapFinalGoal && (!finalGoal || finalGoal.trim() === '')) {
-        setFinalGoal(roadmapFinalGoal);
+    async (roadmap) => {
+      if (!roadmap) {
+        console.warn('[handleResume] No roadmap provided');
+        return { success: false, error: 'No roadmap provided' };
       }
 
-      // Calculate pause duration if available
-      const resumeData = {
-        ...roadmap,
-        objective: roadmapObjective,
-        finalGoal: roadmapFinalGoal,
-        generationState: "in-progress",
-        lastResumedAt: new Date().toISOString(),
-      };
-
-      // Clear pause-related fields
-      delete resumeData.pausedAt;
-
-      // Create queue item for resuming
-      const queueItem = {
-        id: roadmap.id || Date.now(),
-        name: roadmap.title || "Resumed Roadmap",
-        objective: roadmapObjective,
-        finalGoal: roadmapFinalGoal,
-        status: "queued",
-        isResume: true,
-        roadmapId: roadmap.id,
-        resumeData,
-      };
+      console.log('[handleResume] Resuming roadmap:', roadmap.id, {
+        currentState: roadmap.generationState,
+        pausedAt: roadmap.pausedAt,
+        completedPhases: roadmap.pauseContext?.completedPhases
+      });
 
       try {
+        // Enhanced resume with validation and recovery
+        const resumeStartTime = new Date().toISOString();
+        
+        // Ensure we have the required data from the roadmap
+        const roadmapObjective = roadmap.objective || "Continue learning roadmap";
+        const roadmapFinalGoal = roadmap.finalGoal || "Complete the learning objectives";
+        
+        // Validate roadmap state
+        if (!roadmap.phases || roadmap.phases.length === 0) {
+          throw new Error('Roadmap has no phases to resume');
+        }
+        
+        // Update form state with roadmap data if needed
+        if (setObjective && roadmapObjective && (!objective || objective.trim() === '')) {
+          setObjective(roadmapObjective);
+        }
+        if (setFinalGoal && roadmapFinalGoal && (!finalGoal || finalGoal.trim() === '')) {
+          setFinalGoal(roadmapFinalGoal);
+        }
+
+        // Calculate resume context
+        const incompletePhaseIndex = roadmap.phases.findIndex(p => p.goal === '...');
+        const completedPhases = incompletePhaseIndex >= 0 ? incompletePhaseIndex : roadmap.phases.length;
+        
+        // Enhanced resume data with recovery information
+        const resumeData = {
+          ...roadmap,
+          objective: roadmapObjective,
+          finalGoal: roadmapFinalGoal,
+          generationState: "in-progress",
+          lastResumedAt: resumeStartTime,
+          resumeContext: {
+            resumedAt: resumeStartTime,
+            pauseDuration: roadmap.pausedAt ? 
+              Math.round((new Date(resumeStartTime) - new Date(roadmap.pausedAt)) / 1000 / 60) + ' minutes' : 
+              'unknown',
+            resumePoint: {
+              phaseIndex: incompletePhaseIndex >= 0 ? incompletePhaseIndex : roadmap.phases.length - 1,
+              phaseName: incompletePhaseIndex >= 0 ? roadmap.phases[incompletePhaseIndex].title : 'Complete',
+              completedPhases,
+              totalPhases: roadmap.phases.length
+            }
+          }
+        };
+
+        // Clear pause-related fields
+        delete resumeData.pausedAt;
+        delete resumeData.pauseReason;
+        delete resumeData.pauseContext;
+
+        // Enhanced queue item for resuming
+        const queueItem = {
+          id: `resume-${roadmap.id}-${Date.now()}`,
+          name: roadmap.title || "Resumed Roadmap",
+          objective: roadmapObjective,
+          finalGoal: roadmapFinalGoal,
+          status: "queued",
+          isResume: true,
+          roadmapId: roadmap.id,
+          initialRoadmap: resumeData,
+          priority: 'high', // Give resumed roadmaps higher priority
+          resumeInfo: {
+            originalPauseTime: roadmap.pausedAt,
+            resumeTime: resumeStartTime,
+            completedPhases
+          }
+        };
+
         // Update the roadmap state first
         if (typeof setRoadmap === "function") {
           setRoadmap(resumeData);
           setIsPaused(false);
         }
 
-        // Add to queue
-        if (typeof addToQueue === "function") {
-          // If the roadmap is already in the queue, remove it first
-          if (generationQueue.some(item => item.roadmapId === roadmap.id)) {
-            removeFromQueue(roadmap.id);
+        // Clean up any existing queue items for this roadmap before adding new one
+        if (typeof removeFromQueue === "function") {
+          if (generationQueue && Array.isArray(generationQueue)) {
+            generationQueue.forEach(item => {
+              if (item.roadmapId === roadmap.id || item.id === roadmap.id) {
+                console.log('[handleResume] Removing existing queue item:', item.id);
+                removeFromQueue(item.id);
+              }
+            });
           }
-          addToQueue(queueItem);
         }
 
-        // Save to localStorage
+        // Add to queue with priority handling
+        if (typeof addToQueue === "function") {
+          const success = addToQueue(queueItem);
+          if (!success) {
+            throw new Error('Failed to add roadmap to generation queue');
+          }
+          console.log('[handleResume] Added to queue with priority');
+        }
+
+        // Enhanced localStorage save
         if (typeof window !== "undefined" && window.localStorage) {
-          localStorage.setItem("currentRoadmap", JSON.stringify(resumeData));
+          try {
+            localStorage.setItem("currentRoadmap", JSON.stringify(resumeData));
+            console.log('[handleResume] Resume data saved to localStorage');
+          } catch (localStorageError) {
+            console.warn('[handleResume] Failed to save resume data to localStorage:', localStorageError);
+          }
         }
 
-        // Switch to view tab
+        // Switch to view tab to show progress
         if (typeof setActiveTab === "function") {
           setActiveTab("view");
         }
-      } catch (error) {
-        console.error("Error resuming roadmap generation:", error);
-      }
 
-      // Update state to reflect resuming
-      if (typeof setRoadmap === "function") {
-        setRoadmap({
-          ...roadmap,
-          generationState: "in-progress",
+        console.log('[handleResume] Roadmap resume initiated successfully', {
+          resumePoint: resumeData.resumeContext.resumePoint,
+          queueItemId: queueItem.id
         });
-      }
-
-      // Update localStorage
-      if (typeof window !== "undefined" && window.localStorage) {
-        localStorage.setItem(
-          "currentRoadmap",
-          JSON.stringify({
-            ...roadmap,
-            generationState: "in-progress",
-          }),
-        );
-      }
-
-      // Switch to view tab
-      if (typeof setActiveTab === "function") {
-        setActiveTab("view");
+        
+        return { 
+          success: true, 
+          roadmap: resumeData, 
+          queueItem, 
+          resumeInfo: resumeData.resumeContext 
+        };
+        
+      } catch (error) {
+        console.error("[handleResume] Error resuming roadmap generation:", error);
+        
+        // Attempt to restore previous state on error
+        if (typeof setRoadmap === "function" && roadmap) {
+          setRoadmap(roadmap);
+        }
+        
+        return { success: false, error: error.message };
       }
     },
     [addToQueue, setRoadmap, setActiveTab, setObjective, setFinalGoal, objective, finalGoal, removeFromQueue, generationQueue],
