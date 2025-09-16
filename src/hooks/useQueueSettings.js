@@ -17,8 +17,8 @@ export const useQueueSettings = () => {
     try {
       const savedSettings = localStorage.getItem('queue-settings');
       return savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
-    } catch (error) {
-      console.error('Error loading queue settings:', error);
+    } catch (_error) {
+      console.error('Error loading queue settings:', _error);
       return DEFAULT_SETTINGS;
     }
   });
@@ -31,8 +31,8 @@ export const useQueueSettings = () => {
       window.dispatchEvent(new CustomEvent('queueSettingsChanged', { 
         detail: queueSettings 
       }));
-    } catch (error) {
-      console.error('Error saving queue settings:', error);
+    } catch (_error) {
+      console.error('Error saving queue settings:', _error);
     }
   }, [queueSettings]);
 
@@ -43,8 +43,8 @@ export const useQueueSettings = () => {
         try {
           const newSettings = JSON.parse(e.newValue);
           setQueueSettings(newSettings);
-        } catch (error) {
-          console.error('Error parsing queue settings from storage:', error);
+        } catch (_error) {
+          console.error('Error parsing queue settings from storage:', _error);
         }
       }
     };

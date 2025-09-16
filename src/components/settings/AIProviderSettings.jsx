@@ -52,7 +52,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
   const [testingProvider, setTestingProvider] = useState(null);
   const [isEditingProvider, setIsEditingProvider] = useState(false);
   const [expandedProviders, setExpandedProviders] = useState({});
-  const [availableModels, setAvailableModels] = useState({});
+  // const [availableModels, setAvailableModels] = useState({}); // Reserved for future use
 
   useEffect(() => {
     loadExistingProviders();
@@ -60,7 +60,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
 
   const loadExistingProviders = async () => {
     try {
-      const { configs, currentProviderType } = aiManager.loadProvidersFromStorage();
+      const { currentProviderType } = aiManager.loadProvidersFromStorage();
       
       // Initialize providers that were previously configured
       const initialized = [];
@@ -77,8 +77,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
             aiManager.setCurrentProvider('gemini');
             setCurrentProvider('gemini');
           }
-        } catch (error) {
-          console.warn('Failed to initialize existing Gemini provider:', error);
+        } catch (_error) {
+          console.warn('Failed to initialize existing Gemini provider:', _error);
         }
       }
 
@@ -93,8 +93,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
       if (onProviderChange) {
         onProviderChange(aiManager);
       }
-    } catch (error) {
-      console.error('Failed to load existing providers:', error);
+    } catch (_error) {
+      console.error('Failed to load existing providers:', _error);
     }
   };
 
@@ -156,8 +156,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
       if (onProviderChange) {
         onProviderChange(aiManager);
       }
-    } catch (error) {
-      toast.error(`Failed to configure provider: ${error.message}`);
+    } catch (_error) {
+      toast.error(`Failed to configure provider: ${_error.message}`);
     }
   };
 
@@ -171,8 +171,8 @@ const AIProviderSettings = ({ onProviderChange }) => {
       if (onProviderChange) {
         onProviderChange(aiManager);
       }
-    } catch (error) {
-      toast.error(`Failed to switch provider: ${error.message}`);
+    } catch (_error) {
+      toast.error(`Failed to switch provider: ${_error.message}`);
     }
   };
 
@@ -203,11 +203,10 @@ const AIProviderSettings = ({ onProviderChange }) => {
     try {
       await aiManager.testProvider(providerType);
       toast.success(`✅ ${aiManager.getProviderInfo(providerType).name} connection successful!`);
-    } catch (error) {
-      toast.error(`❌ Connection test failed: ${error.message}`);
-    } finally {
-      setTestingProvider(null);
+    } catch (_error) {
+      toast.error(`❌ Connection test failed: ${_error.message}`);
     }
+    setTestingProvider(null);
   };
 
   const toggleApiKeyVisibility = (fieldName) => {
@@ -231,10 +230,11 @@ const AIProviderSettings = ({ onProviderChange }) => {
   };
 
   const handleModelsUpdate = (providerType, models) => {
-    setAvailableModels(prev => ({
-      ...prev,
-      [providerType]: models
-    }));
+    // setAvailableModels(prev => ({ // Commented out - variable was commented out above
+    //   ...prev,
+    //   [providerType]: models
+    // }));
+    console.log('Models updated for provider:', providerType, models);
   };
 
   const renderConfigFields = (requirements) => {
@@ -325,6 +325,7 @@ const AIProviderSettings = ({ onProviderChange }) => {
     );
   };
 
+  // Main component return
   return (
     <div className="space-y-6 text-main">
       <div className="flex items-center justify-between">

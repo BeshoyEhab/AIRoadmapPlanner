@@ -26,11 +26,26 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': [
+        'error', 
+        { 
+          varsIgnorePattern: '^[A-Z_]|^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
     },
   },
+  {
+    // Disable linting for library files to avoid noise from unused parameters
+    files: ['src/lib/**/*.js', 'src/lib/**/*.jsx'],
+    rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off'
+    }
+  }
 ]

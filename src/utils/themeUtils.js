@@ -1,5 +1,5 @@
 // src/utils/themeUtils.js
-export const getThemeClasses = (theme) => {
+export const getThemeClasses = () => {
   const baseClasses = 'transition-colors duration-300';
   
   return {
@@ -59,7 +59,7 @@ export const getThemeClasses = (theme) => {
 };
 
 // Theme-aware component wrapper
-export const withTheme = (Component) => {
+export const withTheme = () => {
   return (props) => {
     const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     const themeClasses = getThemeClasses(theme);

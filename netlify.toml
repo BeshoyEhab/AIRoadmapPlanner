@@ -8,4 +8,5 @@
   status = 200
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20.12.0"
+  PNPM_VERSION = "9.0.0"

@@ -6,7 +6,7 @@ export const useRoadmapActions = ({
   removeFromQueue,
   addToQueue,
   interruptGeneration,
-  generateRoadmap,
+  // generateRoadmap, // Available for future use
   objective,
   finalGoal,
   setObjective,
@@ -18,7 +18,7 @@ export const useRoadmapActions = ({
    * Pauses the roadmap generation
    * @param {Object} roadmap - The roadmap to pause
    */
-  const [isPaused, setIsPaused] = useState(false);
+  // const [isPaused, setIsPaused] = useState(false); // State tracking, could be used for UI feedback
 
   const handlePause = useCallback(
     async (roadmap) => {
@@ -70,7 +70,7 @@ export const useRoadmapActions = ({
 
         if (typeof setRoadmap === "function") {
           setRoadmap(pausedRoadmap);
-          setIsPaused(true);
+          // setIsPaused(true); // Could be used for UI feedback
         }
 
         // Enhanced localStorage save with error handling
@@ -86,9 +86,9 @@ export const useRoadmapActions = ({
         console.log('[handlePause] Roadmap paused successfully');
         return { success: true, roadmap: pausedRoadmap };
         
-      } catch (error) {
-        console.error("[handlePause] Error pausing roadmap generation:", error);
-        return { success: false, error: error.message };
+      } catch (_error) {
+        console.error("[handlePause] Error pausing roadmap generation:", _error);
+        return { success: false, error: _error.message };
       }
     },
     [removeFromQueue, setRoadmap, interruptGeneration, generationQueue],
@@ -183,7 +183,7 @@ export const useRoadmapActions = ({
         // Update the roadmap state first
         if (typeof setRoadmap === "function") {
           setRoadmap(resumeData);
-          setIsPaused(false);
+          // setIsPaused(false); // Could be used for UI feedback
         }
 
         // Clean up any existing queue items for this roadmap before adding new one
@@ -234,15 +234,15 @@ export const useRoadmapActions = ({
           resumeInfo: resumeData.resumeContext 
         };
         
-      } catch (error) {
-        console.error("[handleResume] Error resuming roadmap generation:", error);
+      } catch (_error) {
+        console.error("[handleResume] Error resuming roadmap generation:", _error);
         
         // Attempt to restore previous state on error
         if (typeof setRoadmap === "function" && roadmap) {
           setRoadmap(roadmap);
         }
         
-        return { success: false, error: error.message };
+        return { success: false, error: _error.message };
       }
     },
     [addToQueue, setRoadmap, setActiveTab, setObjective, setFinalGoal, objective, finalGoal, removeFromQueue, generationQueue],
@@ -333,8 +333,8 @@ export const useRoadmapActions = ({
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
           localStorage.setItem('currentRoadmap', JSON.stringify(initialRoadmap));
-        } catch (e) {
-          console.error('Error saving to localStorage:', e);
+        } catch (_e) {
+          console.error('Error saving to localStorage:', _e);
         }
       }
 
@@ -368,14 +368,14 @@ export const useRoadmapActions = ({
       }
 
       return true;
-    } catch (error) {
-      console.error('Error in generateNewRoadmap:', error);
+    } catch (_error) {
+      console.error('Error in generateNewRoadmap:', _error);
       // Reset loading state on error
       if (typeof setRoadmap === 'function') {
         setRoadmap(prev => ({
           ...prev,
           generationState: 'error',
-          error: error.message || 'Failed to generate roadmap'
+          error: _error.message || 'Failed to generate roadmap'
         }));
       }
       return false;

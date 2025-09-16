@@ -47,8 +47,8 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
       refreshCustomThemes();
       // Dispatch global event for cross-component synchronization
       window.dispatchEvent(new CustomEvent('customThemesChanged'));
-    } catch (error) {
-      console.error('Error saving custom themes:', error);
+    } catch (_error) {
+      console.error('Error saving custom themes:', _error);
       toast.error('Failed to save custom theme');
     }
   };

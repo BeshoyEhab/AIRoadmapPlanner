@@ -37,7 +37,7 @@ export class AIProvider {
    * @param {Object} params.options - Additional options
    * @returns {Promise<Object>} - Generated roadmap content
    */
-  async generateRoadmap(params) {
+  async generateRoadmap(_params) {
     if (!this.isConfigured) {
       throw new Error(`${this.name} is not properly configured`);
     }
@@ -49,7 +49,7 @@ export class AIProvider {
    * @param {Object} params - Phase generation parameters
    * @returns {Promise<Object>} - Generated phase content
    */
-  async generatePhase(params) {
+  async generatePhase(_params) {
     if (!this.isConfigured) {
       throw new Error(`${this.name} is not properly configured`);
     }

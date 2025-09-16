@@ -82,9 +82,9 @@ const SavedPlansTab = ({
         setRoadmap(null);
         toast.error("Failed to start roadmap regeneration");
       }
-    } catch (error) {
-      console.error("Error regenerating roadmap:", error);
-      toast.error(`Failed to regenerate roadmap: ${error.message}`);
+    } catch (_error) {
+      console.error("Error regenerating roadmap:", _error);
+      toast.error(`Failed to regenerate roadmap: ${_error.message}`);
     }
   };
 

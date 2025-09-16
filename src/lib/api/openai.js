@@ -21,7 +21,7 @@ Format all responses in clear, structured JSON.`;
  * @param {Object} options - Request options
  * @returns {Promise} - API response
  */
-async function callOpenAI(endpoint, options) {
+async function callOpenAI(endpoint, _options) {
   const maxRetries = 3;
   let lastError = null;
 
@@ -42,7 +42,7 @@ async function callOpenAI(endpoint, options) {
       }
 
       return await response.json();
-    } catch (err) {
+    } catch (_err) {
       lastError = err;
       if (attempt < maxRetries - 1) {
         // Exponential backoff
@@ -109,10 +109,11 @@ export async function generateRoadmapContent(
 
     try {
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
+      console.error ("Error parsing JSON:", error, "Content:", content);
       throw new Error("Invalid response format from API");
     }
-  } catch (err) {
+  } catch (_err) {
     console.error("Error generating roadmap content:", err);
     throw new Error("Failed to generate roadmap content: " + err.message);
   }
@@ -162,10 +163,10 @@ export async function generatePrerequisites({ field, targetLevel }, apiKey) {
 
     try {
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
       throw new Error("Invalid prerequisites format from API");
     }
-  } catch (err) {
+  } catch (_err) {
     console.error("Error generating prerequisites:", err);
     throw new Error("Failed to generate prerequisites: " + err.message);
   }
@@ -219,10 +220,10 @@ export async function generateRecommendations(
 
     try {
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
       throw new Error("Invalid recommendations format from API");
     }
-  } catch (error) {
+  } catch (_error) {
     console.error("Error generating recommendations:", error);
     throw new Error("Failed to generate recommendations: " + error.message);
   }
@@ -271,10 +272,10 @@ export async function enhanceRoadmapContent(roadmap, apiKey) {
 
     try {
       return JSON.parse(content);
-    } catch (error) {
+    } catch (_error) {
       throw new Error("Invalid enhancement format from API");
     }
-  } catch (err) {
+  } catch (_err) {
     console.error("Error enhancing roadmap:", err);
     throw new Error("Failed to enhance roadmap: " + err.message);
   }

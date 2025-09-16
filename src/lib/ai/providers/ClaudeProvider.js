@@ -85,7 +85,7 @@ export class ClaudeProvider extends AIProvider {
       });
 
       return !!(response && response.content && response.content.length > 0);
-    } catch (error) {
+    } catch (_error) {
       console.error('Claude connection test failed:', error);
       return false;
     }
@@ -133,10 +133,10 @@ export class ClaudeProvider extends AIProvider {
       
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parseUnstructuredResponse(text, { objective, finalGoal, startingLevel });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating roadmap with Claude:', error);
       throw new Error(`Failed to generate roadmap: ${error.message}`);
     }
@@ -165,10 +165,10 @@ export class ClaudeProvider extends AIProvider {
       
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parsePhaseResponse(text, phaseInfo);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating phase with Claude:', error);
       throw new Error(`Failed to generate phase: ${error.message}`);
     }

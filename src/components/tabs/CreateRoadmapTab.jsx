@@ -123,7 +123,7 @@ const CreateRoadmapTab = ({
         setRoadmap(null);
         toast.error("Failed to generate roadmap");
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Error generating roadmap:", error);
       setRoadmap(null);
       toast.error(`Failed to start roadmap generation: ${error.message}`);

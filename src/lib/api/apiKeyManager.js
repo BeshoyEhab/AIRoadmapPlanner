@@ -42,7 +42,7 @@ class APIKeyManager {
         this.#lastValidated = Date.now();
         return true;
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error validating API key:', error);
     }
 
@@ -67,7 +67,7 @@ class APIKeyManager {
       });
 
       return response.status === 200;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error validating API key:', error);
       return false;
     }

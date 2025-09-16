@@ -108,7 +108,7 @@ const App = () => {
         } else {
           setApiKeyStatus("missing");
         }
-      } catch (error) {
+      } catch (_error) {
         console.error('Error checking API key:', error);
         setApiKeyStatus("missing");
         setAppError('Failed to check API key configuration');
@@ -186,7 +186,7 @@ const App = () => {
         setFullScreenMode(false);
         toast.success('Exited fullscreen mode');
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Fullscreen error:', error);
       toast.error(`Fullscreen ${!document.fullscreenElement ? 'entry' : 'exit'} failed`);
     }
@@ -244,7 +244,7 @@ const App = () => {
       await deleteRoadmap(roadmapToDelete);
       setIsDeleteDialogOpen(false);
       setRoadmapToDelete(null);
-    } catch (error) {
+    } catch (_error) {
       console.error("Error in handleDeleteConfirm:", error);
       // toast.error("Failed to delete roadmap.");
     }

@@ -160,13 +160,13 @@ export function useRoadmapGeneration() {
           description: "Performance optimized with caching"
         });
         return finalRoadmap;
-      } catch (error) {
-        if (error.name === 'AbortError' || signal.aborted) {
+      } catch (_error) {
+        if (_error.name === 'AbortError' || signal.aborted) {
           toast.info("Roadmap generation cancelled");
           return null;
         }
-        console.error("Error generating roadmap:", error);
-        toast.error("Failed to generate roadmap: " + error.message);
+        console.error("Error generating roadmap:", _error);
+        toast.error("Failed to generate roadmap: " + _error.message);
         return null;
       } finally {
         setIsGenerating(false);

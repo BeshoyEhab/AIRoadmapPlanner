@@ -58,7 +58,7 @@ export const exportAllData = async () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } catch (error) {
+  } catch (_error) {
     console.error('Export failed:', error);
     throw new Error('Failed to export data');
   }
@@ -98,7 +98,7 @@ export const exportRoadmap = async (roadmapId) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } catch (error) {
+  } catch (_error) {
     console.error('Export failed:', error);
     throw new Error('Failed to export roadmap');
   }
@@ -176,7 +176,7 @@ export const importData = async (file) => {
       roadmaps: importedRoadmaps,
       progress: importedProgress
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Import failed:', error);
     throw new Error('Failed to import data');
   }
@@ -224,7 +224,7 @@ export const exportSettings = async () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } catch (error) {
+  } catch (_error) {
     console.error('Settings export failed:', error);
     throw new Error('Failed to export settings');
   }
@@ -251,7 +251,7 @@ export const importSettings = async (file) => {
     }
 
     return importedSettings;
-  } catch (error) {
+  } catch (_error) {
     console.error('Settings import failed:', error);
     throw new Error('Failed to import settings');
   }

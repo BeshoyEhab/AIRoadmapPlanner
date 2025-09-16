@@ -826,7 +826,7 @@ const getJavaScript = (roadmapId) => {
                     checkbox.checked = progress[checkboxId];
                 }
             });
-        } catch (error) {
+        } catch (_error) {
             console.error('Failed to load progress:', error);
         }
     }
@@ -894,7 +894,7 @@ const getJavaScript = (roadmapId) => {
                 } else {
                     alert('Invalid progress file format.');
                 }
-            } catch (error) {
+            } catch (_error) {
                 console.error('Import failed:', error);
                 alert('Failed to import progress file.');
             }

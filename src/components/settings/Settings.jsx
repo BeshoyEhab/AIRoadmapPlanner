@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import ModelsManager from "./ModelsManager";
 import AIProvidersStatus from "./AIProvidersStatus";
 import ColorPicker from "./ColorPicker";
-import { useAppContext } from "@/contexts/AppContext";
+// import { useAppContext } from "@/contexts/AppContext"; // Reserved for future use
 import { useColorTheme } from "@/hooks/useColorTheme";
 import {
   Brain,
@@ -33,8 +33,8 @@ import {
   EyeOff,
 } from "lucide-react";
 
-const Settings = ({ onSave, theme, toggleTheme }) => {
-  const { exportData, importRoadmapData } = useAppContext();
+const Settings = ({ theme, toggleTheme }) => {
+  // const { exportData, importRoadmapData } = useAppContext(); // Reserved for future use
   const isDarkMode = theme === 'dark';
   const { currentTheme, changeTheme } = useColorTheme(isDarkMode);
   const [autoSave, setAutoSave] = useState(true);
@@ -44,7 +44,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
   const [minPhases, setMinPhases] = useState(15);
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
-  const [aiManager, setAiManager] = useState(null);
+  // const [aiManager, setAiManager] = useState(null); // Reserved for future use
 
   useEffect(() => {
     const savedAutoSave = localStorage.getItem("auto-save");
@@ -83,23 +83,23 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
     }
   }, []);
 
-  const handleSave = () => {
-    localStorage.setItem("auto-save", autoSave.toString());
-    localStorage.setItem("notifications", notifications.toString());
-    localStorage.setItem("export-format", exportFormat);
-    localStorage.setItem("language", language);
-    localStorage.setItem("min-phases", minPhases.toString());
-    localStorage.setItem("max-phases", maxPhases.toString());
-    localStorage.setItem(
-      "adaptive-difficulty",
-      adaptiveDifficulty.toString(),
-    );
+  // const handleSettingsSave = () => { // Auto-save functionality - reserved for future use
+  //   localStorage.setItem("auto-save", autoSave.toString());
+  //   localStorage.setItem("notifications", notifications.toString());
+  //   localStorage.setItem("export-format", exportFormat);
+  //   localStorage.setItem("language", language);
+  //   localStorage.setItem("min-phases", minPhases.toString());
+  //   localStorage.setItem("max-phases", maxPhases.toString());
+  //   localStorage.setItem(
+  //     "adaptive-difficulty",
+  //     adaptiveDifficulty.toString(),
+  //   );
 
-    if (onSave) {
-      onSave();
-    }
-    toast.success("Settings saved successfully!");
-  };
+  //   if (onSave) {
+  //     onSave();
+  //   }
+  //   toast.success("Settings saved successfully!");
+  // };
 
 
   const handleReset = () => {
@@ -159,7 +159,7 @@ const Settings = ({ onSave, theme, toggleTheme }) => {
         if (settings.adaptiveDifficulty !== undefined)
           setAdaptiveDifficulty(settings.adaptiveDifficulty);
         toast.success("Settings imported successfully!");
-      } catch (error) {
+      } catch {
         toast.error("Invalid settings file format.");
       }
     };

@@ -102,8 +102,8 @@ const ModelsManager = () => {
         setModels(defaultModels);
         saveModels(defaultModels);
       }
-    } catch (error) {
-      console.error('Failed to load models:', error);
+    } catch (_error) {
+      console.error('Failed to load models:', _error);
       toast.error('Failed to load models configuration');
     }
   }, []);
@@ -127,8 +127,8 @@ const ModelsManager = () => {
         newValue: JSON.stringify(modelsToSave),
         storageArea: localStorage
       }));
-    } catch (error) {
-      console.error('Failed to save models:', error);
+    } catch (_error) {
+      console.error('Failed to save models:', _error);
       toast.error('Failed to save models configuration');
     }
   }, []);

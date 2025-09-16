@@ -63,7 +63,7 @@ export class GeminiProvider extends AIProvider {
         const modelName = this.config.model || 'gemini-1.5-flash';
         this.model = this.genAI.getGenerativeModel({ model: modelName });
         return true;
-      } catch (error) {
+      } catch (_error) {
         console.error('Error initializing Gemini provider:', error);
         this.isConfigured = false;
         return false;
@@ -81,7 +81,7 @@ export class GeminiProvider extends AIProvider {
     try {
       const result = await this.model.generateContent('Hello, this is a test message.');
       return !!(result && result.response);
-    } catch (error) {
+    } catch (_error) {
       console.error('Gemini connection test failed:', error);
       return false;
     }
@@ -102,10 +102,10 @@ export class GeminiProvider extends AIProvider {
       // Try to parse JSON response, fallback to structured parsing
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parseUnstructuredResponse(text, { objective, finalGoal, startingLevel });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating roadmap with Gemini:', error);
       throw new Error(`Failed to generate roadmap: ${error.message}`);
     }
@@ -125,10 +125,10 @@ export class GeminiProvider extends AIProvider {
       
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parsePhaseResponse(text, phaseInfo);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating phase with Gemini:', error);
       throw new Error(`Failed to generate phase: ${error.message}`);
     }

@@ -164,9 +164,9 @@ const RoadmapContent = ({
                     } else {
                       console.error(`Unsupported export format: ${exportFormat}`);
                     }
-                  } catch (error) {
-                    console.error('Error during export:', error);
-                    alert(`Failed to export: ${error.message}`);
+                  } catch (_error) {
+                    console.error('Error during export:', _error);
+                    alert(`Failed to export: ${_error.message}`);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-glow-theme-accent flex items-center gap-2 text-sm"

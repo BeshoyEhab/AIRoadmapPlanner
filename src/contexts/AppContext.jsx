@@ -27,8 +27,8 @@ export const AppProvider = ({ children }) => {
         await db.init();
         const storedRoadmaps = await db.getAllRoadmaps();
         setRoadmaps(storedRoadmaps);
-      } catch (err) {
-        setError('Failed to initialize app: ' + err.message);
+      } catch (_err) {
+        setError('Failed to initialize app: ' + _err.message);
       } finally {
         setIsLoading(false);
       }
@@ -43,8 +43,8 @@ export const AppProvider = ({ children }) => {
       const isValid = await apiKeyManager.setKey(key);
       setHasValidApiKey(isValid);
       return isValid;
-    } catch (err) {
-      setError('Failed to validate API key: ' + err.message);
+    } catch (_err) {
+      setError('Failed to validate API key: ' + _err.message);
       return false;
     }
   };
@@ -61,9 +61,9 @@ export const AppProvider = ({ children }) => {
       const updatedRoadmaps = await db.getAllRoadmaps();
       setRoadmaps(updatedRoadmaps);
       return id;
-    } catch (err) {
-      setError('Failed to save roadmap: ' + err.message);
-      throw err;
+    } catch (_err) {
+      setError('Failed to save roadmap: ' + _err.message);
+      throw _err;
     }
   };
 
@@ -72,9 +72,9 @@ export const AppProvider = ({ children }) => {
       await db.deleteRoadmap(id);
       const updatedRoadmaps = await db.getAllRoadmaps();
       setRoadmaps(updatedRoadmaps);
-    } catch (err) {
-      setError('Failed to delete roadmap: ' + err.message);
-      throw err;
+    } catch (_err) {
+      setError('Failed to delete roadmap: ' + _err.message);
+      throw _err;
     }
   };
 
@@ -83,8 +83,8 @@ export const AppProvider = ({ children }) => {
     try {
       await db.saveProgress(roadmapId, progress);
       return true;
-    } catch (err) {
-      setError('Failed to update progress: ' + err.message);
+    } catch (_err) {
+      setError('Failed to update progress: ' + _err.message);
       return false;
     }
   };
@@ -92,8 +92,8 @@ export const AppProvider = ({ children }) => {
   const getProgress = async (roadmapId) => {
     try {
       return await db.getProgress(roadmapId);
-    } catch (err) {
-      setError('Failed to get progress: ' + err.message);
+    } catch (_err) {
+      setError('Failed to get progress: ' + _err.message);
       return null;
     }
   };
@@ -103,8 +103,8 @@ export const AppProvider = ({ children }) => {
     try {
       await exportAllData();
       return true;
-    } catch (err) {
-      setError('Failed to export data: ' + err.message);
+    } catch (_err) {
+      setError('Failed to export data: ' + _err.message);
       return false;
     }
   };
@@ -115,9 +115,9 @@ export const AppProvider = ({ children }) => {
       const updatedRoadmaps = await db.getAllRoadmaps();
       setRoadmaps(updatedRoadmaps);
       return result;
-    } catch (err) {
-      setError('Failed to import data: ' + err.message);
-      throw err;
+    } catch (_err) {
+      setError('Failed to import data: ' + _err.message);
+      throw _err;
     }
   };
 

@@ -26,7 +26,7 @@ export class CustomProvider extends AIProvider {
     try {
       await this.testConnection();
       return true;
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Failed to initialize custom provider: ${error.message}`);
     }
   }
@@ -35,7 +35,7 @@ export class CustomProvider extends AIProvider {
     try {
       await this.testConnection();
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -46,7 +46,7 @@ export class CustomProvider extends AIProvider {
     try {
       const response = await this.makeRequest(prompt);
       return this.parseRoadmapResponse(response);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Custom AI roadmap generation failed: ${error.message}`);
     }
   }
@@ -57,7 +57,7 @@ export class CustomProvider extends AIProvider {
     try {
       const response = await this.makeRequest(prompt);
       return this.parsePhaseResponse(response);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Custom AI phase generation failed: ${error.message}`);
     }
   }
@@ -68,13 +68,13 @@ export class CustomProvider extends AIProvider {
     try {
       const response = await this.makeRequest(testPrompt, { maxTokens: 50 });
       return response && response.length > 0;
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Connection test failed: ${error.message}`);
     }
   }
 
   async makeRequest(prompt, options = {}) {
-    const requestBody = this.buildRequestBody(prompt, options);
+    const requestBody = this.buildRequestBody(prompt, _options);
     
     const response = await fetch(`${this.baseURL}${this.endpoint}`, {
       method: 'POST',
@@ -217,7 +217,7 @@ Respond with a JSON object containing the phase details.`;
       if (parsed && typeof parsed === 'object') {
         return parsed;
       }
-    } catch (error) {
+    } catch (_error) {
       // If direct parsing fails, try to extract JSON from the response
     }
 
@@ -229,7 +229,7 @@ Respond with a JSON object containing the phase details.`;
         if (parsed && typeof parsed === 'object') {
           return parsed;
         }
-      } catch (error) {
+      } catch (_error) {
         // Continue to fallback
       }
     }

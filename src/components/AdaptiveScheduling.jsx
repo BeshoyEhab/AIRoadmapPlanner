@@ -121,7 +121,7 @@ const AdaptiveScheduling = ({ roadmap, onUpdateRoadmap }) => {
     return 0;
   };
 
-  const applySuggestion = (suggestion, _actionIndex) => {
+  const applySuggestion = (suggestion) => {
     const updatedRoadmap = { ...roadmap };
     
     switch (suggestion.type) {

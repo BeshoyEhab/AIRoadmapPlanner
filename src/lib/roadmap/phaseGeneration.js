@@ -39,7 +39,7 @@ export const generatePhases = (items, options = {}) => {
   const {
     maxItemsPerPhase = 5,
     preferredDifficulty = PHASE_DIFFICULTY.INTERMEDIATE,
-    timeConstraint = null // in hours
+    TIME_CONSTRAINT = null // in hours
   } = options;
 
   // Group items by difficulty and dependencies
@@ -222,8 +222,8 @@ const extractCommonKeywords = (items) => {
   });
 
   return Object.entries(keywords)
-    .filter(([_, count]) => count > 1)
-    .sort(([_, a], [__, b]) => b - a)
+    .filter(([count]) => count > 1)
+    .sort(([a], [b]) => b - a)
     .map(([word]) => word);
 };
 

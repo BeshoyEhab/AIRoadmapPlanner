@@ -29,7 +29,7 @@ const APIKeyInput = ({ onValidKey }) => {
       if (!valid) {
         setError('Invalid API key. Please check and try again.');
       }
-    } catch (_err) {
+      } catch {
       setError('Error validating API key. Please try again.');
       setIsValid(false);
       onValidKey?.(false);

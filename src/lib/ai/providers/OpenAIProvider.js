@@ -86,7 +86,7 @@ export class OpenAIProvider extends AIProvider {
       });
 
       return !!(response && response.choices && response.choices.length > 0);
-    } catch (error) {
+    } catch (_error) {
       console.error('OpenAI connection test failed:', error);
       return false;
     }
@@ -138,10 +138,10 @@ export class OpenAIProvider extends AIProvider {
       
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parseUnstructuredResponse(text, { objective, finalGoal, startingLevel });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating roadmap with OpenAI:', error);
       throw new Error(`Failed to generate roadmap: ${error.message}`);
     }
@@ -175,10 +175,10 @@ export class OpenAIProvider extends AIProvider {
       
       try {
         return JSON.parse(text);
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parsePhaseResponse(text, phaseInfo);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating phase with OpenAI:', error);
       throw new Error(`Failed to generate phase: ${error.message}`);
     }

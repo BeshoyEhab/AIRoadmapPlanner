@@ -18,6 +18,18 @@ export const DIFFICULTY_LEVELS = {
 };
 
 /**
+ * Gets difficulty level object from string
+ * @param {string} level - Target level string
+ * @returns {string} - Difficulty level key
+ */
+function getDifficultyLevel(level) {
+  const normalizedLevel = level?.toUpperCase();
+  return Object.keys(DIFFICULTY_LEVELS).find(
+    key => key === normalizedLevel
+  ) || 'BEGINNER';
+}
+
+/**
  * Generates an enhanced roadmap based on the given parameters
  * @param {Object} params - Generation parameters
  * @returns {Object} - Generated roadmap
@@ -97,7 +109,7 @@ export const generateRoadmap = async ({
         prerequisites: prerequisiteCheck
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error generating roadmap:', error);
     throw new Error('Failed to generate roadmap: ' + error.message);
   }
@@ -213,15 +225,6 @@ function generateRecommendations(field, targetLevel, learningPath) {
   };
 }
 
-/**
- * Gets the difficulty level enum value
- * @param {string} level - Target level string
- * @returns {string} - Difficulty level enum key
- */
-function getDifficultyLevel(level) {
-  const normalized = level.toUpperCase();
-  return Object.keys(DIFFICULTY_LEVELS).find(key => key === normalized) || 'INTERMEDIATE';
-}
 
 /**
  * Validates the generated roadmap

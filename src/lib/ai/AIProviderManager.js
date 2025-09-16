@@ -74,7 +74,7 @@ export class AIProviderManager {
       await provider.initialize();
       this.providers.set(providerType, provider);
       return provider;
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Failed to initialize ${providerType}: ${error.message}`);
     }
   }
@@ -133,7 +133,7 @@ export class AIProviderManager {
 
     try {
       return await provider.testConnection();
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Provider test failed: ${error.message}`);
     }
   }
@@ -151,7 +151,7 @@ export class AIProviderManager {
     
     try {
       return await tempProvider.validateApiKey();
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -166,7 +166,7 @@ export class AIProviderManager {
 
     try {
       return await this.currentProvider.generateRoadmap(objective, preferences);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Roadmap generation failed: ${error.message}`);
     }
   }
@@ -181,7 +181,7 @@ export class AIProviderManager {
 
     try {
       return await this.currentProvider.generatePhase(roadmapTitle, phaseTitle, context);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Phase generation failed: ${error.message}`);
     }
   }
@@ -300,7 +300,7 @@ export class AIProviderManager {
           currentProviderType
         };
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Failed to load provider configs from storage:', error);
     }
     

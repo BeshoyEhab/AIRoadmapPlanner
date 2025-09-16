@@ -19,7 +19,7 @@ export class GrokProvider extends AIProvider {
     try {
       await this.validateApiKey();
       return true;
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Failed to initialize Grok: ${error.message}`);
     }
   }
@@ -53,7 +53,7 @@ export class GrokProvider extends AIProvider {
       }
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       if (error.message.includes('401')) {
         return false;
       }
@@ -67,7 +67,7 @@ export class GrokProvider extends AIProvider {
     try {
       const response = await this.makeRequest(prompt);
       return this.parseRoadmapResponse(response);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Grok roadmap generation failed: ${error.message}`);
     }
   }
@@ -78,7 +78,7 @@ export class GrokProvider extends AIProvider {
     try {
       const response = await this.makeRequest(prompt);
       return this.parsePhaseResponse(response);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`Grok phase generation failed: ${error.message}`);
     }
   }
@@ -227,7 +227,7 @@ Respond with ONLY the JSON object, no additional text.`;
       if (parsed && typeof parsed === 'object') {
         return parsed;
       }
-    } catch (error) {
+    } catch (_error) {
       // If direct parsing fails, try to extract JSON from the response
     }
 
@@ -239,7 +239,7 @@ Respond with ONLY the JSON object, no additional text.`;
         if (parsed && typeof parsed === 'object') {
           return parsed;
         }
-      } catch (error) {
+      } catch (_error) {
         // Continue to fallback
       }
     }

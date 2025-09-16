@@ -42,8 +42,8 @@ const ModelManager = ({ providerType, providerName, currentModels = [], onModels
         const allCustomModels = JSON.parse(stored);
         setCustomModels(allCustomModels[providerType] || []);
       }
-    } catch (error) {
-      console.error('Failed to load custom models:', error);
+    } catch (_error) {
+      console.error('Failed to load custom models:', _error);
     }
   };
 
@@ -62,8 +62,8 @@ const ModelManager = ({ providerType, providerName, currentModels = [], onModels
         const combinedModels = [...currentModels, ...models.map(m => m.name)];
         onModelsUpdate(combinedModels);
       }
-    } catch (error) {
-      console.error('Failed to save custom models:', error);
+    } catch (_error) {
+      console.error('Failed to save custom models:', _error);
       toast.error('Failed to save custom model');
     }
   };
@@ -105,12 +105,12 @@ const ModelManager = ({ providerType, providerName, currentModels = [], onModels
     toast.success(`Removed custom model: ${modelName}`);
   };
 
-  const getModelIcon = (model) => {
-    if (model.isCustom) {
-      return <Cpu className="h-3 w-3" />;
-    }
-    return <Sparkles className="h-3 w-3" />;
-  };
+  // const getModelIcon = (provider) => { // Reserved for future UI improvements
+  //   if (model.isCustom) {
+  //     return <Cpu className="h-3 w-3" />;
+  //   }
+  //   return <Sparkles className="h-3 w-3" />;
+  // };
 
   const totalModels = currentModels.length + customModels.length;
 

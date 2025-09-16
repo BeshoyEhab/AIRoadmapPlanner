@@ -79,7 +79,7 @@ export class LocalProvider extends AIProvider {
       });
 
       return !!(response && response.response);
-    } catch (error) {
+    } catch (_error) {
       console.error('Local AI connection test failed:', error);
       return false;
     }
@@ -135,10 +135,10 @@ export class LocalProvider extends AIProvider {
           return JSON.parse(jsonMatch[0]);
         }
         throw new Error('No JSON found in response');
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parseUnstructuredResponse(text, { objective, finalGoal, startingLevel });
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating roadmap with Local AI:', error);
       throw new Error(`Failed to generate roadmap: ${error.message}`);
     }
@@ -170,10 +170,10 @@ export class LocalProvider extends AIProvider {
           return JSON.parse(jsonMatch[0]);
         }
         throw new Error('No JSON found in response');
-      } catch (parseError) {
+      } catch (_parseError) {
         return this.parsePhaseResponse(text, phaseInfo);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error generating phase with Local AI:', error);
       throw new Error(`Failed to generate phase: ${error.message}`);
     }

@@ -116,7 +116,7 @@ const AIProvidersStatus = () => {
     setIsEditing(edit);
     
     if (edit) {
-      const existingKey = localStorage.getItem(provider.keyName) || '';
+      // const existingKey = localStorage.getItem(provider.keyName) || ''; // For future use
       setApiKey('••••••••'); // Show masked key for editing
     } else {
       setApiKey('');
@@ -148,7 +148,7 @@ const AIProvidersStatus = () => {
       setSelectedProvider(null);
       
       toast.success(`${selectedProvider.name} API key ${isEditing ? 'updated' : 'configured'} successfully!`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to save API key');
     }
   };
@@ -158,14 +158,14 @@ const AIProvidersStatus = () => {
       localStorage.removeItem(provider.keyName);
       checkConfiguredProviders(); // Refresh the list
       toast.success(`${provider.name} API key removed`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove API key');
     }
   };
 
-  const unconfiguredProviders = AI_PROVIDERS.filter(
-    provider => !configuredProviders.some(configured => configured.id === provider.id)
-  );
+  // const unconfiguredProviders = AI_PROVIDERS.filter(
+  //   provider => !configuredProviders.some(configured => configured.id === provider.id)
+  // ); // Reserved for future use
 
   return (
     <div className="space-y-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { colorThemes } from '@/lib/colorThemes';
 
 const STORAGE_KEY = 'ai-roadmap-color-theme';
@@ -9,8 +9,8 @@ export const useColorTheme = (isDarkMode) => {
     try {
       const stored = localStorage.getItem('custom-color-themes');
       return stored ? JSON.parse(stored) : {};
-    } catch (error) {
-      console.error('Error loading custom themes:', error);
+    } catch (_error) {
+      console.error('Error loading custom themes:', _error);
       return {};
     }
   };
@@ -18,7 +18,7 @@ export const useColorTheme = (isDarkMode) => {
   const [customThemes, setCustomThemes] = useState(getCustomThemes);
   
   // Refresh custom themes from localStorage
-  const refreshCustomThemes = () => {
+  const refreshCustomThemes = useCallback(() => {
     const updated = getCustomThemes();
     setCustomThemes(updated);
     
@@ -29,7 +29,7 @@ export const useColorTheme = (isDarkMode) => {
         setCustomThemes({...updated});
       }, 10);
     }
-  };
+  }, [customThemes]);
   
   // Initialize theme from localStorage or default to 'slate'
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -56,8 +56,8 @@ export const useColorTheme = (isDarkMode) => {
       }
       
       return themeId;
-    } catch (error) {
-      console.error('Error loading color theme from localStorage:', error);
+    } catch (_error) {
+      console.error('Error loading color theme from localStorage:', _error);
       return 'slate';
     }
   });
@@ -215,8 +215,8 @@ export const useColorTheme = (isDarkMode) => {
 
     try {
       localStorage.setItem(STORAGE_KEY, newThemeId);
-    } catch (error) {
-      console.error('Error saving color theme to localStorage:', error);
+    } catch (_error) {
+      console.error('Error saving color theme to localStorage:', _error);
     }
   };
 

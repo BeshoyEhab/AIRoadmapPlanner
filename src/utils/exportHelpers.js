@@ -1,7 +1,6 @@
 // Heavy export utilities - lazy loaded to reduce main bundle size
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 
 const formatDate = (dateString) => {
@@ -16,7 +15,6 @@ export const exportToPDF = async (roadmap, objective, finalGoal) => {
   if (!roadmap) return;
 
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.width;
   const margin = 20;
   let yPosition = margin;
 
@@ -44,7 +42,7 @@ export const exportToPDF = async (roadmap, objective, finalGoal) => {
   yPosition += 20;
 
   // Phases
-  roadmap.phases.forEach((phase, index) => {
+  roadmap.phases.forEach((phase) => {
     if (yPosition > doc.internal.pageSize.height - 40) {
       doc.addPage();
       yPosition = margin;

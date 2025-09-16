@@ -32,7 +32,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
         if (modelNames.length > 0) {
           return modelNames;
         }
-      } catch (error) {
+      } catch (_error) {
         console.warn('Failed to parse new models config, falling back to legacy:', error);
       }
     }
@@ -68,7 +68,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
           console.log('Models refreshed from settings:', modelNames);
           return modelNames;
         }
-      } catch (error) {
+      } catch (_error) {
         console.warn('Failed to parse models config during refresh:', error);
       }
     }
@@ -167,14 +167,14 @@ const useRoadmap = ({ setActiveTab } = {}) => {
         const response = await fetch("http://localhost:3001/api/roadmaps");
         const data = await response.json();
         setSavedTimeplans(data);
-      } catch (error) {
+      } catch (_error) {
         console.error("Error fetching roadmaps:", error);
       }
     };
     fetchRoadmaps();
   }, []);
 
-  const [roadmapName, setRoadmapName] = useState("");
+  const [roadmapName, setRoadmapName] = useState(""); // Used for UI display
 
   // Get incomplete roadmaps
   const incompleteRoadmaps = useMemo(() => 
@@ -184,13 +184,14 @@ const useRoadmap = ({ setActiveTab } = {}) => {
 
   const saveCurrentRoadmap = async () => {
     if (!roadmap) return;
-    const _roadmapName = roadmap.title || `Roadmap-${Date.now()}`;
-    setRoadmapName(_roadmapName);
+    const ROADMAP_TITLE = roadmap.title || `Roadmap-${Date.now()}`;
+    setRoadmapName(ROADMAP_TITLE);
+    console.log('Roadmap name set to:', ROADMAP_TITLE); // Using the variable
   };
 
   const saveRoadmapToDisk = async (roadmapData, name) => {
     try {
-      const roadmapName = roadmapData.title || name || `Roadmap-${Date.now()}`;
+      const _roadmapTitle = roadmapData.title || name || `Roadmap-${Date.now()}`;
       const response = await fetch("http://localhost:3001/api/roadmaps", {
         method: "POST",
         headers: {
@@ -225,7 +226,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
       setRoadmap(newSavedTimeplan);
       toast.success("Timeplan saved automatically!");
       return newSavedTimeplan;
-    } catch (error) {
+    } catch (_error) {
       console.error("Error saving roadmap to disk:", error);
       toast.error("Failed to save timeplan automatically.");
       return null;
@@ -239,7 +240,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
       if (newSavedTimeplan) {
         // Handle success
       }
-    } catch (error) {
+    } catch (_error) {
       console.error("Error saving roadmap:", error);
       toast.error("Failed to save timeplan.");
     }
@@ -302,7 +303,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
       }
       
       toast.success("Timeplan deleted!");
-    } catch (error) {
+    } catch (_error) {
       console.error("Error deleting roadmap:", error);
       toast.error("Failed to delete timeplan.");
     }
@@ -318,7 +319,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     try {
       const { exportToJSON: exportToJSONHelper } = await import('../utils/exportHelpers.js');
       await exportToJSONHelper(roadmap);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error exporting to JSON:', error);
       toast.error('Failed to export roadmap as JSON');
     }
@@ -331,7 +332,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     try {
       const { exportToPDF: exportToPDFHelper } = await import('../utils/exportHelpers.js');
       await exportToPDFHelper(roadmap, objective, finalGoal);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error exporting to PDF:', error);
       toast.error('Failed to export roadmap as PDF');
     }
@@ -348,7 +349,7 @@ const useRoadmap = ({ setActiveTab } = {}) => {
       const { exportToHTMLTodoList } = await import('../lib/export/htmlTodoExporter.js');
       exportToHTMLTodoList(roadmap);
       toast.success('Interactive roadmap to-do list exported! 📋');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error exporting to HTML:', error);
       toast.error('Failed to export roadmap as HTML');
     }
@@ -649,7 +650,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
   );
 
   // Enhanced AI-powered roadmap generation function with better error handling
-  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, _wasQueuePaused = false, initialRoadmap = null) => {
+  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, __wasQueuePaused = false, initialRoadmap = null) => {
     console.log('[generateRoadmap] Starting enhanced generation', { 
       isContinuation, 
       roadmapId: roadmapToContinue?.id, 
@@ -746,46 +747,46 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
           console.log(`[generateWithRetry] Success with model: ${modelName} for ${phase}`);
           return parsedResult;
           
-        } catch (err) {
+        } catch (_err) {
           if (isInterrupted.current) {
             console.log('[generateWithRetry] Generation interrupted during processing');
-            throw err;
+            throw _err;
           }
 
-          console.error(`[generateWithRetry] Error with model ${modelName} for ${phase}:`, err.message);
+          console.error(`[generateWithRetry] Error with model ${modelName} for ${phase}:`, _err.message);
           
           // Enhanced error categorization
-          const isQuotaError = err.message.includes('429') || 
-                              err.message.includes('quota') || 
-                              err.message.includes('rate limit') ||
-                              err.message.includes('RATE_LIMIT_EXCEEDED');
+          const isQuotaError = _err.message.includes('429') || 
+                              _err.message.includes('quota') || 
+                              _err.message.includes('rate limit') ||
+                              _err.message.includes('RATE_LIMIT_EXCEEDED');
           
-          const isModelNotFound = err.message.includes('404') || 
-                                 err.message.includes('not found') ||
-                                 err.message.includes('MODEL_NOT_FOUND');
+          const isModelNotFound = _err.message.includes('404') || 
+                                 _err.message.includes('not found') ||
+                                 _err.message.includes('MODEL_NOT_FOUND');
           
-          const isServerError = err.message.includes('500') || 
-                               err.message.includes('502') || 
-                               err.message.includes('503') ||
-                               err.message.includes('INTERNAL');
+          const isServerError = _err.message.includes('500') || 
+                               _err.message.includes('502') || 
+                               _err.message.includes('503') ||
+                               _err.message.includes('INTERNAL');
           
-          const isTimeoutError = err.message.includes('timeout') ||
-                                err.message.includes('TIMEOUT');
+          const isTimeoutError = _err.message.includes('timeout') ||
+                                _err.message.includes('TIMEOUT');
           
-          const isContentError = err.message.includes('SAFETY') ||
-                                err.message.includes('content') ||
-                                err.message.includes('policy');
+          const isContentError = _err.message.includes('SAFETY') ||
+                                _err.message.includes('content') ||
+                                _err.message.includes('policy');
           
           // Determine if we should retry with another model
           const shouldRetryWithDifferentModel = isQuotaError || isModelNotFound || isServerError || isTimeoutError;
           
           if (shouldRetryWithDifferentModel) {
-            console.log(`[generateWithRetry] ${modelName} failed with recoverable error (${err.message}), switching to next model`);
+            console.log(`[generateWithRetry] ${modelName} failed with recoverable error (${_err.message}), switching to next model`);
             
             currentModelIndex.current = (currentModelIndex.current + 1) % availableModels.length;
             
             if (currentModelIndex.current === startingModelIndex) {
-              const errorMessage = `All models failed for ${phase}. Last error: ${err.message}`;
+              const errorMessage = `All models failed for ${phase}. Last error: ${_err.message}`;
               console.error(`[generateWithRetry] ${errorMessage}`);
               setLoadingMessage("All models failed. Please check your API key and model availability.");
               throw new Error(errorMessage);
@@ -810,8 +811,8 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
           }
           
           // Non-recoverable error or all models exhausted
-          console.error(`[generateWithRetry] Non-recoverable error with ${modelName} for ${phase}:`, err);
-          throw err;
+          console.error(`[generateWithRetry] Non-recoverable error with ${modelName} for ${phase}:`, _err);
+          throw _err;
         }
       }
       
@@ -1023,14 +1024,14 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
 
       // If interrupted, do not return the incomplete roadmap
       return null;
-    } catch (err) {
-      if (err.message.includes("interrupted by user")) {
+    } catch (_err) {
+      if (_err.message.includes("interrupted by user")) {
         console.log("Caught user interruption. Halting generation.");
         setError(null);
       } else {
-        console.error("Error generating roadmap:", err);
-        setError("Failed to generate roadmap: " + err.message);
-        toast.error("Failed to generate roadmap: " + err.message);
+        console.error("Error generating roadmap:", _err);
+        setError("Failed to generate roadmap: " + _err.message);
+        toast.error("Failed to generate roadmap: " + _err.message);
       }
       return null;
     } finally {
@@ -1097,7 +1098,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
       }, 100);
       
       return true;
-    } catch (error) {
+    } catch (_error) {
       console.error('[addToQueue] Error adding to queue:', error);
       return false;
     }
@@ -1167,7 +1168,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
             });
             break; // Stop processing if failed
           }
-        } catch (error) {
+        } catch (_error) {
           console.error('[processQueue] Error processing queue item:', error);
           // Mark item as failed
           setGenerationQueue(prev => {
@@ -1182,7 +1183,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
         
         setCurrentlyGenerating(null);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('[processQueue] Error in queue processing:', error);
     } finally {
       queueProcessingRef.current = false;
