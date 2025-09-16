@@ -10,6 +10,7 @@ import {
   Star,
   RefreshCw,
   Brain,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -97,24 +98,43 @@ const SavedPlansTab = ({
 
   const renderRoadmapCard = (timeplan) => {
     const isCurrentlyRegenerating = isRegenerating(timeplan.id);
+    const isCompleted = timeplan.generationState === "completed";
+    const isInProgress = timeplan.generationState === "in-progress" || timeplan.generationState === "queued";
 
     return (
       <div
         key={timeplan.id}
-        className="relative group bg-gradient-to-br from-surface via-surface to-surface
-                   border border-default rounded-2xl overflow-hidden
-                   hover:border-theme-primary hover:shadow-2xl hover:shadow-theme-primary
-                   transition-all duration-500 ease-out cursor-pointer
-                   hover:-translate-y-2 hover:scale-[1.02]
-                   before:absolute before:inset-0 before:bg-gradient-to-br before:from-theme-primary before:to-theme-accent
-                   before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
+        className="relative group backdrop-blur-xl bg-card/80 border border-border/50 rounded-xl overflow-hidden
+                   hover:border-primary/50 hover:bg-card/90
+                   transition-all duration-300 ease-out cursor-pointer
+                   hover:scale-[1.02]
+                   before:absolute before:inset-0 before:bg-gradient-to-br 
+                   before:from-white/10 before:via-transparent before:to-black/5
+                   before:pointer-events-none before:rounded-xl"
         onClick={() => {
           loadRoadmap(timeplan.id);
           setActiveTab("view");
         }}
       >
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-theme-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {/* Completion Flag */}
+        {isCompleted && (
+          <div className="absolute bottom-15 left-2 z-20">
+            <div className="bg-success text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+              <Check className="w-3 h-3" />
+              Complete
+            </div>
+          </div>
+        )}
+        
+        {/* In Progress Flag */}
+        {isInProgress && (
+          <div className="absolute bottom-15 left-2 z-20">
+            <div className="bg-info text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 animate-pulse">
+              <Clock className="w-3 h-3" />
+              In Progress
+            </div>
+          </div>
+        )}
         
         {/* Favorite Star - Floating */}
         <div className="absolute top-4 right-4 z-20">
@@ -123,10 +143,10 @@ const SavedPlansTab = ({
               e.stopPropagation();
               toggleFavorite(timeplan.id);
             }}
-            className={`p-2 rounded-full backdrop-blur-sm border transition-all duration-300 hover:scale-110 ${
+            className={`p-2 rounded-full border backdrop-blur-sm transition-all duration-200 hover:scale-110 ${
               isFavorite(timeplan.id)
-                ? "bg-theme-secondary/20 border-theme-secondary/30 text-theme-secondary shadow-lg shadow-theme-secondary/25"
-                : "bg-surface/80 border-default/50 text-muted hover:border-theme-primary/50 hover:text-theme-primary"
+                ? "bg-amber-500 border-amber-400 text-amber-600"
+                : "bg-background border-border text-muted-foreground hover:border-primary hover:text-theme-primary hover:bg-primary"
             }`}
             title={isFavorite(timeplan.id) ? "Remove from favorites" : "Add to favorites"}
           >
@@ -142,16 +162,18 @@ const SavedPlansTab = ({
         <div className="relative z-10 p-6">
           {/* Header */}
           <div className="mb-6">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-theme-primary to-theme-accent rounded-xl flex items-center justify-center shadow-lg shadow-theme-primary/25">
-                <Brain className="w-6 h-6 text-main" />
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-14 h-14 bg-primary/20 backdrop-blur-sm border border-primary/30 rounded-2xl flex items-center justify-center group-hover:scale-105 group-hover:bg-primary/30 transition-all duration-300">
+                <Brain className="w-7 h-7 text-theme-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-main mb-1 line-clamp-2 group-hover:text-theme-primary transition-colors duration-300">
-                  {timeplan.title || timeplan.name}
-                </h3>
+                <div className="relative">
+                  <h3 className="text-xl font-bold mb-2 line-clamp-2 text-main foreground group-hover:text-theme-primary transition-colors duration-200">
+                    {timeplan.title || timeplan.name}
+                  </h3>
+                </div>
                 {timeplan.objective && (
-                  <p className="text-sm text-secondary line-clamp-2">
+                  <p className="text-sm text-theme-secondary line-clamp-2 leading-relaxed">
                     {timeplan.objective}
                   </p>
                 )}
@@ -163,16 +185,15 @@ const SavedPlansTab = ({
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div className="text-center group/stat">
               <div className="relative mb-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-theme-primary/10 to-theme-primary/20 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 group-hover/stat:scale-110 group-hover/stat:shadow-lg group-hover/stat:shadow-theme-primary/20">
+                <div className="w-16 h-16 bg-primary/15 backdrop-blur-sm border border-primary/20 rounded-xl flex items-center justify-center mx-auto transition-all duration-200 group-hover/stat:scale-105 group-hover:bg-primary/25">
                   <Calendar className="w-6 h-6 text-theme-primary" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/20 to-theme-accent/20 rounded-2xl opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300 blur-xl" />
               </div>
               <div className="relative">
-                <p className="text-2xl font-bold text-main mb-1">
+                <p className="text-2xl font-bold text-card-foreground mb-1">
                   {timeplan.phases?.length || 0}
                 </p>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
+                <p className="text-xs font-medium text-main uppercase tracking-wider">
                   Phases
                 </p>
               </div>
@@ -180,16 +201,15 @@ const SavedPlansTab = ({
 
             <div className="text-center group/stat">
               <div className="relative mb-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-success/10 to-success/20 rounded-2xl flex items-center justify-center mx-auto transition-all duration-300 group-hover/stat:scale-110 group-hover/stat:shadow-lg group-hover/stat:shadow-success/20">
+                <div className="w-16 h-16 bg-success/15 backdrop-blur-sm border border-success/20 rounded-xl flex items-center justify-center mx-auto transition-all duration-200 group-hover/stat:scale-105 group-hover:bg-success/25">
                   <Clock className="w-6 h-6 text-success" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-success/20 to-theme-accent/20 rounded-2xl opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300 blur-xl" />
               </div>
               <div className="relative">
-                <p className="text-2xl font-bold text-main mb-1">
+                <p className="text-xl font-bold text-card-foreground mb-1">
                   {timeplan.totalDuration || "N/A"}
                 </p>
-                <p className="text-xs font-medium text-secondary uppercase tracking-wider">
+                <p className="text-xs font-medium text-main uppercase tracking-wider">
                   Duration
                 </p>
               </div>
@@ -197,8 +217,8 @@ const SavedPlansTab = ({
           </div>
         </div>
 
-        {/* Card Footer - Enhanced Action Buttons */}
-        <div className="relative border-t border-default/50 bg-gradient-to-r from-surface/50 to-surface backdrop-blur-sm">
+        {/* Card Footer - Action Buttons */}
+        <div className="border-t border-border/50 bg-muted/20 backdrop-blur-sm">
           <div className="grid grid-cols-2">
             {/* Regenerate Button */}
             <button
@@ -207,25 +227,20 @@ const SavedPlansTab = ({
                 handleRegenerateRoadmap(timeplan);
               }}
               disabled={isCurrentlyRegenerating}
-              className="group/regenerate relative p-4 flex items-center justify-center gap-3 transition-all duration-300 hover:bg-success/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group/regenerate relative p-4 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-success/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="relative">
-                <RefreshCw
-                  size={18}
-                  className={`transition-all duration-300 ${
-                    isCurrentlyRegenerating
-                      ? "animate-spin text-theme-primary"
-                      : "text-secondary group-hover/regenerate:text-success group-hover/regenerate:rotate-180 group-hover/regenerate:scale-110"
-                  }`}
-                />
-                {!isCurrentlyRegenerating && (
-                  <div className="absolute inset-0 bg-success/20 rounded-full opacity-0 group-hover/regenerate:opacity-100 transition-opacity duration-300 blur-md" />
-                )}
-              </div>
-              <span className={`text-sm font-medium transition-colors duration-300 ${
+              <RefreshCw
+                size={16}
+                className={`transition-all duration-200 ${
+                  isCurrentlyRegenerating
+                    ? "animate-spin text-theme-primary"
+                    : "text-theme-secondary group-hover/regenerate:text-success"
+                }`}
+              />
+              <span className={`text-sm font-medium transition-colors duration-200 ${
                 isCurrentlyRegenerating
                   ? "text-theme-primary"
-                  : "text-secondary group-hover/regenerate:text-success"
+                  : "text-main group-hover/regenerate:text-success"
               }`}>
                 {isCurrentlyRegenerating ? "Regenerating..." : "Regenerate"}
               </span>
@@ -237,23 +252,17 @@ const SavedPlansTab = ({
                 e.stopPropagation();
                 deleteRoadmap(timeplan.id);
               }}
-              className="group/delete relative p-4 flex items-center justify-center gap-3 transition-all duration-300 hover:bg-error/10 border-l border-default/50"
+              className="group/delete relative p-4 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-destructive/10 border-l border-border"
             >
-              <div className="relative">
-                <Trash2
-                  size={18}
-                  className="text-secondary group-hover/delete:text-error group-hover/delete:scale-110 transition-all duration-300"
-                />
-                <div className="absolute inset-0 bg-error/20 rounded-full opacity-0 group-hover/delete:opacity-100 transition-opacity duration-300 blur-md" />
-              </div>
-              <span className="text-sm font-medium text-secondary group-hover/delete:text-error transition-colors duration-300">
+              <Trash2
+                size={16}
+                className="text-red-400 group-hover/delete:text-red-600 transition-colors duration-200"
+              />
+              <span className="text-sm font-medium text-red-400 group-hover/delete:text-red-600 transition-colors duration-200">
                 Delete
               </span>
             </button>
           </div>
-          
-          {/* Bottom Glow Effect */}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-theme-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
       </div>
     );
@@ -264,7 +273,7 @@ const SavedPlansTab = ({
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
         <div className="text-center max-w-lg">
           {/* Empty State Icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 border border-default rounded-2xl shadow-md bg-surface mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 border border-default rounded-2xl bg-surface mb-6">
             <FolderOpen
               size={40}
               className="text-muted"
@@ -285,8 +294,8 @@ const SavedPlansTab = ({
           <button
             onClick={() => setActiveTab("create")}
             className="bg-gradient-to-r from-theme-primary to-theme-accent hover:from-theme-accent hover:to-theme-primary
-                     text-white font-semibold py-3 px-8 rounded-lg shadow-lg
-                     transition-all duration-300 hover:shadow-xl transform hover:scale-105
+                     text-white font-semibold py-3 px-8 rounded-lg
+                     transition-all duration-300 transform hover:scale-105
                      flex items-center justify-center gap-3 mx-auto"
           >
             <Plus size={20} />
@@ -308,12 +317,12 @@ const SavedPlansTab = ({
   return (
     <div className="min-h-[calc(100vh-64px)]">
       {/* Header Section */}
-      <div className="border-b border-default shadow-sm">
+      <div className="border-b border-default">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-main flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-theme-primary to-theme-accent rounded-lg shadow-md">
+                <div className="p-2 bg-gradient-to-br from-theme-primary to-theme-accent rounded-lg">
                   <BookOpen size={24} className="text-main" />
                 </div>
                 Saved Learning Plans
@@ -334,7 +343,7 @@ const SavedPlansTab = ({
               <button
                 onClick={() => setActiveTab("create")}
                 className="bg-gradient-theme hover:bg-theme-accent text-white font-semibold py-2 px-4
-                         rounded-lg shadow-md transition-all duration-300 hover:shadow-lg
+                         rounded-lg transition-all duration-300
                          transform hover:scale-105 flex items-center gap-2"
               >
                 <Plus size={18} />

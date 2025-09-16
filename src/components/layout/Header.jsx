@@ -62,7 +62,7 @@ const Header = ({
               {/* Content */}
               <div className="relative flex items-center">
                 <div className="relative p-3 bg-gradient-to-br from-theme-primary to-theme-accent rounded-xl shadow-lg logo-container hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <Brain size={28} className="text-white logo-brain transition-transform duration-300 group-hover:rotate-12" />
+                  <Brain size={28} className="text-main logo-brain transition-transform duration-300 group-hover:rotate-12" />
                   <div className="absolute inset-0 bg-white/10 rounded-xl animate-pulse opacity-30"></div>
                 </div>
                 <div className="ml-3">

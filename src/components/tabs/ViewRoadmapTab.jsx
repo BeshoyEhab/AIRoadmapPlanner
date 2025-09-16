@@ -52,7 +52,7 @@ const ViewRoadmapTab = ({
 
   if (!roadmap) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-page flex items-center justify-center p-4">
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
         <div className="text-center max-w-lg">
           {/* Empty State Icon */}
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-theme rounded-2xl shadow-lg mb-6">

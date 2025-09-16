@@ -27,6 +27,28 @@ body {
     --color-shadow: 71 85 105; /* Shadows and glows */
     --color-ring: 71 85 105; /* Focus rings */
     
+    /* ===== TAILWIND EXPECTED VARIABLES ===== */
+    /* These map to Tailwind's default color system */
+    --background: 248 250 252; /* Same as color-background */
+    --foreground: 15 23 42; /* Same as color-text-primary */
+    --card: 255 255 255; /* Same as color-surface */
+    --card-foreground: 15 23 42; /* Same as color-text-primary */
+    --popover: 255 255 255; /* Same as color-surface */
+    --popover-foreground: 15 23 42; /* Same as color-text-primary */
+    --primary: 71 85 105; /* Same as color-primary */
+    --primary-foreground: 248 250 252; /* Light text on primary */
+    --secondary: 241 245 249; /* Light secondary background */
+    --secondary-foreground: 15 23 42; /* Dark text on secondary */
+    --muted: 241 245 249; /* Same as secondary */
+    --muted-foreground: 100 116 139; /* Muted text color */
+    --accent: 241 245 249; /* Light accent background */
+    --accent-foreground: 15 23 42; /* Dark text on accent */
+    --destructive: 220 38 38; /* Error/danger color */
+    --destructive-foreground: 248 250 252; /* Light text on destructive */
+    --border: 226 232 240; /* Same as color-border */
+    --input: 226 232 240; /* Input border color */
+    --ring: 71 85 105; /* Focus ring color */
+    
     /* ===== SEMANTIC COLORS - Better contrast for light theme ===== */
     --color-success: 5 150 105; /* emerald-600 - Success states */
     --color-warning: 217 119 6; /* amber-600 - Warnings */
@@ -58,6 +80,27 @@ body {
     --color-warning: 245 158 11; /* amber-500 - Warnings */
     --color-error: 239 68 68; /* red-500 - Errors */
     --color-info: 59 130 246; /* blue-500 - Information */
+    
+    /* ===== TAILWIND DARK MODE VARIABLES ===== */
+    --background: 9 9 11; /* Dark background */
+    --foreground: 250 250 250; /* Light text on dark */
+    --card: 24 24 27; /* Dark card background */
+    --card-foreground: 250 250 250; /* Light text on dark card */
+    --popover: 24 24 27; /* Dark popover background */
+    --popover-foreground: 250 250 250; /* Light text on dark popover */
+    --primary: 139 92 246; /* Purple primary in dark mode */
+    --primary-foreground: 250 250 250; /* Light text on primary */
+    --secondary: 39 39 42; /* Dark secondary background */
+    --secondary-foreground: 250 250 250; /* Light text on secondary */
+    --muted: 39 39 42; /* Dark muted background */
+    --muted-foreground: 161 161 170; /* Muted text in dark mode */
+    --accent: 39 39 42; /* Dark accent background */
+    --accent-foreground: 250 250 250; /* Light text on accent */
+    --destructive: 239 68 68; /* Red destructive in dark mode */
+    --destructive-foreground: 250 250 250; /* Light text on destructive */
+    --border: 39 39 42; /* Dark border */
+    --input: 39 39 42; /* Dark input border */
+    --ring: 139 92 246; /* Purple focus ring in dark mode */
   }
 
 /* Enhanced UI Animations and custom utilities (no @layer for v4) */
@@ -81,23 +124,36 @@ body {
   
   /* Unified text hierarchy classes */
   .text-main {
-    color: rgb(var(--color-text-primary)); /* Main headings - high contrast */
+    color: rgb(var(--foreground)); /* Use Tailwind foreground for consistency */
   }
   
   .text-content {
-    color: rgb(var(--color-text-primary)); /* Regular content text */
+    color: rgb(var(--foreground)); /* Regular content text */
   }
   
   .text-secondary {
-    color: rgb(var(--color-text-secondary)); /* Secondary text */
+    color: rgb(var(--muted-foreground)); /* Use Tailwind muted-foreground */
   }
   
   .text-muted {
-    color: rgb(var(--color-text-muted)); /* Muted text */
+    color: rgb(var(--muted-foreground)); /* Muted text */
   }
   
   .text-subtle {
-    color: rgb(var(--color-text-muted)); /* Very subtle text */
+    color: rgb(var(--muted-foreground)); /* Very subtle text */
+  }
+  
+  /* Additional text utilities for better contrast */
+  .text-default {
+    color: rgb(var(--foreground)); /* Default text color */
+  }
+  
+  .text-primary {
+    color: rgb(var(--primary)); /* Primary color text */
+  }
+  
+  .text-card-foreground {
+    color: rgb(var(--card-foreground)); /* Text on cards */
   }
 
   /* Colored text with proper contrast */
@@ -169,23 +225,27 @@ body {
   
   /* Unified background classes with mixed colors */
   .bg-app {
-    background-color: rgb(var(--app-bg-mixed));
+    background-color: rgb(var(--background));
   }
   
   .bg-page {
-    background-color: rgb(var(--page-bg-mixed));
+    background-color: rgb(var(--background));
   }
   
   .bg-card {
-    background-color: rgb(var(--card-bg-mixed));
+    background-color: rgb(var(--card));
+  }
+  
+  .bg-surface {
+    background-color: rgb(var(--card)); /* Use card as surface */
   }
   
   .bg-header {
-    background-color: rgb(var(--header-bg-mixed));
+    background-color: rgb(var(--card));
   }
   
   .bg-settings {
-    background-color: rgb(var(--settings-bg-mixed));
+    background-color: rgb(var(--background));
   }
   
   /* Selection and state classes */
@@ -399,23 +459,23 @@ body {
   
   /* Unified border classes */
   .border-default {
-    border-color: rgb(var(--color-border));
+    border-color: rgb(var(--border));
   }
   
   .border-strong {
-    border-color: rgb(var(--color-text-secondary));
+    border-color: rgb(var(--muted-foreground));
   }
   
   .border-theme {
-    border-color: rgb(var(--color-primary));
+    border-color: rgb(var(--primary));
   }
   
   .border-theme-light {
-    border-color: rgba(var(--color-primary), 0.3);
+    border-color: rgba(var(--primary), 0.3);
   }
   
   .border-theme-lighter {
-    border-color: rgba(var(--color-primary), 0.15);
+    border-color: rgba(var(--primary), 0.15);
   }
   
   .bg-theme-primary {
@@ -634,15 +694,42 @@ body {
   -webkit-line-clamp: 3;
 }
 
-/* Solid background effects (replacing glassmorphism) */
+/* Enhanced glassmorphism effects */
 .glass {
-  background-color: rgb(var(--card-bg-mixed));
-  border: 1px solid rgb(var(--border-default));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(var(--card), 0.8);
+  border: 1px solid rgba(var(--border), 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .glass-dark {
-  background-color: rgb(var(--card-bg-mixed));
-  border: 1px solid rgb(var(--border-default));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(var(--card), 0.8);
+  border: 1px solid rgba(var(--border), 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced glassmorphism card */
+.glass-card {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(var(--card), 0.85);
+  border: 1px solid rgba(var(--border), 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card:hover {
+  background-color: rgba(var(--card), 0.9);
+  border-color: rgba(var(--primary), 0.3);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(var(--primary), 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Line clamp utilities */

@@ -83,8 +83,8 @@ const ModelsManager = () => {
           {
             id: 'default-gemini-flash',
             provider: 'gemini',
-            modelName: 'gemini-2.0-flash-exp',
-            displayName: 'Gemini 2.0 Flash (Experimental)',
+            modelName: 'gemini-2.0-flash',
+            displayName: 'Gemini 2.0 Flash',
             description: 'Fast and efficient model for general tasks',
             order: 0,
             isDefault: true
@@ -289,14 +289,14 @@ const ModelsManager = () => {
                   value={newModel.provider} 
                   onValueChange={(value) => setNewModel({...newModel, provider: value})}
                 >
-                  <SelectTrigger id="provider">
+                  <SelectTrigger id="provider" className="text-main">
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_PROVIDERS.map((provider) => (
                       <SelectItem key={provider.id} value={provider.id}>
                         <div className="flex items-center gap-2 text-main">
-                          <provider.icon className={`h-4 w-4 ${provider.color}`} />
+                          <provider.icon className={`h-4 w-4 text-main ${provider.color}`} />
                           {provider.name}
                         </div>
                       </SelectItem>
@@ -313,7 +313,7 @@ const ModelsManager = () => {
                   value={newModel.modelName}
                   onChange={(e) => setNewModel({...newModel, modelName: e.target.value})}
                   placeholder="e.g., gpt-4, claude-3-opus, gemini-pro"
-                  className="font-mono"
+                  className="font-mono text-main"
                 />
                 <p className="text-xs text-main text-muted-foreground">
                   Enter the exact model identifier used by the API
@@ -327,6 +327,7 @@ const ModelsManager = () => {
                   id="displayName"
                   value={newModel.displayName}
                   onChange={(e) => setNewModel({...newModel, displayName: e.target.value})}
+                  className="text-main"
                   placeholder="e.g., GPT-4 Turbo, Claude 3 Opus"
                 />
                 <p className="text-xs text-main text-muted-foreground">
@@ -341,6 +342,7 @@ const ModelsManager = () => {
                   id="description"
                   value={newModel.description}
                   onChange={(e) => setNewModel({...newModel, description: e.target.value})}
+                  className="text-main"
                   placeholder="Brief description of the model's capabilities"
                 />
               </div>
@@ -393,7 +395,7 @@ const ModelsManager = () => {
                 `}
               >
                 {/* Drag Handle */}
-                <div className="flex items-center text-muted-foreground group-hover:text-theme-primary cursor-grab active:cursor-grabbing">
+                <div className="flex items-center text-theme-primary group-hover:text-theme-primary cursor-grab active:cursor-grabbing">
                   <GripVertical className="h-5 w-5" />
                 </div>
 

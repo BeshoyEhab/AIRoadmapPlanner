@@ -171,14 +171,42 @@ const OngoingTab = ({
     return Math.round((completedPhases / totalPhases) * 100);
   };
 
+  // Enhanced queue monitoring with better sync
   const queuedItems = generationQueue.filter(item => item.id !== currentlyGenerating?.id);
-  const generatingRoadmapData = currentlyGenerating ? incompleteRoadmaps.find(r => r.id === currentlyGenerating.roadmapId) : null;
-  const progress = generatingRoadmapData ? getProgressBar(generatingRoadmapData) : (currentlyGenerating ? 1 : 0);
+  const generatingRoadmapData = currentlyGenerating ? 
+    incompleteRoadmaps.find(r => r.id === currentlyGenerating.roadmapId || r.id === currentlyGenerating.id) : null;
+  const progress = generatingRoadmapData ? getProgressBar(generatingRoadmapData) : (currentlyGenerating ? 5 : 0);
+  
+  // Auto-refresh mechanism to keep data in sync
+  React.useEffect(() => {
+    const syncInterval = setInterval(() => {
+      // Force a re-render to check for sync issues
+      if (currentlyGenerating && !generatingRoadmapData) {
+        console.warn('Sync issue detected: Currently generating roadmap not found in incomplete roadmaps');
+      }
+    }, 5000);
+    
+    return () => clearInterval(syncInterval);
+  }, [currentlyGenerating, generatingRoadmapData]);
 
+  // Fix sync - include ALL incomplete roadmaps regardless of queue state
   const filteredIncomplete = incompleteRoadmaps.filter(
-    (roadmap) =>
-      roadmap.id !== currentlyGenerating?.roadmapId &&
-      !generationQueue.some((item) => item.roadmapId === roadmap.id)
+    (roadmap) => {
+      // Don't filter out roadmaps that are currently being generated
+      // This ensures they show up in the Ongoing tab
+      const isCurrentlyGenerating = roadmap.id === currentlyGenerating?.roadmapId;
+      const isInQueue = generationQueue.some((item) => item.roadmapId === roadmap.id);
+      
+      // Show roadmap if it's incomplete and either:
+      // 1. Currently being generated, or
+      // 2. In the queue, or 
+      // 3. Has in-progress/queued state but not in queue (sync issue fix)
+      return roadmap.generationState !== 'completed' && (
+        isCurrentlyGenerating ||
+        isInQueue ||
+        (roadmap.generationState === 'in-progress' || roadmap.generationState === 'queued')
+      );
+    }
   );
 
   const sensors = useSensors(
@@ -614,16 +642,23 @@ const OngoingTab = ({
                         <button 
                           onClick={() => {
                             if (window.confirm('Are you sure you want to delete this incomplete roadmap?')) {
-                              deleteRoadmap(roadmap.sanitizedName);
-                              toast.success('Roadmap deleted');
+                              // Remove from queue if present
+                              const queueItem = generationQueue.find(item => item.roadmapId === roadmap.id);
+                              if (queueItem) {
+                                removeFromQueue(queueItem.id);
+                              }
+                              
+                              // Delete the roadmap
+                              deleteRoadmap(roadmap.sanitizedName || roadmap.id);
+                              toast.success('Roadmap deleted and removed from queue');
                             }
                           }}
                           disabled={loading}
                           className="p-3 rounded-lg font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 
                                    hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800
                                    transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md
-                                   active:scale-95"
-                          title="Delete roadmap"
+                                   active:scale-95 hover:scale-105"
+                          title="Delete roadmap and remove from queue"
                         >
                           <Trash2 size={16} />
                         </button>

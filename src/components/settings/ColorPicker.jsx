@@ -338,11 +338,11 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
                   </Button>
                   
                   {/* Custom theme controls */}
-                  <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                  <div className="absolute -top-2 -right-2 opacity-0 text-main group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-6 h-6 p-0 bg-theme-primary/90 border-theme-primary text-white hover:bg-theme-primary"
+                      className="w-6 h-6 p-0 bg-theme-primary/90 border-theme-primary text-main hover:bg-theme-primary"
                       onClick={(e) => {
                         e.stopPropagation();
                         editCustomTheme(themeId);
@@ -354,7 +354,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-6 h-6 p-0 bg-error/90 border-error text-white hover:bg-error"
+                      className="w-6 h-6 p-0 bg-red-400 border-error text-main hover:bg-red-600"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm('Delete this custom theme?')) {
@@ -381,7 +381,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
 
       {/* Custom Theme Form */}
       {showCustomForm && (
-        <div className="border border-default rounded-xl p-6 bg-surface shadow-lg">
+        <div className="border text-main border-default rounded-xl p-6 bg-surface shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-semibold text-main">
               {editingTheme ? 'Edit Custom Theme' : 'Create Custom Theme'}
@@ -712,7 +712,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
 
       {/* Current Theme Info - Only shown as a small indicator */}
       {currentTheme && colorThemes[currentTheme] && (
-        <div className="border border-border rounded-lg p-3">
+        <div className="border text-main border-border rounded-lg p-3">
           <div className="flex items-center gap-3">
             <div
               className="w-6 h-6 rounded-lg shadow-sm"

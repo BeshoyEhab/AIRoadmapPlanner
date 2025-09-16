@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { toast } from "sonner";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as browserStorage from '@/lib/storage/browserStorage';
 
 const useRoadmap = ({ setActiveTab } = {}) => {
   const [objective, setObjective] = useState("");
@@ -160,18 +161,19 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     return favorites.includes(roadmapId);
   }, [favorites]);
   
-  // Fetch roadmaps on component mount
+  // Load roadmaps from browser storage on component mount
   useEffect(() => {
-    const fetchRoadmaps = async () => {
+    const loadRoadmaps = () => {
       try {
-        const response = await fetch("http://localhost:3001/api/roadmaps");
-        const data = await response.json();
+        const data = browserStorage.getAllRoadmaps();
         setSavedTimeplans(data);
-      } catch (_error) {
-        console.error("Error fetching roadmaps:", error);
+        console.log('Loaded roadmaps from browser storage:', data.length);
+      } catch (error) {
+        console.error("Error loading roadmaps from browser storage:", error);
+        toast.error("Failed to load your roadmaps");
       }
     };
-    fetchRoadmaps();
+    loadRoadmaps();
   }, []);
 
   const [roadmapName, setRoadmapName] = useState(""); // Used for UI display
@@ -191,27 +193,21 @@ const useRoadmap = ({ setActiveTab } = {}) => {
 
   const saveRoadmapToDisk = async (roadmapData, name) => {
     try {
-      const _roadmapTitle = roadmapData.title || name || `Roadmap-${Date.now()}`;
-      const response = await fetch("http://localhost:3001/api/roadmaps", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ roadmap: roadmapData, name }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        toast.error(`Failed to save: ${errorText}`);
-        console.error("Error saving roadmap to disk:", errorText);
-        return null;
-      }
-
-      const newSavedTimeplan = await response.json();
+      const roadmapTitle = roadmapData.title || name || `Roadmap-${Date.now()}`;
+      
+      // Prepare roadmap for browser storage
+      const roadmapToSave = {
+        ...roadmapData,
+        title: roadmapTitle,
+        name: roadmapTitle
+      };
+      
+      // Save to browser storage
+      const newSavedTimeplan = browserStorage.saveRoadmap(roadmapToSave);
 
       setSavedTimeplans((prev) => {
         const indexToReplace = prev.findIndex(
-          (tp) => tp.sanitizedName === newSavedTimeplan.sanitizedName,
+          (tp) => tp.sanitizedName === newSavedTimeplan.sanitizedName || tp.id === newSavedTimeplan.id,
         );
 
         if (indexToReplace > -1) {
@@ -224,11 +220,11 @@ const useRoadmap = ({ setActiveTab } = {}) => {
       });
 
       setRoadmap(newSavedTimeplan);
-      toast.success("Timeplan saved automatically!");
+      toast.success("Roadmap saved successfully!");
       return newSavedTimeplan;
-    } catch (_error) {
-      console.error("Error saving roadmap to disk:", error);
-      toast.error("Failed to save timeplan automatically.");
+    } catch (error) {
+      console.error("Error saving roadmap to browser storage:", error);
+      toast.error("Failed to save roadmap: " + error.message);
       return null;
     }
   };
@@ -287,22 +283,25 @@ const useRoadmap = ({ setActiveTab } = {}) => {
         )
       );
       
-      await fetch(`http://localhost:3001/api/roadmaps/${sanitizedName}`, {
-        method: "DELETE",
-      });
+      // Delete from browser storage
+      const deleted = browserStorage.deleteRoadmap(idOrSanitizedName);
       
-      // Update the UI by removing the deleted roadmap
-      setSavedTimeplans(prev => 
-        prev.filter(tp => tp.sanitizedName !== sanitizedName && tp.id !== idOrSanitizedName)
-      );
-      
-      // Also remove from current roadmap if it's the one being deleted
-      if (roadmap?.id === idOrSanitizedName || roadmap?.sanitizedName === sanitizedName) {
-        setRoadmap(null);
-        localStorage.removeItem('currentRoadmap');
+      if (deleted) {
+        // Update the UI by removing the deleted roadmap
+        setSavedTimeplans(prev => 
+          prev.filter(tp => tp.sanitizedName !== sanitizedName && tp.id !== idOrSanitizedName)
+        );
+        
+        // Also remove from current roadmap if it's the one being deleted
+        if (roadmap?.id === idOrSanitizedName || roadmap?.sanitizedName === sanitizedName) {
+          setRoadmap(null);
+          localStorage.removeItem('currentRoadmap');
+        }
+        
+        toast.success("Roadmap deleted!");
+      } else {
+        toast.error("Failed to delete roadmap");
       }
-      
-      toast.success("Timeplan deleted!");
     } catch (_error) {
       console.error("Error deleting roadmap:", error);
       toast.error("Failed to delete timeplan.");

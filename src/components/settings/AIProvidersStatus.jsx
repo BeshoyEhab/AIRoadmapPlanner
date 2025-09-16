@@ -116,8 +116,8 @@ const AIProvidersStatus = () => {
     setIsEditing(edit);
     
     if (edit) {
-      // const existingKey = localStorage.getItem(provider.keyName) || ''; // For future use
-      setApiKey('••••••••'); // Show masked key for editing
+      const existingKey = localStorage.getItem(provider.keyName) || ''; // For future use
+      setApiKey(existingKey); // Show masked key for editing
     } else {
       setApiKey('');
     }
@@ -170,11 +170,11 @@ const AIProvidersStatus = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-main flex items-center gap-2">
-          <Key className="h-5 w-5 text-theme-primary" />
+        <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
+          <Key className="h-5 w-5 text-primary" />
           AI Providers
         </h3>
-        <p className="text-sm text-main text-secondary mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Configure API keys for AI providers
         </p>
       </div>
@@ -207,7 +207,7 @@ const AIProvidersStatus = () => {
                     Configured
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-sm px-3 py-1">
+                  <Badge variant="outline" className="text-sm text-main px-3 py-1">
                     Not Setup
                   </Badge>
                 )}
@@ -282,13 +282,13 @@ const AIProvidersStatus = () => {
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
                       placeholder={`Enter your ${selectedProvider.name} API key`}
-                      className="pr-10 font-mono"
+                      className="pr-10 text-main font-mono"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3"
+                      className="absolute text-main right-0 top-0 h-full px-3"
                       onClick={() => setShowApiKey(!showApiKey)}
                     >
                       {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

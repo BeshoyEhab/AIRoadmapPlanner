@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import ModelsManager from "./ModelsManager";
 import AIProvidersStatus from "./AIProvidersStatus";
 import ColorPicker from "./ColorPicker";
+import BackupRestore from "../backup/BackupRestore";
 // import { useAppContext } from "@/contexts/AppContext"; // Reserved for future use
 import { useColorTheme } from "@/hooks/useColorTheme";
 import {
@@ -31,6 +32,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  Database,
 } from "lucide-react";
 
 const Settings = ({ theme, toggleTheme }) => {
@@ -185,21 +187,21 @@ const Settings = ({ theme, toggleTheme }) => {
 
       {/* Appearance Settings */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-card-foreground uppercase tracking-wider mb-4">
           Appearance
         </h3>
         <div className="space-y-6 border border-default p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="flex items-center gap-2 text-main">
+              <Label className="flex items-center gap-2 text-card-foreground">
                 {theme === "dark" ? (
-                  <Moon className="h-4 w-4 text-main" />
+                  <Moon className="h-4 w-4 text-card-foreground" />
                 ) : (
-                  <Sun className="h-4 w-4 text-main" />
+                  <Sun className="h-4 w-4 text-card-foreground" />
                 )}
                 Theme Mode
               </Label>
-              <p className="text-sm text-secondary">
+              <p className="text-sm text-main">
                 Switch between light and dark themes
               </p>
             </div>
@@ -232,14 +234,14 @@ const Settings = ({ theme, toggleTheme }) => {
 
       {/* Application Settings */}
       <div className="mb-8 text-main">
-        <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-card-foreground uppercase tracking-wider mb-4">
           Application Settings
         </h3>
         <div className="space-y-4 border border-default p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-main">Auto-save Roadmaps</Label>
-              <p className="text-sm text-secondary">
+              <Label className="text-card-foreground">Auto-save Roadmaps</Label>
+              <p className="text-sm text-muted-foreground">
                 Automatically save your progress while working
               </p>
             </div>
@@ -247,8 +249,8 @@ const Settings = ({ theme, toggleTheme }) => {
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-main">Push Notifications</Label>
-              <p className="text-sm text-secondary">
+              <Label className="text-card-foreground">Push Notifications</Label>
+              <p className="text-sm text-muted-foreground">
                 Receive notifications for important updates
               </p>
             </div>
@@ -258,49 +260,33 @@ const Settings = ({ theme, toggleTheme }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="export-format" className="text-main">Default Export Format</Label>
-            <Select value={exportFormat} onValueChange={setExportFormat}>
+            <Label htmlFor="export-format" className="text-card-foreground">Default Export Format</Label>
+            <Select value={exportFormat} onValueChange={setExportFormat} className="text-main">
               <SelectTrigger id="export-format">
                 <SelectValue placeholder="Select export format" />
               </SelectTrigger>
-              <SelectContent className="bg-theme-primary text-white border-theme-primary/50">
-                <SelectItem value="markdown" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">Markdown (.md)</SelectItem>
-                <SelectItem value="pdf" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">PDF Document</SelectItem>
-                <SelectItem value="json" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">JSON Data</SelectItem>
-                <SelectItem value="html" className="text-white hover:bg-theme-accent focus:bg-theme-accent focus:text-white data-[highlighted]:bg-theme-accent data-[highlighted]:text-white">HTML Page</SelectItem>
+              <SelectContent className="bg-theme-primary text-main border-theme-primary">
+                <SelectItem value="markdown" className="text-main hover:bg-theme-accent focus:bg-theme-accent focus:text-main data-[highlighted]:bg-theme-accent data-[highlighted]:text-main">Markdown (.md)</SelectItem>
+                <SelectItem value="pdf" className="text-main hover:bg-theme-accent focus:bg-theme-accent focus:text-main data-[highlighted]:bg-theme-accent data-[highlighted]:text-main">PDF Document</SelectItem>
+                <SelectItem value="json" className="text-main hover:bg-theme-accent focus:bg-theme-accent focus:text-main data-[highlighted]:bg-theme-accent data-[highlighted]:text-main">JSON Data</SelectItem>
+                <SelectItem value="html" className="text-main hover:bg-theme-accent focus:bg-theme-accent focus:text-main data-[highlighted]:bg-theme-accent data-[highlighted]:text-main">HTML Page</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="language" className="text-main">Interface Language</Label>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger id="language">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="de">Deutsch</SelectItem>
-                <SelectItem value="zh">中文</SelectItem>
-                <SelectItem value="ja">日本語</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          </div>  
         </div>
       </div>
 
       {/* Roadmap Generation Settings */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold text-main uppercase tracking-wider mb-4 flex items-center gap-2">
-          <Brain className="h-4 w-4 text-main" />
+        <h3 className="text-xs font-semibold text-card-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Brain className="h-4 w-4 text-card-foreground" />
           Roadmap Generation
         </h3>
-        <div className="space-y-4 border border-default p-4 rounded-lg">
+        <div className="space-y-4 border border-default p-4 rounded-lg text-main">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-main">Adaptive Difficulty Phases</Label>
-              <p className="text-sm text-secondary">
+              <Label className="text-card-foreground">Adaptive Difficulty Phases</Label>
+              <p className="text-sm text-muted-foreground">
                 Automatically adjust phase count based on difficulty level
               </p>
             </div>
@@ -312,7 +298,7 @@ const Settings = ({ theme, toggleTheme }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="min-phases" className="text-main">Minimum Phases</Label>
+              <Label htmlFor="min-phases" className="text-card-foreground">Minimum Phases</Label>
               <Input
                 id="min-phases"
                 type="number"
@@ -325,15 +311,15 @@ const Settings = ({ theme, toggleTheme }) => {
                     setMinPhases(value);
                   }
                 }}
-                className="w-full text-main bg-surface border-default"
+                className="w-full text-card-foreground bg-surface border-default"
               />
-              <p className="text-xs text-secondary">
+              <p className="text-xs text-muted-foreground">
                 Minimum number of learning phases
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="max-phases" className="text-main">Maximum Phases</Label>
+              <Label htmlFor="max-phases" className="text-card-foreground">Maximum Phases</Label>
               <Input
                 id="max-phases"
                 type="number"
@@ -346,9 +332,9 @@ const Settings = ({ theme, toggleTheme }) => {
                     setMaxPhases(value);
                   }
                 }}
-                className="w-full text-main bg-surface border-default"
+                className="w-full text-card-foreground bg-surface border-default"
               />
-              <p className="text-xs text-secondary">
+              <p className="text-xs text-muted-foreground">
                 Maximum number of learning phases
               </p>
             </div>
@@ -356,10 +342,10 @@ const Settings = ({ theme, toggleTheme }) => {
 
           {adaptiveDifficulty && (
             <div className="border border-default rounded-lg p-3">
-              <h4 className="text-sm font-medium text-main mb-2">
+              <h4 className="text-sm font-medium text-card-foreground mb-2">
                 Adaptive Phase Count
               </h4>
-              <div className="text-xs text-secondary space-y-1">
+              <div className="text-xs text-muted-foreground space-y-1">
                 <div>
                   • <strong>Easy:</strong> {Math.ceil(minPhases)} -{" "}
                   {Math.ceil(minPhases + (maxPhases - minPhases) * 0.3)} phases
@@ -387,7 +373,7 @@ const Settings = ({ theme, toggleTheme }) => {
 
       {/* Data Management */}
       <div className="mb-8 text-main">
-        <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
+        <h3 className="text-xs font-semibold text-card-foreground uppercase tracking-wider mb-4">
           Data Management
         </h3>
         <div className="space-y-4 border border-default p-4 rounded-lg">
@@ -426,7 +412,6 @@ const Settings = ({ theme, toggleTheme }) => {
           </Button>
         </div>
       </div>
-
     </div>
   );
 };
