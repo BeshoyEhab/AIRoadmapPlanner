@@ -50,8 +50,6 @@ export default defineConfig({
     sourcemap: true,
   },
   build: {
-    // Enable better source maps for debugging
-    sourcemap: true,
     // Add cache-busting hashes to output files
     rollupOptions: {
       output: {
