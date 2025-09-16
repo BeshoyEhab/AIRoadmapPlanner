@@ -1,0 +1,8 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#3B82F6"/>
+  <path d="M96 32L120 72H96V32Z" fill="white"/>
+  <path d="M96 72L72 112H96V72Z" fill="white"/>
+  <path d="M96 112L120 152H96V112Z" fill="white"/>
+  <circle cx="96" cy="160" r="8" fill="white"/>
+  <text x="96" y="180" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">AI</text>
+</svg>

@@ -33,11 +33,33 @@ const SavedPlansTab = React.lazy(
     default: () => <div>Error loading Saved tab</div> 
   })),
 );
-const OngoingTab = React.lazy(
-  () => import("./components/tabs/OngoingTab").catch(() => ({ 
-    default: () => <div>Error loading Ongoing tab</div> 
-  })),
-);
+const OngoingTab = React.lazy(() => {
+  console.log('Attempting to load OngoingTab component...');
+  return import("./components/tabs/OngoingTab")
+    .then(module => {
+      console.log('Successfully loaded OngoingTab component');
+      return module;
+    })
+    .catch(error => {
+      console.error('Error loading OngoingTab component:', error);
+      return { 
+        default: () => (
+          <div className="p-4 text-red-500">
+            <h3 className="text-lg font-semibold">Error loading Ongoing tab</h3>
+            <p className="text-sm text-muted-foreground">
+              {error?.message || 'Unknown error occurred'}
+            </p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 text-sm text-blue-500 hover:underline"
+            >
+              Try reloading the page
+            </button>
+          </div>
+        ) 
+      };
+    });
+});
 
 import {
   Dialog,
@@ -76,6 +98,9 @@ const App = () => {
   const isDarkMode = theme === 'dark';
   const _colorTheme = useColorTheme(isDarkMode);
   
+  // Initialize basic state
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
   // Apply dark/light class to HTML element immediately
   useEffect(() => {
     const html = document.documentElement;
@@ -94,9 +119,9 @@ const App = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roadmapToDelete, setRoadmapToDelete] = useState(null);
   const [apiKeyStatus, setApiKeyStatus] = useState("checking");
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [appError, setAppError] = useState(null);
+  const [closeModals, setCloseModals] = useState(null);
 
   // Enhanced API key checking with error handling
   useEffect(() => {
@@ -120,21 +145,14 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Network status monitoring
+  // Handle online/offline status
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOffline(false);
-      toast.success('Connection restored');
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
     
-    const handleOffline = () => {
-      setIsOffline(true);
-      toast.error('No internet connection');
-    };
-
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -236,6 +254,25 @@ const App = () => {
     retryGeneration,
     setGenerationQueue,
   } = useRoadmap({ setActiveTab });
+
+  // Basic keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'n':
+            setActiveTab('create');
+            break;
+          case 's':
+            saveCurrentRoadmap();
+            break;
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [setActiveTab, saveCurrentRoadmap]);
 
   // Delete confirmation handler - must be defined before useMemo
   const handleDeleteConfirm = useCallback(async () => {
@@ -609,12 +646,13 @@ const App = () => {
     <ErrorBoundary>
       <div className={`flex flex-col min-h-screen ${theme} bg-background transition-colors duration-300`}>
         {/* Offline indicator */}
-        {isOffline && (
+        {!isOnline && (
           <div className="bg-orange-500 text-white px-4 py-2 text-sm text-center flex items-center justify-center gap-2">
             <WifiOff className="w-4 h-4" />
             You're currently offline. Some features may not work.
           </div>
         )}
+        
         
         {/* App error banner */}
         {appError && (
@@ -643,7 +681,7 @@ const App = () => {
               toggleFullScreen={toggleFullScreen}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              isOffline={isOffline}
+              isOffline={!isOnline}
               onSettingsSave={handleSettingsSave}
             />
             <main className="flex-1 overflow-auto">

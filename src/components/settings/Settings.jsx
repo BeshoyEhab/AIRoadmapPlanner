@@ -17,6 +17,7 @@ import ColorPicker from "./ColorPicker";
 import BackupRestore from "../backup/BackupRestore";
 // import { useAppContext } from "@/contexts/AppContext"; // Reserved for future use
 import { useColorTheme } from "@/hooks/useColorTheme";
+import { validateApiKey, maskApiKey, sanitizeInput } from "@/utils/security";
 import {
   Brain,
   Palette,
@@ -33,6 +34,9 @@ import {
   Eye,
   EyeOff,
   Database,
+  Key,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 
 const Settings = ({ theme, toggleTheme }) => {
@@ -47,6 +51,11 @@ const Settings = ({ theme, toggleTheme }) => {
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
   // const [aiManager, setAiManager] = useState(null); // Reserved for future use
+  
+  // API Key security states
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiKeyValidation, setApiKeyValidation] = useState({ isValid: true, error: null });
 
   useEffect(() => {
     const savedAutoSave = localStorage.getItem("auto-save");
@@ -82,6 +91,14 @@ const Settings = ({ theme, toggleTheme }) => {
     const savedAdaptiveDifficulty = localStorage.getItem("adaptive-difficulty");
     if (savedAdaptiveDifficulty !== null) {
       setAdaptiveDifficulty(savedAdaptiveDifficulty === "true");
+    }
+
+    // Load API key
+    const savedApiKey = localStorage.getItem("gemini-api-key");
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+      const validation = validateApiKey(savedApiKey);
+      setApiKeyValidation(validation);
     }
   }, []);
 
@@ -167,6 +184,43 @@ const Settings = ({ theme, toggleTheme }) => {
     };
     reader.readAsText(file);
     event.target.value = "";
+  };
+
+  // API Key management functions
+  const handleApiKeyChange = (value) => {
+    const sanitized = sanitizeInput(value);
+    setApiKey(sanitized);
+    
+    if (sanitized.length > 0) {
+      const validation = validateApiKey(sanitized);
+      setApiKeyValidation(validation);
+    } else {
+      setApiKeyValidation({ isValid: true, error: null });
+    }
+  };
+
+  const handleApiKeySave = () => {
+    if (!apiKey.trim()) {
+      toast.error("Please enter an API key");
+      return;
+    }
+
+    const validation = validateApiKey(apiKey);
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
+
+    localStorage.setItem("gemini-api-key", apiKey);
+    setApiKeyValidation(validation);
+    toast.success("API key saved successfully!");
+  };
+
+  const handleApiKeyClear = () => {
+    setApiKey("");
+    localStorage.removeItem("gemini-api-key");
+    setApiKeyValidation({ isValid: true, error: null });
+    toast.success("API key cleared");
   };
 
   return (

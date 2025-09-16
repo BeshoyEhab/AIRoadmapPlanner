@@ -1,84 +1,166 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { 
+      hasError: false, 
+      error: null, 
+      errorInfo: null,
+      errorId: null 
+    };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error) {
     // Update state so the next render will show the fallback UI
-    return { hasError: true };
+    return { 
+      hasError: true, 
+      error,
+      errorId: `error_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    };
   }
 
   componentDidCatch(error, errorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+    
     this.setState({
-      error: error,
-      errorInfo: errorInfo
+      errorInfo
     });
+
+    // In production, you would send this to an error reporting service
+    if (process.env.NODE_ENV === 'production') {
+      // Example: Send to error reporting service
+      this.reportError(error, errorInfo);
+    }
   }
+
+  reportError = (error, errorInfo) => {
+    // Placeholder for error reporting service integration
+    const errorReport = {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      errorId: this.state.errorId
+    };
+    
+    // You can integrate with services like Sentry, LogRocket, etc.
+    console.log('Error Report:', errorReport);
+  };
+
+  handleRetry = () => {
+    this.setState({ 
+      hasError: false, 
+      error: null, 
+      errorInfo: null,
+      errorId: null 
+    });
+  };
 
   handleReload = () => {
     window.location.reload();
   };
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+  handleGoHome = () => {
+    window.location.href = '/';
   };
 
   render() {
     if (this.state.hasError) {
+      // Custom error UI
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-          <div className="max-w-md w-full text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-destructive" />
-            </div>
+          <Card className="w-full max-w-2xl">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-destructive" />
+              </div>
+              <CardTitle className="text-2xl">Something went wrong</CardTitle>
+              <CardDescription>
+                We encountered an unexpected error. Don't worry, your data is safe.
+              </CardDescription>
+            </CardHeader>
             
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">
-                Oops! Something went wrong
-              </h2>
-              <p className="text-muted-foreground">
-                The application encountered an unexpected error. This has been logged for our team to review.
-              </p>
-            </div>
+            <CardContent className="space-y-6">
+              {/* Error Details (only in development) */}
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Bug className="w-4 h-4" />
+                    Error Details (Development Only)
+                  </h4>
+                  <div className="text-sm space-y-2">
+                    <div>
+                      <strong>Error:</strong> {this.state.error.message}
+                    </div>
+                    {this.state.errorId && (
+                      <div>
+                        <strong>Error ID:</strong> {this.state.errorId}
+                      </div>
+                    )}
+                    {this.state.error.stack && (
+                      <details className="mt-2">
+                        <summary className="cursor-pointer text-xs text-muted-foreground">
+                          Stack Trace
+                        </summary>
+                        <pre className="text-xs mt-2 p-2 bg-background rounded overflow-auto">
+                          {this.state.error.stack}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                </div>
+              )}
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
-                onClick={this.handleReset}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </Button>
-              <Button 
-                onClick={this.handleReload}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Reload Page
-              </Button>
-            </div>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={this.handleRetry}
+                  className="flex-1"
+                  variant="default"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </Button>
+                
+                <Button 
+                  onClick={this.handleGoHome}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Go Home
+                </Button>
+                
+                <Button 
+                  onClick={this.handleReload}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reload Page
+                </Button>
+              </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mt-6 text-left">
-                <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-                  Error Details (Development)
-                </summary>
-                <pre className="mt-2 p-4 bg-muted rounded-lg text-xs overflow-auto text-red-600">
-                  {this.state.error && this.state.error.toString()}
-                  <br />
-                  {this.state.errorInfo.componentStack}
-                </pre>
-              </details>
-            )}
-          </div>
+              {/* Help Text */}
+              <div className="text-center text-sm text-muted-foreground">
+                <p>
+                  If this problem persists, please try refreshing the page or contact support.
+                </p>
+                {this.state.errorId && (
+                  <p className="mt-1">
+                    Error ID: <code className="bg-muted px-1 rounded text-xs">{this.state.errorId}</code>
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
