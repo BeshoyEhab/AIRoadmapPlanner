@@ -11,13 +11,17 @@ const API_BASE_URL = '/api/keys';
  * @returns {Promise<{success: boolean, error?: string}>}
  */
 export const saveApiKey = async (key) => {
+  if (!key || typeof key !== 'string' || key.trim().length === 0) {
+    return { success: false, error: 'Invalid API key provided' };
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({ key: key.trim() }),
       credentials: 'include', // Include cookies for session management
     });
 
