@@ -44,7 +44,7 @@ describe('sanitizeInput', () => {
       },
       {
         input: '<script>evil()</script>',
-        expected: 'evil()'
+        expected: ''
       },
       {
         input: '<img src="x" onerror="evil()">',

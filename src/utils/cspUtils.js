@@ -5,7 +5,20 @@
  * to enhance the security of the application.
  */
 
-import crypto from 'crypto';
+/**
+ * Generates a cryptographically secure random string
+ * @param {number} length - Length of the random string to generate
+ * @returns {string} Random string
+ */
+function generateRandomString(length) {
+  if (length <= 0) {
+    throw new Error('Length must be greater than 0');
+  }
+  
+  const array = new Uint8Array(Math.ceil(length / 2));
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, length);
+}
 
 /**
  * Generates cryptographically secure random nonces for CSP
