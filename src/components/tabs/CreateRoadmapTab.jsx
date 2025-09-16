@@ -51,7 +51,6 @@ const CreateRoadmapTab = ({
   const isResumable = roadmap && roadmap.generationState === "in-progress";
 
   const {
-    handleGenerateNew,
     handleResume,
     duplicateRoadmapInfo,
     handleConfirmReplace,
@@ -135,7 +134,7 @@ const CreateRoadmapTab = ({
   const renderDuplicateDialog = () => {
     if (!duplicateRoadmapInfo.show) return null;
 
-    const { existingRoadmap, objective, finalGoal } = duplicateRoadmapInfo;
+    const { existingRoadmap } = duplicateRoadmapInfo;
     const isCurrent = existingRoadmap?.isCurrent;
 
     return (

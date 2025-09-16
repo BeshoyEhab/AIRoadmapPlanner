@@ -42,7 +42,6 @@ import QueueDashboard from "../QueueDashboard";
 
 const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, estimatedTime }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const [isHovered, setIsHovered] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -56,18 +55,17 @@ const SortableItem = ({ id, objective, finalGoal, removeFromQueue, position, est
       ref={setNodeRef}
       style={style}
       {...attributes}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={`group relative 
-                  rounded-xl border-2 border-default transition-all duration-300 
-                  ${isDragging ? 'border-primary rotate-2' : 'border-border hover:border-primary/50'}`}
+                  rounded-xl border-2 transition-all duration-300 
+                  ${isDragging ? 'border-primary rotate-2' : 'border-border hover:border-primary/50'}
+                  hover:transform hover:-translate-y-1`}
     >
       {/* Priority Indicator */}
       <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"></div>
       
       {/* Position Badge */}
-      <div className="absolute w-6 h-6 bg-primary rounded-full 
-                      flex items-center justify-center text-xs font-bold text-muted shadow-lg">
+      <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full 
+                      flex items-center justify-center text-xs font-bold text-primary-foreground shadow-lg">
         #{position}
       </div>
 
@@ -163,48 +161,6 @@ const OngoingTab = ({
   setObjective,
   setFinalGoal,
 }) => {
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "queued":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border border-border text-foreground">
-            <Clock size={12} />
-            Queued
-          </span>
-        );
-      case "generating":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border border-border text-foreground animate-pulse">
-            <Play size={12} />
-            Generating
-          </span>
-        );
-      case "paused":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border border-border text-foreground">
-            <Pause size={12} />
-            Paused
-          </span>
-        );
-      case "incomplete":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border border-border text-foreground">
-            <AlertCircle size={12} />
-            Incomplete
-          </span>
-        );
-      case "error":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border border-border text-foreground">
-            <AlertCircle size={12} />
-            Error
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
   const getProgressBar = (roadmap) => {
     if (!roadmap || !roadmap.phases || roadmap.phases.length === 0) return 0;
     const totalPhases = roadmap.phases.length;

@@ -21,6 +21,14 @@ export const useColorTheme = (isDarkMode) => {
   const refreshCustomThemes = () => {
     const updated = getCustomThemes();
     setCustomThemes(updated);
+    
+    // Force re-render by updating a dummy state if needed
+    if (Object.keys(updated).length !== Object.keys(customThemes).length) {
+      // Theme count changed, force re-evaluation
+      setTimeout(() => {
+        setCustomThemes({...updated});
+      }, 10);
+    }
   };
   
   // Initialize theme from localStorage or default to 'slate'
@@ -173,10 +181,33 @@ export const useColorTheme = (isDarkMode) => {
 
   // Change theme and persist to localStorage
   const changeTheme = (newThemeId) => {
-    const allThemes = { ...colorThemes, ...customThemes };
+    console.log('changeTheme called with:', newThemeId);
+    // First refresh custom themes in case it's a newly created one
+    const latestCustomThemes = getCustomThemes();
+    const allThemes = { ...colorThemes, ...latestCustomThemes };
+    console.log('Available themes:', Object.keys(allThemes), 'Custom themes count:', Object.keys(latestCustomThemes).length);
+    
     if (!allThemes[newThemeId]) {
-      console.error(`Theme '${newThemeId}' not found`);
+      console.error(`Theme '${newThemeId}' not found in themes:`, Object.keys(allThemes));
+      // Try one more time after forcing a refresh
+      setCustomThemes(latestCustomThemes);
+      setTimeout(() => {
+        const retryThemes = { ...colorThemes, ...getCustomThemes() };
+        if (retryThemes[newThemeId]) {
+          console.log(`Theme '${newThemeId}' found on retry`);
+          setCurrentTheme(newThemeId);
+          applyTheme(newThemeId);
+          localStorage.setItem(STORAGE_KEY, newThemeId);
+        } else {
+          console.error(`Theme '${newThemeId}' still not found after retry`);
+        }
+      }, 50);
       return;
+    }
+
+    // Update custom themes state if they've changed
+    if (Object.keys(latestCustomThemes).length !== Object.keys(customThemes).length) {
+      setCustomThemes(latestCustomThemes);
     }
 
     setCurrentTheme(newThemeId);
@@ -192,7 +223,7 @@ export const useColorTheme = (isDarkMode) => {
   // Apply theme on mount and when dark mode changes
   useEffect(() => {
     applyTheme(currentTheme, isDarkMode);
-  }, [currentTheme, isDarkMode]);
+  }, [currentTheme, isDarkMode]); // applyTheme is stable, no need to include
 
   // Listen for custom theme changes from other tabs/components
   useEffect(() => {
@@ -204,7 +235,7 @@ export const useColorTheme = (isDarkMode) => {
     return () => {
       window.removeEventListener('customThemesChanged', handleCustomThemesChanged);
     };
-  }, []);
+  }, [refreshCustomThemes]);
 
   // Dispatch custom event for global theme access
   useEffect(() => {

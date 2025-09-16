@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   BookOpen,
   Calendar,
@@ -18,9 +18,6 @@ const SavedPlansTab = ({
   loadRoadmap,
   deleteRoadmap,
   setActiveTab,
-  isDeleteDialogOpen,
-  setIsDeleteDialogOpen,
-  handleDeleteConfirm,
   toggleFavorite,
   isFavorite,
   addToQueue,
@@ -29,7 +26,6 @@ const SavedPlansTab = ({
   setRoadmap,
   generationQueue,
 }) => {
-  const [searchQuery, setSearchQuery] = useState("");
 
   const handleRegenerateRoadmap = async (timeplan) => {
     try {

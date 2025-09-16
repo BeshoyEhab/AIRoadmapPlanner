@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, Brain, Download, Save, Copy, AlertCircle } from "lucide-react";
 import RoadmapContent from "../RoadmapContent";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import { saveAs } from "file-saver";
 
 const ViewRoadmapTab = ({
   roadmap,

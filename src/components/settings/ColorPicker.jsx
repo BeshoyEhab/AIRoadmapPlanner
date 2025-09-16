@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
   const { customThemes, refreshCustomThemes } = useColorTheme(isDarkMode);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [editingTheme, setEditingTheme] = useState(null);
+  const [refreshCounter, setRefreshCounter] = useState(0); // Force re-render counter
   const [customForm, setCustomForm] = useState({
     name: '',
     primaryColor: '#6366f1',
@@ -27,12 +28,25 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
     textSecondaryColorDark: '#cbd5e1'
   });
 
-  // Save custom themes to localStorage
+  // Listen for custom theme changes and force refresh
+  useEffect(() => {
+    const handleThemeUpdate = () => {
+      refreshCustomThemes();
+      setRefreshCounter(prev => prev + 1);
+    };
+    
+    window.addEventListener('customThemesChanged', handleThemeUpdate);
+    return () => window.removeEventListener('customThemesChanged', handleThemeUpdate);
+  }, [refreshCustomThemes]);
+
+  // Save custom themes to localStorage and trigger global refresh
   const saveCustomThemes = (themes) => {
     try {
       localStorage.setItem('custom-color-themes', JSON.stringify(themes));
-      // Refresh custom themes in the hook
+      // Refresh custom themes in the hook immediately
       refreshCustomThemes();
+      // Dispatch global event for cross-component synchronization
+      window.dispatchEvent(new CustomEvent('customThemesChanged'));
     } catch (error) {
       console.error('Error saving custom themes:', error);
       toast.error('Failed to save custom theme');
@@ -105,13 +119,30 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
     };
 
     const updatedThemes = { ...customThemes, [themeId]: newTheme };
+    
+    // Save themes and trigger immediate refresh
+    console.log('Creating custom theme:', themeId, 'with themes count before:', Object.keys(customThemes).length);
     saveCustomThemes(updatedThemes);
     
-    // Force refresh custom themes to make it available immediately
+    // Force immediate state update
+    setRefreshCounter(prev => prev + 1);
+    console.log('Updated refresh counter after theme creation');
+    
+    // Multiple refresh attempts to ensure availability
     setTimeout(() => {
       refreshCustomThemes();
-      // Apply the newly created theme immediately
-      onThemeChange(themeId);
+      setRefreshCounter(prev => prev + 1);
+      console.log('First refresh attempt completed');
+      
+      // Apply the theme after ensuring it's available
+      setTimeout(() => {
+        console.log('Attempting to apply newly created theme:', themeId);
+        onThemeChange(themeId);
+        // Final refresh to update UI
+        refreshCustomThemes();
+        setRefreshCounter(prev => prev + 1);
+        console.log('Theme creation and application completed');
+      }, 50);
     }, 50);
     
     // Reset form
@@ -274,13 +305,13 @@ const ColorPicker = ({ currentTheme, onThemeChange, isDarkMode }) => {
         </div>
         
         {Object.keys(customThemes).length > 0 ? (
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-3" key={`custom-themes-${refreshCounter}`}>
             {Object.keys(customThemes).map((themeId) => {
               const theme = customThemes[themeId];
               const isSelected = currentTheme === themeId;
               
               return (
-                <div key={themeId} className="relative group">
+                <div key={`${themeId}-${refreshCounter}`} className="relative group">
                   <Button
                     variant="outline"
                     className={`h-auto p-2 w-full flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg ${

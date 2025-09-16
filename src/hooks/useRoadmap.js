@@ -91,14 +91,11 @@ const useRoadmap = ({ setActiveTab } = {}) => {
     return fallbackModels;
   }, []);
   const currentModelIndex = useRef(0);
-  const processingTriggerRef = useRef(false);
-
   // Queue management state
   const [generationQueue, setGenerationQueue] = useState([]);
   const [isQueuePaused, setIsQueuePaused] = useState(false);
   const [currentlyGenerating, setCurrentlyGenerating] = useState(null);
   const queueProcessingRef = useRef(false);
-  const shouldPauseAfterCurrent = useRef(false);
 
   // API Key state
   const [apiKey, setApiKey] = useState(() => localStorage.getItem("gemini-api-key"));
@@ -187,7 +184,8 @@ const useRoadmap = ({ setActiveTab } = {}) => {
 
   const saveCurrentRoadmap = async () => {
     if (!roadmap) return;
-    setRoadmapName(roadmap.title || `Roadmap-${Date.now()}`);
+    const _roadmapName = roadmap.title || `Roadmap-${Date.now()}`;
+    setRoadmapName(_roadmapName);
   };
 
   const saveRoadmapToDisk = async (roadmapData, name) => {
@@ -651,7 +649,7 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
   );
 
   // Enhanced AI-powered roadmap generation function with better error handling
-  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, wasQueuePaused = false, initialRoadmap = null) => {
+  const generateRoadmap = async (isContinuation = false, roadmapToContinue = null, _wasQueuePaused = false, initialRoadmap = null) => {
     console.log('[generateRoadmap] Starting enhanced generation', { 
       isContinuation, 
       roadmapId: roadmapToContinue?.id, 
@@ -694,7 +692,6 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
       const startingModelIndex = currentModelIndex.current;
       let attempts = 0;
       const maxAttempts = availableModels.length;
-      let lastError = null;
 
       console.log(`[generateWithRetry] Starting ${phase} generation with ${maxAttempts} available models`);
 
@@ -750,8 +747,6 @@ CRITICAL: Your entire response MUST be valid JSON only. No markdown formatting, 
           return parsedResult;
           
         } catch (err) {
-          lastError = err;
-          
           if (isInterrupted.current) {
             console.log('[generateWithRetry] Generation interrupted during processing');
             throw err;
