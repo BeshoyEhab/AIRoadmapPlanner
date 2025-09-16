@@ -1,12 +1,12 @@
 # TimePlan - AI-Powered Study Roadmap Planner
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b96bfb91-b2a8-4b84-b23d-985f6f22fd1d/deploy-status)](https://app.netlify.com/projects/airoadmapplanner/deploys)
-
 <div align="center">
   <img src="https://img.shields.io/badge/React-19.1.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/Vite-6.3.5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/TailwindCSS-4.1.7-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/AI-Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini AI" />
+  <br />
+  <img src="https://api.netlify.com/api/v1/badges/b96bfb91-b2a8-4b84-b23d-985f6f22fd1d/deploy-status" alt="Netlify Status" />
 </div>
 
 <div align="center">
