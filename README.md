@@ -13,7 +13,7 @@
   <h3>🎯 Transform Your Learning Journey with AI-Generated Study Roadmaps</h3>
   <p>A modern, responsive web application that creates personalized learning paths using Google's Gemini AI, featuring progress tracking, flexible time management, and comprehensive study planning tools.</p>
   
-  **🌐 [Live Demo](https://airoadmapplanner.netlify.app)**
+  **🌐 [Live Demo](https://ai-roadmap-planner.netlify.app)**
 </div>
 
 ---
@@ -165,5 +165,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 
 <div align="center">
   <p><strong>Built with ❤️ by the TimePlan Team</strong></p>
-  <p>🌐 <a href="https://airoadmapplanner.netlify.app">Try TimePlan Now</a></p>
+  <p>🌐 <a href="https://ai-roadmap-planner.netlify.app">Try TimePlan Now</a></p>
 </div>
