@@ -50,7 +50,7 @@ TimePlan is an innovative study planning application that leverages Google's Gem
 
 ### Prerequisites
 
-- **Node.js** (version 18.0 or higher)
+- **Node.js** (version 20.0 or higher)
 - **npm** or **pnpm** (pnpm recommended)
 - **Google Gemini API Key** (obtain from [Google AI Studio](https://aistudio.google.com/apikey))
 
@@ -72,7 +72,7 @@ TimePlan is an innovative study planning application that leverages Google's Gem
    ```
 
 3. **Set up your API key**
-   - Visit [Google AI Studio](https://aistudio.google.com/apikey)
+   - Visit [Google AI Studio](https://aistudio.google.com/apikey) (High recommended)
    - Generate a new API key
    - Launch the application and navigate to Settings (gear icon)
    - Enter your API key in the configuration section
