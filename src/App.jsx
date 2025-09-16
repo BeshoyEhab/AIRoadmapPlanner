@@ -657,9 +657,9 @@ const App = () => {
                     />
                   </div>
                 ) : apiKeyStatus === "missing" ? (
-                  <div className="text-center p-8 bg-card border rounded-lg shadow-lg max-w-2xl mx-auto mt-8">
+                  <div className="text-center p-8 bg-card border rounded-lg shadow-lg max-w-2xl mx-auto text-main mt-8">
                     <div className="mb-6">
-                      <Brain className="w-16 h-16 mx-auto text-primary mb-4" />
+                      <Brain className="w-16 h-16 mx-auto mb-4" />
                       <h2 className="text-3xl font-bold mb-4 text-foreground">
                         Welcome to AI Study Planner
                       </h2>
