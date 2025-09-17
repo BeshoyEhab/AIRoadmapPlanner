@@ -116,8 +116,8 @@ const AIProvidersStatus = () => {
     setIsEditing(edit);
     
     if (edit) {
-      const existingKey = localStorage.getItem(provider.keyName) || ''; // For future use
-      setApiKey(existingKey); // Show masked key for editing
+      const existingKey = localStorage.getItem(provider.keyName) || '';
+      setApiKey(existingKey);
     } else {
       setApiKey('');
     }
@@ -142,13 +142,18 @@ const AIProvidersStatus = () => {
 
     try {
       localStorage.setItem(selectedProvider.keyName, apiKey.trim());
+      
+      // Dispatch custom event to notify App.jsx about provider updates
+      window.dispatchEvent(new CustomEvent('providersUpdated'));
+      
       checkConfiguredProviders(); // Refresh the list
       setIsConfigDialogOpen(false);
       setApiKey('');
       setSelectedProvider(null);
       
       toast.success(`${selectedProvider.name} API key ${isEditing ? 'updated' : 'configured'} successfully!`);
-    } catch {
+    } catch (error) {
+      console.error('Failed to save API key:', error);
       toast.error('Failed to save API key');
     }
   };
@@ -156,16 +161,17 @@ const AIProvidersStatus = () => {
   const handleRemoveProvider = (provider) => {
     try {
       localStorage.removeItem(provider.keyName);
+      
+      // Dispatch custom event to notify App.jsx about provider updates
+      window.dispatchEvent(new CustomEvent('providersUpdated'));
+      
       checkConfiguredProviders(); // Refresh the list
       toast.success(`${provider.name} API key removed`);
-    } catch {
+    } catch (error) {
+      console.error('Failed to remove API key:', error);
       toast.error('Failed to remove API key');
     }
   };
-
-  // const unconfiguredProviders = AI_PROVIDERS.filter(
-  //   provider => !configuredProviders.some(configured => configured.id === provider.id)
-  // ); // Reserved for future use
 
   return (
     <div className="space-y-4">

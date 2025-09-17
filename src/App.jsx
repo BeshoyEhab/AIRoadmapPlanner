@@ -54,6 +54,16 @@ import { ConfirmationDialog } from "./components/common/ConfirmationDialog";
 import { toast } from "sonner";
 import "./App.css";
 
+// AI providers configuration - moved to constants
+const AI_PROVIDERS = [
+  { keyName: 'gemini-api-key', name: 'Google Gemini' },
+  { keyName: 'openai-api-key', name: 'OpenAI' },
+  { keyName: 'claude-api-key', name: 'Anthropic Claude' },
+  { keyName: 'grok-api-key', name: 'Grok' },
+  { keyName: 'local-api-endpoint', name: 'Ollama' },
+  { keyName: 'custom-api-key', name: 'Custom Provider' }
+];
+
 const LoadingFallback = React.memo(({ message = "Loading component..." }) => (
   <div className="flex flex-col items-center justify-center p-8 min-h-[200px] space-y-4" role="status" aria-live="polite">
     <div className="relative">
@@ -87,6 +97,7 @@ const App = () => {
       html.classList.remove('dark');
     }
   }, [isDarkMode]);
+
   const [activeTab, setActiveTab] = useState(() => 
     localStorage.getItem("activeTab") || "create"
   );
@@ -98,17 +109,25 @@ const App = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [appError, setAppError] = useState(null);
 
+  // Check if any AI provider is configured
+  const checkProvidersConfigured = useCallback(() => {
+    return AI_PROVIDERS.some(provider => {
+      const key = localStorage.getItem(provider.keyName);
+      return key && key.trim() !== '';
+    });
+  }, []);
+
   // Enhanced API key checking with error handling
   useEffect(() => {
     const checkApiKey = async () => {
       try {
-        const apiKey = localStorage.getItem("gemini-api-key");
-        if (apiKey && apiKey.trim()) {
+        // Check if any provider is configured
+        if (checkProvidersConfigured()) {
           setApiKeyStatus("present");
         } else {
           setApiKeyStatus("missing");
         }
-      } catch (_error) {
+      } catch (error) {
         console.error('Error checking API key:', error);
         setApiKeyStatus("missing");
         setAppError('Failed to check API key configuration');
@@ -118,7 +137,47 @@ const App = () => {
     // Add a small delay to prevent flash
     const timer = setTimeout(checkApiKey, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [checkProvidersConfigured]);
+
+  // Listen for localStorage changes (when providers are added/removed)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Check if the changed key is one of our AI provider keys
+      if (AI_PROVIDERS.some(provider => provider.keyName === e.key)) {
+        // Recheck provider configuration
+        if (checkProvidersConfigured()) {
+          setApiKeyStatus("present");
+          toast.success('AI provider configured! Reloading app...');
+          // Optional: Reload the page to reset the app state
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          setApiKeyStatus("missing");
+        }
+      }
+    };
+
+    // Listen for storage events (changes in other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events we dispatch when saving in the same tab
+    const handleCustomStorageChange = () => {
+      if (checkProvidersConfigured()) {
+        setApiKeyStatus("present");
+        toast.success('AI provider configured! App ready to use.');
+      } else {
+        setApiKeyStatus("missing");
+      }
+    };
+
+    window.addEventListener('providersUpdated', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('providersUpdated', handleCustomStorageChange);
+    };
+  }, [checkProvidersConfigured]);
 
   // Network status monitoring
   useEffect(() => {
@@ -148,9 +207,16 @@ const App = () => {
 
   // Enhanced settings save handler
   const handleSettingsSave = useCallback(() => {
-    setApiKeyStatus("present");
-    toast.success('Settings saved successfully');
-  }, []);
+    // Recheck providers after settings save
+    if (checkProvidersConfigured()) {
+      setApiKeyStatus("present");
+      toast.success('Settings saved successfully');
+      // Dispatch custom event to notify about provider updates
+      window.dispatchEvent(new CustomEvent('providersUpdated'));
+    } else {
+      setApiKeyStatus("missing");
+    }
+  }, [checkProvidersConfigured]);
 
   // Enhanced theme toggle with smooth transitions
   const toggleTheme = useCallback(() => {
@@ -186,7 +252,7 @@ const App = () => {
         setFullScreenMode(false);
         toast.success('Exited fullscreen mode');
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Fullscreen error:', error);
       toast.error(`Fullscreen ${!document.fullscreenElement ? 'entry' : 'exit'} failed`);
     }
@@ -244,7 +310,7 @@ const App = () => {
       await deleteRoadmap(roadmapToDelete);
       setIsDeleteDialogOpen(false);
       setRoadmapToDelete(null);
-    } catch (_error) {
+    } catch (error) {
       console.error("Error in handleDeleteConfirm:", error);
       // toast.error("Failed to delete roadmap.");
     }
@@ -331,8 +397,7 @@ const App = () => {
             markdown += `   - Priority: ${miniGoal.priority}\n`;
           }
           if (miniGoal.completedDate) {
-            markdown += `   - Completed: ${formatDate(miniGoal.completedDate)}
-`;
+            markdown += `   - Completed: ${formatDate(miniGoal.completedDate)}\n`;
           }
           markdown += `\n`;
         });
@@ -450,21 +515,6 @@ const App = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-
-  // const exportToJSON = () => {
-  //   if (!roadmap) return;
-
-  //   const jsonContent = JSON.stringify(roadmap, null, 2);
-  //   const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8" });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url;
-  //   a.download = `${roadmap.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_roadmap.json`;
-  //   document.body.appendChild(a);
-  //   a.click();
-  //   document.body.removeChild(a);
-  //   URL.revokeObjectURL(url);
-  // };
 
   // Memoize the tab content to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
@@ -669,14 +719,14 @@ const App = () => {
                       <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
                         <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
                           <AlertTriangle className="w-5 h-5" />
-                          <span className="font-medium">API Key Required</span>
+                          <span className="font-medium">AI Provider Required</span>
                         </div>
                         <p className="text-sm mt-2 text-yellow-600 dark:text-yellow-300">
-                          To get started, please add your Gemini API key in the settings.
+                          To get started, please configure at least one AI provider in the settings.
                         </p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Click the gear icon <span className="font-mono bg-muted px-1 rounded">⚙️</span> in the top-right corner to configure your API key.
+                        Click the gear icon <span className="font-mono bg-muted px-1 rounded">⚙️</span> in the top-right corner to configure your AI providers.
                       </p>
                     </div>
                   </div>
