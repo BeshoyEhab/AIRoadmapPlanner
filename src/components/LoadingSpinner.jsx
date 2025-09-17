@@ -1,117 +1,105 @@
 import React from 'react';
-import { Loader, Brain, Sparkles, Zap, Target, Rocket } from 'lucide-react';
+import { Brain, Sparkles, Loader2 } from 'lucide-react';
 
 const LoadingSpinner = ({ 
   message = "Loading...", 
-  variant = "default", 
+  variant = "default",
   size = "md",
-  showProgress = false,
-  progress = 0,
-  subMessage = null
+  showIcon = true 
 }) => {
   const sizeClasses = {
-    sm: "w-6 h-6",
+    sm: "w-4 h-4",
     md: "w-8 h-8", 
-    lg: "w-12 h-12",
-    xl: "w-16 h-16"
+    lg: "w-12 h-12"
   };
 
-  const getVariantIcon = () => {
-    switch (variant) {
-      case "brain":
-        return <Brain className={`${sizeClasses[size]} text-theme-primary animate-pulse`} />;
-      case "sparkles":
-        return <Sparkles className={`${sizeClasses[size]} text-yellow-400 animate-ping`} />;
-      case "zap":
-        return <Zap className={`${sizeClasses[size]} text-blue-500 animate-bounce`} />;
-      case "target":
-        return <Target className={`${sizeClasses[size]} text-green-500 animate-spin`} />;
-      case "rocket":
-        return <Rocket className={`${sizeClasses[size]} text-purple-500 animate-pulse`} />;
-      default:
-        return <Loader className={`${sizeClasses[size]} text-theme-primary animate-spin`} />;
-    }
+  const textSizes = {
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg"
   };
 
-  const getVariantMessage = () => {
+  const renderSpinner = () => {
     switch (variant) {
       case "brain":
-        return message || "AI is thinking...";
-      case "sparkles":
-        return message || "Generating magic...";
-      case "zap":
-        return message || "Processing at lightning speed...";
-      case "target":
-        return message || "Aiming for perfection...";
-      case "rocket":
-        return message || "Launching your roadmap...";
+        return (
+          <div className="relative">
+            <Brain 
+              className={`${sizeClasses[size]} text-primary animate-pulse`}
+              aria-hidden="true"
+            />
+            <Sparkles 
+              className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400 animate-ping"
+              aria-hidden="true"
+            />
+          </div>
+        );
+      case "dots":
+        return (
+          <div className="flex space-x-1" aria-hidden="true">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+          </div>
+        );
+      case "pulse":
+        return (
+          <div 
+            className={`${sizeClasses[size]} bg-primary rounded-full animate-pulse`}
+            aria-hidden="true"
+          />
+        );
       default:
-        return message;
+        return (
+          <Loader2 
+            className={`${sizeClasses[size]} text-primary animate-spin`}
+            aria-hidden="true"
+          />
+        );
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 space-y-4" role="status" aria-live="polite">
-      {/* Main spinner */}
-      <div className="relative">
-        {getVariantIcon()}
-        
-        {/* Optional progress ring */}
-        {showProgress && (
-          <div className="absolute inset-0">
-            <svg className={`${sizeClasses[size]} transform -rotate-90`} viewBox="0 0 36 36">
-              <path
-                className="text-gray-300"
-                stroke="currentColor"
-                strokeWidth="3"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                className="text-theme-primary"
-                stroke="currentColor"
-                strokeWidth="3"
-                fill="none"
-                strokeDasharray={`${progress}, 100`}
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-          </div>
-        )}
-      </div>
-
-      {/* Main message */}
-      <div className="text-center">
-        <p className="text-sm font-medium text-main">
-          {getVariantMessage()}
+    <div 
+      className="flex flex-col items-center justify-center p-8 space-y-4"
+      role="status"
+      aria-live="polite"
+    >
+      {showIcon && (
+        <div className="flex items-center justify-center">
+          {renderSpinner()}
+        </div>
+      )}
+      
+      {message && (
+        <p className={`${textSizes[size]} text-muted-foreground text-center font-medium`}>
+          {message}
         </p>
-        
-        {/* Sub message */}
-        {subMessage && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {subMessage}
-          </p>
-        )}
-        
-        {/* Progress percentage */}
-        {showProgress && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {Math.round(progress)}% complete
-          </p>
-        )}
-      </div>
-
-      {/* Loading dots animation */}
-      <div className="flex space-x-1">
-        <div className="w-2 h-2 bg-theme-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-2 h-2 bg-theme-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-2 h-2 bg-theme-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-      </div>
-
-      {/* Screen reader text */}
+      )}
+      
       <span className="sr-only">Loading content, please wait...</span>
     </div>
   );
 };
+
+// Specialized loading components
+export const BrainLoadingSpinner = ({ message = "AI is thinking...", size = "md" }) => (
+  <LoadingSpinner message={message} variant="brain" size={size} />
+);
+
+export const DotLoadingSpinner = ({ message = "Processing...", size = "md" }) => (
+  <LoadingSpinner message={message} variant="dots" size={size} />
+);
+
+export const PulseLoadingSpinner = ({ message = "Loading...", size = "md" }) => (
+  <LoadingSpinner message={message} variant="pulse" size={size} />
+);
+
+// Loading fallback for Suspense
+export const SuspenseFallback = () => (
+  <div className="flex items-center justify-center min-h-[200px]">
+    <LoadingSpinner message="Loading component..." size="md" />
+  </div>
+);
 
 export default LoadingSpinner;

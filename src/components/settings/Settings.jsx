@@ -17,7 +17,6 @@ import ColorPicker from "./ColorPicker";
 import BackupRestore from "../backup/BackupRestore";
 // import { useAppContext } from "@/contexts/AppContext"; // Reserved for future use
 import { useColorTheme } from "@/hooks/useColorTheme";
-import { validateApiKey, sanitizeInput } from "@/utils/security";
 import {
   Brain,
   Palette,
@@ -31,14 +30,15 @@ import {
   Upload,
   RotateCcw,
   Trash2,
+  Eye,
+  EyeOff,
   Database,
-  Key,
 } from "lucide-react";
 
 const Settings = ({ theme, toggleTheme }) => {
+  // const { exportData, importRoadmapData } = useAppContext(); // Reserved for future use
   const isDarkMode = theme === 'dark';
   const { currentTheme, changeTheme } = useColorTheme(isDarkMode);
-  // State variables with proper setters
   const [autoSave, setAutoSave] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [exportFormat, setExportFormat] = useState("markdown");
@@ -46,13 +46,8 @@ const Settings = ({ theme, toggleTheme }) => {
   const [minPhases, setMinPhases] = useState(15);
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
-  
-  // API Key security states
-  const [apiKey, setApiKey] = useState("");
-  // These states are kept for future implementation
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyValidation, setApiKeyValidation] = useState({ isValid: true, error: null });
-  
+  // const [aiManager, setAiManager] = useState(null); // Reserved for future use
+
   useEffect(() => {
     const savedAutoSave = localStorage.getItem("auto-save");
     if (savedAutoSave !== null) {
@@ -87,14 +82,6 @@ const Settings = ({ theme, toggleTheme }) => {
     const savedAdaptiveDifficulty = localStorage.getItem("adaptive-difficulty");
     if (savedAdaptiveDifficulty !== null) {
       setAdaptiveDifficulty(savedAdaptiveDifficulty === "true");
-    }
-
-    // Load API key
-    const savedApiKey = localStorage.getItem("gemini-api-key");
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      const validation = validateApiKey(savedApiKey);
-      setApiKeyValidation(validation);
     }
   }, []);
 
@@ -180,60 +167,6 @@ const Settings = ({ theme, toggleTheme }) => {
     };
     reader.readAsText(file);
     event.target.value = "";
-  };
-
-  // API Key management functions
-  const handleApiKeyChange = (value) => {
-    const sanitized = sanitizeInput(value);
-    setApiKey(sanitized);
-    
-    if (sanitized.length > 0) {
-      const validation = validateApiKey(sanitized);
-      setApiKeyValidation(validation);
-    } else {
-      setApiKeyValidation({ isValid: true, error: null });
-    }
-  };
-
-  const handleApiKeySave = () => {
-    if (!apiKey.trim()) {
-      toast.error("Please enter an API key");
-      return;
-    }
-
-    const validation = validateApiKey(apiKey);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return;
-    }
-
-    localStorage.setItem("gemini-api-key", apiKey);
-    setApiKeyValidation(validation);
-    toast.success("API key saved successfully!");
-  };
-
-  const handleApiKeyClear = () => {
-    setApiKey("");
-    localStorage.removeItem("gemini-api-key");
-    setApiKeyValidation({ isValid: true, error: null });
-    toast.success("API key cleared");
-  };
-
-  // Mark unused variables with _ to satisfy linter
-  // This must be after all handler functions are defined
-  const _unusedVars = { 
-    setNotifications, 
-    setExportFormat, 
-    setLanguage, 
-    setMinPhases, 
-    setMaxPhases, 
-    setAdaptiveDifficulty, 
-    showApiKey, 
-    apiKeyValidation,
-    handleApiKeyChange,
-    handleApiKeySave,
-    handleApiKeyClear,
-    setShowApiKey
   };
 
   return (
