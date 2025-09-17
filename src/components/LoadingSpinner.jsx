@@ -16,13 +16,6 @@ const LoadingSpinner = ({
     xl: "w-16 h-16"
   };
 
-  const iconSize = {
-    sm: 16,
-    md: 20,
-    lg: 24,
-    xl: 32
-  };
-
   const getVariantIcon = () => {
     switch (variant) {
       case "brain":

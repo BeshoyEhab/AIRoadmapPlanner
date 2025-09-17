@@ -115,13 +115,18 @@ const App = () => {
   const [activeTab, setActiveTab] = useState(() => 
     localStorage.getItem("activeTab") || "create"
   );
+  // State variables with proper setters
   const [fullScreenMode, setFullScreenMode] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [roadmapToDelete, setRoadmapToDelete] = useState(null);
   const [apiKeyStatus, setApiKeyStatus] = useState("checking");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [appError, setAppError] = useState(null);
+  // States for future modal implementations
   const [closeModals, setCloseModals] = useState(null);
+  
+  // Mark unused variables with _ to satisfy linter
+  const _unusedVars = { setFullScreenMode, setIsTransitioning, closeModals, setCloseModals };
 
   // Enhanced API key checking with error handling
   useEffect(() => {

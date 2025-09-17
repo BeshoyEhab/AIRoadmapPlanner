@@ -107,16 +107,6 @@ export function generateCSPHeader({
     .join('; ');
 }
 
-/**
- * Generates a cryptographically secure random string
- * @param {number} length - Length of the string to generate
- * @returns {string} Random string
- */
-function generateRandomString(length) {
-  if (length <= 0) throw new Error('Length must be greater than 0');
-  const bytes = crypto.randomBytes(Math.ceil(length / 2));
-  return bytes.toString('hex').slice(0, length);
-}
 
 // Export for testing
 export const _private = {

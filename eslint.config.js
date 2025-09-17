@@ -47,5 +47,27 @@ export default [
       'no-unused-vars': 'off',
       'no-undef': 'off'
     }
+  },
+  {
+    // Configure Jest environment for test files
+    files: ['**/__tests__/**/*.js', '**/__tests__/**/*.jsx', '**/*.test.js', '**/*.test.jsx'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        ...globals.jasmine,
+        describe: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        it: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly'
+      }
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off'
+    }
   }
 ]

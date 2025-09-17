@@ -29,7 +29,7 @@ function updateNetlifyConfig() {
       scriptNonce = noncesData.scriptNonce;
       styleNonce = noncesData.styleNonce;
       console.log('📖 Using nonces from build output');
-    } catch (error) {
+    } catch (_error) {
       console.warn('⚠️ Could not read nonces from build output, generating new ones');
       const nonces = generateNonces();
       scriptNonce = nonces.scriptNonce;

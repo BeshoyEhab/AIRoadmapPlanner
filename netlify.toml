@@ -53,7 +53,6 @@
   package = "@netlify/plugin-lighthouse"
   [plugins.inputs]
     output_path = "lighthouse-report.html"
-    config_path = "lighthouse.config.js"
 
 # Form handling (for future contact forms)
 [build.processing]

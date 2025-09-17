@@ -183,7 +183,7 @@ export const validateJsonData = (data) => {
     }
 
     return { isValid: true, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { isValid: false, error: 'Invalid data structure' };
   }
 };

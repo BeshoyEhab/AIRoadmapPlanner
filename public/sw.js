@@ -4,6 +4,9 @@ const STATIC_CACHE_NAME = 'ai-roadmap-planner-static-v1';
 const DYNAMIC_CACHE_NAME = 'ai-roadmap-planner-dynamic-v1';
 const MAX_ITEMS = 50; // Maximum number of items in dynamic cache
 
+// Ensure clients is available in all contexts
+const clients = self.clients || self.registration?.clients;
+
 // Files to cache for offline functionality
 const STATIC_ASSETS = [
   '/',

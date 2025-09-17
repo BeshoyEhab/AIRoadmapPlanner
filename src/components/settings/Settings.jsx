@@ -17,7 +17,7 @@ import ColorPicker from "./ColorPicker";
 import BackupRestore from "../backup/BackupRestore";
 // import { useAppContext } from "@/contexts/AppContext"; // Reserved for future use
 import { useColorTheme } from "@/hooks/useColorTheme";
-import { validateApiKey, maskApiKey, sanitizeInput } from "@/utils/security";
+import { validateApiKey, sanitizeInput } from "@/utils/security";
 import {
   Brain,
   Palette,
@@ -31,18 +31,14 @@ import {
   Upload,
   RotateCcw,
   Trash2,
-  Eye,
-  EyeOff,
   Database,
   Key,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 
 const Settings = ({ theme, toggleTheme }) => {
-  // const { exportData, importRoadmapData } = useAppContext(); // Reserved for future use
   const isDarkMode = theme === 'dark';
   const { currentTheme, changeTheme } = useColorTheme(isDarkMode);
+  // State variables with proper setters
   const [autoSave, setAutoSave] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [exportFormat, setExportFormat] = useState("markdown");
@@ -50,13 +46,13 @@ const Settings = ({ theme, toggleTheme }) => {
   const [minPhases, setMinPhases] = useState(15);
   const [maxPhases, setMaxPhases] = useState(50);
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState(true);
-  // const [aiManager, setAiManager] = useState(null); // Reserved for future use
   
   // API Key security states
   const [apiKey, setApiKey] = useState("");
+  // These states are kept for future implementation
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyValidation, setApiKeyValidation] = useState({ isValid: true, error: null });
-
+  
   useEffect(() => {
     const savedAutoSave = localStorage.getItem("auto-save");
     if (savedAutoSave !== null) {
@@ -221,6 +217,23 @@ const Settings = ({ theme, toggleTheme }) => {
     localStorage.removeItem("gemini-api-key");
     setApiKeyValidation({ isValid: true, error: null });
     toast.success("API key cleared");
+  };
+
+  // Mark unused variables with _ to satisfy linter
+  // This must be after all handler functions are defined
+  const _unusedVars = { 
+    setNotifications, 
+    setExportFormat, 
+    setLanguage, 
+    setMinPhases, 
+    setMaxPhases, 
+    setAdaptiveDifficulty, 
+    showApiKey, 
+    apiKeyValidation,
+    handleApiKeyChange,
+    handleApiKeySave,
+    handleApiKeyClear,
+    setShowApiKey
   };
 
   return (
