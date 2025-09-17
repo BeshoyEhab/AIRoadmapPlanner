@@ -46,7 +46,7 @@ function generateIcon(size, name) {
 }
 
 // Generate icons
-const icons = [
+const _icons = [
   generateIcon(192, 'icon-192'),
   generateIcon(512, 'icon-512'),
   generateIcon(1024, 'screenshot-desktop')
